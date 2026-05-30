@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Z-Deck Firmware Pack</title>
+  <title>Z-Deck Firmware Pack Beta</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
@@ -30,14 +30,19 @@
       <div class="copy">
         <p class="eyebrow">ITSZ public flasher</p>
         <h1>Z-Deck Firmware Pack</h1>
-        <p>Flash the bundled T-Deck firmware from a browser, then finish private Meshtastic setup with your own channel data.</p>
+        <p>Beta 1 browser flasher for the T-Deck build. Flash the bundled firmware, then finish private Meshtastic setup with your own channel data.</p>
+        <div class="linkbar" aria-label="Project links">
+          <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/issues/new/choose" target="_blank" rel="noreferrer">Report Problem</a>
+          <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/releases" target="_blank" rel="noreferrer">Releases</a>
+        </div>
       </div>
     </section>
 
     <section class="panel">
       <div>
         <h2>Bundled Firmware</h2>
-        <p>Version <strong>2.8.0.itsz1</strong>, target <strong>t-deck-tft</strong>, build skin <strong>ITSZ Classic</strong>.</p>
+        <p>Release <strong>Z-Deck 2.8.0.itsz1-beta.1</strong>, target <strong>t-deck-tft</strong>, build skin <strong>ITSZ Classic</strong>.</p>
       </div>
       <esp-web-install-button id="installButton" manifest="manifest.json">
         <button slot="activate" class="action">Connect and flash</button>
@@ -69,6 +74,32 @@
         <h3>After Flash</h3>
         <p>Set your Meshtastic owner, region, GPS, channels, and private keys after flashing. Private channels, PSKs, channel URLs, and admin keys stay outside this public repo.</p>
       </article>
+    </section>
+
+    <section class="docs-grid" aria-label="Release documents">
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/COMPATIBILITY.md" target="_blank" rel="noreferrer">Compatibility</a>
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/RECOVERY.md" target="_blank" rel="noreferrer">Recovery</a>
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/KNOWN_ISSUES.md" target="_blank" rel="noreferrer">Known Issues</a>
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">Privacy</a>
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/SOURCE.md" target="_blank" rel="noreferrer">Source</a>
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">Changelog</a>
+    </section>
+
+    <section class="release-panel">
+      <div>
+        <p class="eyebrow">beta notes</p>
+        <h2>Release Notes</h2>
+        <p>Z-Deck is Meshtastic firmware with a custom T-Deck layer: ITSZ Classic UI, GPS/compass refresh work, map/cache changes, screen correction tools, USB API recovery behavior, and an SD-card message journal.</p>
+        <p class="warning">Message journal entries are stored as plaintext local history on the SD card.</p>
+        <code>/itsz/history/messages.jsonl</code>
+      </div>
+      <div>
+        <p class="eyebrow">github history</p>
+        <h2>Recent Changes</h2>
+        <ul id="commitList" class="commit-list">
+          <li>Loading GitHub change history...</li>
+        </ul>
+      </div>
     </section>
   </main>
   <script src="app.js"></script>

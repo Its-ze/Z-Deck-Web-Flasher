@@ -1,8 +1,18 @@
 # Z-Deck Web Flasher
 
-Public GitHub Pages flasher for the ITSZ Z-Deck Firmware Pack.
+Public GitHub Pages flasher for **Z-Deck Firmware Pack Beta 1**.
 
-This repo intentionally contains only the browser flashing site and non-secret firmware artifacts. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or the full firmware workbench.
+This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped beta. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
+
+Live flasher:
+
+https://its-ze.github.io/Z-Deck-Web-Flasher/
+
+## Release Status
+
+This is **beta / experimental firmware**, not a stable production Meshtastic release.
+
+Use it if you are comfortable recovering an ESP32-S3 T-Deck through bootloader mode. Keep a known-good Meshtastic release nearby in case you need to roll back.
 
 ## Use
 
@@ -27,8 +37,17 @@ For local private builds or arbitrary local firmware files, use the private pack
 
 ## Included Build
 
-- Version: `2.8.0.itsz1`
+- Release label: `Z-Deck 2.8.0.itsz1-beta.1`
+- Firmware base version: `2.8.0.itsz1`
 - Target: `t-deck-tft`
 - Chip: `ESP32-S3`
 - Layout: bootloader, partitions, boot_app0, OTA app slots, LittleFS
 
+## Documentation
+
+- [Compatibility](COMPATIBILITY.md)
+- [Recovery and rollback](RECOVERY.md)
+- [Known issues](KNOWN_ISSUES.md)
+- [Privacy and SD message journal](PRIVACY.md)
+- [Release notes](CHANGELOG.md)
+- [Source and attribution](SOURCE.md)

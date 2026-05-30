@@ -1,6 +1,6 @@
 {
-  "name": "Z-Deck Firmware Pack",
-  "version": "2.8.0.itsz1",
+  "name": "Z-Deck Firmware Pack Beta",
+  "version": "2.8.0.itsz1-beta.1",
   "new_install_prompt_erase": false,
   "builds": [
     {
@@ -34,4 +34,3 @@
     }
   ]
 }
-

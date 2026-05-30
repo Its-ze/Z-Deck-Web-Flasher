@@ -1,0 +1,44 @@
+name: Z-Deck bug report
+description: Report a flashing, boot, display, GPS, map, SD journal, or Meshtastic issue.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a Z-Deck beta issue. Do not paste private keys, PSKs, channel URLs, admin keys, or private messages.
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: T-Deck, T-Deck Plus, or other hardware.
+      placeholder: LILYGO T-Deck Plus
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Z-Deck version
+      placeholder: 2.8.0.itsz1-beta.1
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Opened the flasher
+        2. Put device in bootloader mode
+        3. Clicked Connect and flash
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Paste non-sensitive logs or add screenshots.
