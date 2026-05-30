@@ -8,6 +8,10 @@ Live flasher:
 
 https://its-ze.github.io/Z-Deck-Web-Flasher/
 
+Hosted wiki:
+
+https://its-ze.github.io/Z-Deck-Web-Flasher/wiki/
+
 ## Release Status
 
 This is **beta / experimental firmware**, not a stable production Meshtastic release.

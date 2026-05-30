@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Z-Deck Wiki</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <main class="shell wiki-shell">
+    <section class="wiki-hero">
+      <p class="eyebrow">field manual</p>
+      <h1>Z-Deck Wiki</h1>
+      <p>Quick reference for flashing, recovery, compatibility, privacy, source patches, and beta notes.</p>
+      <div class="linkbar">
+        <a href="../">Web Flasher</a>
+        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/issues/new/choose" target="_blank" rel="noreferrer">Report Problem</a>
+        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/releases/tag/zdeck-2.8.0-itsz1-beta.1" target="_blank" rel="noreferrer">Beta Release</a>
+      </div>
+    </section>
+
+    <section class="release-panel">
+      <div>
+        <p class="eyebrow">status</p>
+        <h2>Beta 1</h2>
+        <p><strong>Z-Deck 2.8.0.itsz1-beta.1</strong> is experimental T-Deck firmware based on Meshtastic `2.8` for the `t-deck-tft` target.</p>
+        <p>Keep bootloader recovery available and do not flash non-T-Deck hardware.</p>
+      </div>
+      <div>
+        <p class="eyebrow">core links</p>
+        <ul class="commit-list">
+          <li><a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/COMPATIBILITY.md" target="_blank" rel="noreferrer">Compatibility</a></li>
+          <li><a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/RECOVERY.md" target="_blank" rel="noreferrer">Recovery and rollback</a></li>
+          <li><a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/KNOWN_ISSUES.md" target="_blank" rel="noreferrer">Known issues</a></li>
+          <li><a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">Privacy and SD journal</a></li>
+          <li><a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/SOURCE.md" target="_blank" rel="noreferrer">Source and license</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wiki-grid">
+      <article>
+        <h3>Flash</h3>
+        <ol>
+          <li>Open the web flasher in Chrome or Edge.</li>
+          <li>Plug in the T-Deck over USB.</li>
+          <li>Use bootloader mode if the port does not appear.</li>
+          <li>Click Connect and flash.</li>
+          <li>Reboot and configure Meshtastic settings.</li>
+        </ol>
+      </article>
+      <article>
+        <h3>Bootloader Mode</h3>
+        <ol>
+          <li>Hold center trackball / BOOT.</li>
+          <li>Tap RESET.</li>
+          <li>Release RESET.</li>
+          <li>Release BOOT after the serial port appears.</li>
+        </ol>
+      </article>
+      <article>
+        <h3>Custom Layer</h3>
+        <p>Z-Deck keeps Meshtastic radio behavior and adds ITSZ Classic UI, GPS/compass refresh changes, map/cache work, screen correction tools, USB recovery behavior, and an SD message journal.</p>
+      </article>
+      <article>
+        <h3>Privacy</h3>
+        <p>The public flasher does not include private channels, PSKs, channel URLs, admin keys, saved chats, or personal node config.</p>
+        <p class="warning">The SD journal stores text locally in plaintext.</p>
+        <code>/itsz/history/messages.jsonl</code>
+      </article>
+      <article>
+        <h3>Compatibility</h3>
+        <p>Target: LILYGO T-Deck / T-Deck Plus class devices, ESP32-S3, `t-deck-tft`, 16MB flash layout.</p>
+      </article>
+      <article>
+        <h3>Source</h3>
+        <p>Based on Meshtastic firmware, GPLv3. Public source patches are included under `source/patches/` in the repo.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

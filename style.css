@@ -161,6 +161,12 @@ pre {
   margin: 0 0 18px;
 }
 
+.wiki-hero h1 {
+  font-size: clamp(42px, 8vw, 92px);
+  line-height: 0.92;
+  margin: 0 0 18px;
+}
+
 .copy p {
   color: var(--muted);
   line-height: 1.6;
@@ -192,7 +198,7 @@ pre {
   background: #07100c;
 }
 
-.linkbar a:nth-child(2) {
+.linkbar a[href*="issues"] {
   color: var(--amber);
   border-color: var(--amber);
 }
@@ -280,7 +286,7 @@ input,
 
 .docs-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px;
   margin: 18px 0;
 }
@@ -323,6 +329,36 @@ input,
   text-decoration: none;
 }
 
+.wiki-shell {
+  padding-top: 64px;
+}
+
+.wiki-hero {
+  min-height: 42vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.wiki-hero p {
+  color: var(--muted);
+  max-width: 760px;
+  line-height: 1.6;
+}
+
+.wiki-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.wiki-grid article {
+  border: 1px solid var(--line);
+  background: rgba(17, 24, 21, 0.92);
+  padding: 20px;
+}
+
 @keyframes plug {
   0%, 30% { transform: translateX(0); }
   52%, 72% { transform: translateX(calc(100vw - 430px)); }
@@ -338,6 +374,7 @@ input,
 @media (max-width: 820px) {
   .hero,
   .grid,
+  .wiki-grid,
   .release-panel {
     grid-template-columns: 1fr;
   }
