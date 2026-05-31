@@ -1,8 +1,9 @@
 const lines = [
-  "deck bus: waiting for USB-C signal",
-  "serial probe: ESP32-S3 target expected",
+  "usb link: waiting for T-Deck",
+  "target: ESP32-S3 / t-deck-tft",
   "firmware: Z-Deck 0.2.0-public",
-  "layout: app0 + app1 + littlefs",
+  "default mesh: LongFast only",
+  "flash map: app0 + app1 + littlefs",
   "ready: connect deck and authorize serial"
 ];
 
