@@ -51,7 +51,7 @@
     "preferredEnvironment": "t-deck-tft",
     "windowsCoreDirWorkaround": "C:\\p",
     "wslBuildHelper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\build-tdeck-wsl.sh",
-    "latestFlashedBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-215349-t-deck-tft",
+    "latestFlashedBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-222402-t-deck-tft",
     "latestBuiltBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-222402-t-deck-tft",
     "customBuild": {
       "firmwareVersion": "2.8.0.itsz1",
@@ -59,7 +59,7 @@
       "displayName": "ITSZ T-Deck Classic",
       "ui": "Low-color black/white/green palette closer to the original Meshtastic look, with explicit mesh idle, map source/GPS, a centered map waiting card when GPS/tiles are not ready, and compact TX/RX status chips for sent/heard/ack/fail."
     },
-    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-222402 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, on-device internet/satellite map menu, explicit mesh idle/map source/message delivery labels, polished map waiting/status card, clearer TX/RX status chips, forced physical USB serial API access, recovery controls, SD message journal, and Tools -> Screen Correction. Flash/runtime API verification for the 20260530-222402 build is pending."
+    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-222402 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, on-device internet/satellite map menu, explicit mesh idle/map source/message delivery labels, polished map waiting/status card, clearer TX/RX status chips, forced physical USB serial API access, recovery controls, SD message journal, and Tools -> Screen Correction. Flash completed and esptool verified writes on COM16; runtime API verification is pending because raw serial still reports ESP32-S3 DOWNLOAD boot mode."
   },
   "flash": {
     "helper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\flash-latest-tdeck-build.ps1",
@@ -74,7 +74,7 @@
     },
     "verified": true,
     "pendingFlashBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-222402-t-deck-tft",
-    "pendingReason": "New UI polish build is ready to flash. Use ESP32-S3 bootloader mode for flashing, then return the T-Deck to normal boot mode for Meshtastic API verification."
+    "pendingReason": "Flash is written and verified. Put the T-Deck back into normal boot mode; raw serial currently reports boot:0x0 DOWNLOAD(USB/UART0), so Meshtastic API cannot answer until GPIO0/BOOT is released and the board resets normally."
   },
   "privateBackup": {
     "repository": "Its-ze/MeshTas-Private-Keys",
