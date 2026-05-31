@@ -14,7 +14,7 @@
     "firmwareVersion": "2.8.0.itsz1",
     "platformEnvironment": "t-deck-tft",
     "appPort": "COM17",
-    "status": "Working and configured on 2026-05-29 after adding the ITSZ_FORCE_USB_SERIAL_API firmware override. The T-Deck Plus enumerated as COM17 after flash and completed Meshtastic serial API handshakes.",
+    "status": "Working and configured on 2026-05-31 after flashing the 20260530-222402 Z-Deck UI polish build. The T-Deck enumerated as COM17, completed Meshtastic serial API handshakes, reported firmware 2.8.0.itsz1, owner ITSZ T-Deck / TDK, LongFast primary, and ITSZPriv secondary.",
     "configDoc": "F:\\Dropbox\\Dev Ops\\T-Deck\\docs\\stable-runtime-2026-05-29.md"
   },
   "source": {
@@ -59,7 +59,7 @@
       "displayName": "ITSZ T-Deck Classic",
       "ui": "Low-color black/white/green palette closer to the original Meshtastic look, with explicit mesh idle, map source/GPS, a centered map waiting card when GPS/tiles are not ready, and compact TX/RX status chips for sent/heard/ack/fail."
     },
-    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-222402 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, on-device internet/satellite map menu, explicit mesh idle/map source/message delivery labels, polished map waiting/status card, clearer TX/RX status chips, forced physical USB serial API access, recovery controls, SD message journal, and Tools -> Screen Correction. Flash completed and esptool verified writes on COM16; runtime API verification is pending because raw serial still reports ESP32-S3 DOWNLOAD boot mode."
+    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-222402 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, on-device internet/satellite map menu, explicit mesh idle/map source/message delivery labels, polished map waiting/status card, clearer TX/RX status chips, forced physical USB serial API access, recovery controls, SD message journal, and Tools -> Screen Correction. Flash completed and esptool verified writes on COM16; normal boot later enumerated as COM17 and Meshtastic API verification passed."
   },
   "flash": {
     "helper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\flash-latest-tdeck-build.ps1",
@@ -74,7 +74,7 @@
     },
     "verified": true,
     "pendingFlashBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-222402-t-deck-tft",
-    "pendingReason": "Flash is written and verified. Put the T-Deck back into normal boot mode; raw serial currently reports boot:0x0 DOWNLOAD(USB/UART0), so Meshtastic API cannot answer until GPIO0/BOOT is released and the board resets normally."
+    "pendingReason": "No pending flash action. Runtime API verified on COM17 after normal reset; owner and public channel names restored, and ITSZPriv secondary channel name verified without exposing secret material."
   },
   "privateBackup": {
     "repository": "Its-ze/MeshTas-Private-Keys",
