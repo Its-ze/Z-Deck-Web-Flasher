@@ -1,6 +1,6 @@
-const idleLines = [
+﻿const idleLines = [
   "status: waiting for T-Deck",
-  "firmware: Z-Deck 0.2.0-public / LongFast",
+  "firmware: Z-Deck 0.2.1-public / LongFast",
   "target: ESP32-S3 / t-deck-tft",
   "bundle: ringtone fix + USB SD storage",
   "ready: connect deck and authorize serial"
@@ -24,7 +24,7 @@ installButton.addEventListener("click", () => {
   setTicker([
     "status: serial action requested",
     "next: choose the T-Deck port in the browser prompt",
-    "firmware: Z-Deck 0.2.0-public / LongFast",
+    "firmware: Z-Deck 0.2.1-public / LongFast",
     "flash map: app0 + app1 + littlefs",
     "features: TDECK SD CARD + SD reset tool"
   ]);
@@ -92,3 +92,4 @@ async function loadCommits() {
 }
 
 loadCommits();
+

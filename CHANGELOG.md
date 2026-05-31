@@ -1,4 +1,12 @@
-# Changelog
+﻿# Changelog
+
+## Z-Deck 0.2.1-public - 2026-05-31
+
+Boot label hotfix public refresh.
+
+- Rebuilt bundled firmware from 20260531-174556-t-deck-tft.
+- Fixed the T-Deck boot/version label so it stays compact and does not overlap the boot screen graphic.
+- Defaults remain LongFast only. No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
 
 ## Z-Deck 0.2.0-public - 2026-05-30
 
@@ -26,3 +34,4 @@ Firmware customization highlights:
 - Tools screen-correction sequence.
 - Forced physical USB serial API access for recovery.
 - SD-card message journal at `/itsz/history/messages.jsonl`.
+

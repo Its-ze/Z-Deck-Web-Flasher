@@ -1,6 +1,6 @@
-# Z-Deck Web Flasher
+﻿# Z-Deck Web Flasher
 
-Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.0 Public**.
+Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.1 PUBLIC**.
 
 This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped public build. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
 
@@ -41,7 +41,7 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 
 ## Included Build
 
-- Release label: `Z-Deck 0.2.0-public`
+- Release label: `Z-Deck 0.2.1-public`
 - Firmware base version: `2.8.0.zdeck2`
 - Target: `t-deck-tft`
 - Chip: `ESP32-S3`
@@ -59,3 +59,4 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 - [Privacy and SD message journal](PRIVACY.md)
 - [Release notes](CHANGELOG.md)
 - [Source and attribution](SOURCE.md)
+

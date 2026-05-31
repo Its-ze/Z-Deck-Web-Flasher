@@ -30,11 +30,11 @@ diff --git a/include/graphics/map/GeoPoint.h b/include/graphics/map/GeoPoint.h
 @@ -34,7 +52,8 @@ class GeoPoint
          //           FLOATING_POINT(std::atan(std::sinh(FLOATING_POINT(PI) * (1.0 - 2.0 * FLOATING_POINT(yTile) / n))));
      }
-
+ 
 -    GeoPoint(float lat, float lon, uint8_t zoom) : latitude(lat), longitude(lon), zoomLevel(255) { setZoom(zoom); }
 +    GeoPoint(float lat, float lon, uint8_t zoom) : latitude(clampLatitude(lat)), longitude(wrapLongitude(lon)), zoomLevel(255)
 +    { setZoom(zoom); }
-
+ 
      void setZoom(uint8_t zoom)
      {
 @@ -42,13 +61,29 @@ class GeoPoint
@@ -113,7 +113,7 @@ diff --git a/include/graphics/map/GeoPoint.h b/include/graphics/map/GeoPoint.h
 +            } else
 +                yPos = size - 1;
          }
-
+ 
 -        auto n = 1 << zoomLevel;
          float lon = FLOATING_POINT(xTile) / n * FLOATING_POINT(360.0) - FLOATING_POINT(180.0);
          float lat = FLOATING_POINT(180.0) / FLOATING_POINT(PI) *
@@ -124,7 +124,7 @@ diff --git a/include/graphics/map/MapTileSettings.h b/include/graphics/map/MapTi
 @@ -22,20 +22,31 @@ class MapTileSettings
      static float getDefaultLon(void) { return defaultLon; }
      static void setDefaultLon(float lon) { defaultLon = lon; }
-
+ 
      static const char *getPrefix(void) { return prefix; }
 -    static void setPrefix(const char *p) { strcpy(prefix, p); }
 +    static void setPrefix(const char *p)
@@ -132,7 +132,7 @@ diff --git a/include/graphics/map/MapTileSettings.h b/include/graphics/map/MapTi
 +        strncpy(prefix, p, sizeof(prefix) - 1);
 +        prefix[sizeof(prefix) - 1] = '\0';
 +    }
-
+ 
      static const char *getTileStyle(void) { return tileStyle; }
      static void setTileStyle(const char *p)
      {
@@ -147,7 +147,7 @@ diff --git a/include/graphics/map/MapTileSettings.h b/include/graphics/map/MapTi
 +            tileStyle[len + 1] = '\0';
 +        }
      }
-
+ 
      static const char *getTileFormat(void) { return tileFormat; }
 -    static void setTileFormat(const char *p) { strcpy(tileFormat, p); }
 +    static void setTileFormat(const char *p)
@@ -155,7 +155,7 @@ diff --git a/include/graphics/map/MapTileSettings.h b/include/graphics/map/MapTi
 +        strncpy(tileFormat, p, sizeof(tileFormat) - 1);
 +        tileFormat[sizeof(tileFormat) - 1] = '\0';
 +    }
-
+ 
      static uint16_t getTileProvider(void) { return tileProviderId; }
      static void setTileProvider(uint16_t id) { tileProviderId = id; }
 @@ -55,10 +64,10 @@ class MapTileSettings
@@ -177,12 +177,12 @@ diff --git a/include/graphics/map/OSMTiles.h b/include/graphics/map/OSMTiles.h
 +++ b/include/graphics/map/OSMTiles.h
 @@ -7,7 +7,7 @@
  #include <stdint.h>
-
+ 
  #ifndef IMG_PATH_LEN
 -#define IMG_PATH_LEN 64
 +#define IMG_PATH_LEN 128
  #endif
-
+ 
  /**
 diff --git a/source/graphics/map/MapTileSettings.cpp b/source/graphics/map/MapTileSettings.cpp
 --- a/source/graphics/map/MapTileSettings.cpp
@@ -216,7 +216,7 @@ diff --git a/source/graphics/map/SDCardService.cpp b/source/graphics/map/SDCardS
 --- a/source/graphics/map/SDCardService.cpp
 +++ b/source/graphics/map/SDCardService.cpp
 @@ -36,8 +36,8 @@ SDCardService::~SDCardService()
-
+ 
  bool SDCardService::load(const char *name, void *img)
  {
 -    char buf[128] = DRIVE_LETTER ":";
@@ -230,7 +230,7 @@ diff --git a/source/graphics/map/SdFatService.cpp b/source/graphics/map/SdFatSer
 --- a/source/graphics/map/SdFatService.cpp
 +++ b/source/graphics/map/SdFatService.cpp
 @@ -36,8 +36,8 @@ SdFatService::~SdFatService()
-
+ 
  bool SdFatService::load(const char *name, void *img)
  {
 -    char buf[128] = DRIVE_LETTER ":";
@@ -248,9 +248,9 @@ diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
  #include "util/ILog.h"
  #include <assert.h>
 +#include <cmath>
-
+ 
  #define HASH(X, Y) (((X) << 16) | ((Y)&0xFFFF))
-
+ 
 @@ -214,14 +215,39 @@ void MapPanel::center(void)
  {
      updateDimensions();
@@ -292,9 +292,9 @@ diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
 +        tilesY = 1;
      needsRedraw = true;
  }
-
+ 
 @@ -289,14 +306,16 @@ void MapPanel::moveCurrent(void)
-
+ 
  void MapPanel::setZoom(uint8_t zoom)
  {
 -    if (zoom > 1 && zoom <= 20) {
@@ -316,10 +316,10 @@ diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
 +    scrolled.setZoom(zoom);
 +    center();
  }
-
+ 
  void MapPanel::updateDimensions(void)
 @@ -336,9 +354,10 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
-
+ 
      // first check if we are already at the edge of the world tile map
      // TODO: allow sub-tile movement to the exact border (adapt scrollX/scrollY)
 +    const uint32_t worldTiles = 1UL << MapTileSettings::getZoomLevel();
@@ -330,7 +330,7 @@ diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
 +        (yStart + tilesY >= worldTiles && scrollY < 0)) {
          return false;
      }
-
+ 
 @@ -493,9 +512,10 @@ void MapPanel::update(uint32_t id, float lat, float lon)
  {
      auto it = mapObjects.find(id);
@@ -341,13 +341,13 @@ diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
      }
 -    drawObject(*it->second);
  }
-
+ 
  void MapPanel::update(uint32_t id, bool filtered)
 diff --git a/source/graphics/common/SdCard.cpp b/source/graphics/common/SdCard.cpp
 --- a/source/graphics/common/SdCard.cpp
 +++ b/source/graphics/common/SdCard.cpp
 @@ -166,7 +166,13 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
-
+ 
  std::string SDCard::getUrlProvider(const char *folder, const char *style)
  {
 -    String filename = String(folder) + "/" + String(style) + "/.url";
@@ -362,7 +362,7 @@ diff --git a/source/graphics/common/SdCard.cpp b/source/graphics/common/SdCard.c
      if (file) {
          String url = file.readStringUntil('\n');
 @@ -311,7 +317,13 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
-
+ 
  std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
  {
 -    String filename = String(folder) + "/" + String(style) + "/.url";
@@ -380,7 +380,7 @@ diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTVi
 --- a/source/graphics/TFT/TFTView_320x240.cpp
 +++ b/source/graphics/TFT/TFTView_320x240.cpp
 @@ -302,18 +302,24 @@ bool TFTView_320x240::init(void)
-
+ 
      // function callback for the map panel node symbol
      drawObjectCB = [this](uint32_t id, uint16_t x, uint16_t y, uint8_t zoom) {
 -        auto img = nodeObjects[id];
@@ -478,7 +478,7 @@ diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTVi
 +                latcenter /= count;
 +                loncenter /= count;
 +                map->setHomeLocation(latcenter * 1e-7, loncenter * 1e-7);
-
+ 
 -            // calculate optimal zoom factor to fit in all nodes of this range
 -            lv_obj_update_layout(objects.raw_map_panel);
 -            float rangeDeg = 1e-7 * (sortedLon[(pp - 1) * sortedLon.size() / pp] - sortedLon[sortedLon.size() / pp]);
@@ -531,11 +531,11 @@ diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTVi
 @@ -2714,7 +2737,7 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon
          lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
          lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-
+ 
 -        lv_obj_t *p = nodes[nodeNum];
 +        lv_obj_t *p = nodeIt->second;
          lv_label_set_text_fmt(lbl, "%s", lv_label_get_text(p->LV_OBJ_IDX(node_lbs_idx)));
-
+ 
          // position label callback
 @@ -2732,5 +2755,6 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon
          if (map) {
@@ -545,7 +545,7 @@ diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTVi
      }
  }
 @@ -4920,12 +4944,16 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon
-
+ 
      if (lat != 0 && lon != 0) {
          char buf[32];
          sprintf(buf, "%.5f %.5f", lat * 1e-7, lon * 1e-7);

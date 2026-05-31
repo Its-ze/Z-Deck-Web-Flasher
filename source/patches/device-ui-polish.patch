@@ -51,7 +51,7 @@ index 08eca0c..316564f 100644
 +        return pendingRequest ? "TX QUEUED" : "TX SENT";
      }
  }
-
+ 
 @@ -164,6 +164,7 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
      lv_obj_t *statusLabel = panel->spec_attr->children[1];
      lv_label_set_text(statusLabel, text);
@@ -59,10 +59,10 @@ index 08eca0c..316564f 100644
 +    lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
  }
  } // namespace
-
+ 
 @@ -2476,21 +2477,22 @@ void TFTView_320x240::setupDynamicMapMenu(void)
      lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
-
+ 
      mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
 -    lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
 -    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
@@ -90,13 +90,13 @@ index 08eca0c..316564f 100644
      lv_label_set_long_mode(mapStatusOverlayLabel, LV_LABEL_LONG_WRAP);
 -    lv_label_set_text(mapStatusOverlayLabel, "Map status loading...");
 +    lv_label_set_text(mapStatusOverlayLabel, "MAP STATUS\nwaiting for GPS/tiles");
-
+ 
      updateDynamicMapMenu();
  }
 @@ -2567,12 +2569,36 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
          lv_snprintf(gps, sizeof(gps), "GPS off");
      }
-
+ 
 -    const char *tiles = wifiConnected ? "online tiles" : cardDetected ? "SD tiles" : "no tiles";
 -    const char *locs = objectsOnMap > 0 ? "nodes plotted" : nodeCount > 0 ? "nodes lack GPS" : "no node locations";
 +    const bool mapUseful = gpsReady && objectsOnMap > 0;
@@ -120,7 +120,7 @@ index 08eca0c..316564f 100644
 +        lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
 +        lv_obj_set_style_text_color(mapStatusOverlayLabel, gpsReady ? colorLightGray : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
 +    }
-
+ 
      char buf[128];
 -    lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
 -                locs);
@@ -135,17 +135,17 @@ index 08eca0c..316564f 100644
      lv_obj_move_foreground(mapStatusOverlayLabel);
  }
 @@ -3168,7 +3194,7 @@ void TFTView_320x240::loadMap(void)
-
+ 
  void TFTView_320x240::updateLocationMap(uint32_t num)
  {
 -    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d located"), num, nodeCount);
 +    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d GPS"), num, nodeCount);
      updateMapStatusOverlay(num);
  }
-
+ 
 @@ -5032,11 +5058,20 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
      add_style_chat_message_style(textLabel);
-
+ 
      lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
 -    lv_obj_set_width(statusLabel, 200);
 +    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
@@ -182,7 +182,7 @@ index 08eca0c..316564f 100644
                                    : ack       ? colorBlueGreen
 @@ -7033,11 +7068,20 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
      add_style_new_message_style(msgLabel);
-
+ 
      lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
 -    lv_obj_set_width(statusLabel, 160);
 +    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
@@ -201,7 +201,7 @@ index 08eca0c..316564f 100644
 +    lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
 +    lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
 +    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
-
+ 
      if (state == MeshtasticView::eRunning) {
          lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
 @@ -7953,13 +7997,13 @@ void TFTView_320x240::task_handler(void)

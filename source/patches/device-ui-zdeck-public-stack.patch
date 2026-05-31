@@ -16,7 +16,7 @@ diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view
      static void ui_event_mapCacheButton(lv_event_t *e);
 +    static void ui_event_zdeckHealthButton(lv_event_t *e);
      static void ui_event_screenCorrectionButton(lv_event_t *e);
-
+ 
      // animations
 @@ -454,6 +457,10 @@
      lv_obj_t *mapCacheStatusLabel = nullptr;
@@ -38,12 +38,12 @@ diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTVi
      setupDynamicMapMenu();
 +    setupZDeckHealthTool();
      setupScreenCorrectionTool();
-
+ 
      // tools buttons
 @@ -2722,6 +2723,95 @@
      lv_obj_set_style_align(screenCorrectionButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
  }
-
+ 
 +void TFTView_320x240::setupZDeckHealthTool(void)
 +{
 +    if (zDeckHealthButton || !objects.tab_page_tools)
