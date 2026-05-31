@@ -17,6 +17,7 @@ The public beta includes the Z-Deck source patch set under [source/patches](sour
 - `device-ui-screen-correction.patch`
 - `device-ui-sd-message-journal.patch`
 - `device-ui-usability.patch`
+- `device-ui-polish.patch`
 - `patch-manifest.json`
 
 These patches document the custom changes layered on top of upstream Meshtastic firmware. The shipped binaries should be treated as GPLv3 firmware derived from Meshtastic plus these Z-Deck changes.
