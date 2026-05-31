@@ -50,7 +50,7 @@
     "preferredEnvironment": "t-deck-tft",
     "windowsCoreDirWorkaround": "C:\\p",
     "wslBuildHelper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\build-tdeck-wsl.sh",
-    "latestFlashedBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-125414-t-deck-tft",
+    "latestFlashedBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-215349-t-deck-tft",
     "latestBuiltBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-215349-t-deck-tft",
     "customBuild": {
       "firmwareVersion": "2.8.0.itsz1",
@@ -58,7 +58,7 @@
       "displayName": "ITSZ T-Deck Classic",
       "ui": "Low-color black/white/green palette closer to the original Meshtastic look, with explicit mesh idle, map source/GPS, and message delivery status labels."
     },
-    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-215349 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, on-device internet/satellite map menu, explicit mesh idle/map source/message delivery labels, forced physical USB serial API access, recovery controls, SD message journal, and Tools -> Screen Correction. Flash is pending bootloader mode."
+    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-215349 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, on-device internet/satellite map menu, explicit mesh idle/map source/message delivery labels, forced physical USB serial API access, recovery controls, SD message journal, and Tools -> Screen Correction. Flash completed and verified with esptool on COM16, but runtime API verification is pending because the board remained in ESP32-S3 DOWNLOAD bootloader mode."
   },
   "flash": {
     "helper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\flash-latest-tdeck-build.ps1",
@@ -73,7 +73,7 @@
     },
     "verified": true,
     "pendingFlashBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-215349-t-deck-tft",
-    "pendingReason": "Waiting for ESP32-S3 bootloader mode. Windows currently shows the app-side COM17 endpoint wedged with USB CDC error 31."
+    "pendingReason": "Flash is written. Put the T-Deck back into normal boot mode; raw serial currently reports boot:0x0 DOWNLOAD(USB/UART0), so Meshtastic API cannot answer until GPIO0/BOOT is released and the board resets normally."
   },
   "privateBackup": {
     "repository": "Its-ze/MeshTas-Private-Keys",
