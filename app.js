@@ -1,13 +1,10 @@
-const lines = [
-  "usb link: waiting for T-Deck",
+const idleLines = [
+  "status: waiting for T-Deck",
+  "firmware: Z-Deck 0.2.0-public / LongFast",
   "target: ESP32-S3 / t-deck-tft",
-  "firmware: Z-Deck 0.2.0-public",
-  "default mesh: LongFast only",
-  "flash map: app0 + app1 + littlefs",
   "ready: connect deck and authorize serial"
 ];
 
-let index = 0;
 const ticker = document.getElementById("ticker");
 const installButton = document.getElementById("installButton");
 const customManifest = document.getElementById("customManifest");
@@ -15,23 +12,28 @@ const applyManifest = document.getElementById("applyManifest");
 const manifestStatus = document.getElementById("manifestStatus");
 const commitList = document.getElementById("commitList");
 
-function tick() {
-  index = (index + 1) % lines.length;
-  const visible = [];
-  for (let i = 0; i < 4; i += 1) {
-    visible.push("> " + lines[(index + i) % lines.length]);
-  }
-  ticker.textContent = visible.join("\n");
+function setTicker(lines) {
+  if (!ticker) return;
+  ticker.textContent = lines.map((line) => "> " + line).join("\n");
 }
 
-tick();
-window.setInterval(tick, 1400);
+setTicker(idleLines);
+
+installButton.addEventListener("click", () => {
+  setTicker([
+    "status: serial action requested",
+    "next: choose the T-Deck port in the browser prompt",
+    "firmware: Z-Deck 0.2.0-public / LongFast",
+    "flash map: app0 + app1 + littlefs"
+  ]);
+});
 
 applyManifest.addEventListener("click", () => {
   const value = customManifest.value.trim();
   if (!value) {
     installButton.setAttribute("manifest", "manifest.json");
     manifestStatus.textContent = "Default manifest: bundled Z-Deck firmware.";
+    setTicker(idleLines);
     return;
   }
 
@@ -42,8 +44,19 @@ applyManifest.addEventListener("click", () => {
     }
     installButton.setAttribute("manifest", parsed.href);
     manifestStatus.textContent = "Custom manifest armed: " + parsed.href;
+    setTicker([
+      "status: custom manifest armed",
+      "manifest: " + parsed.href,
+      "next: connect deck and authorize serial",
+      "note: only flash manifests you trust"
+    ]);
   } catch (error) {
     manifestStatus.textContent = error.message || "That manifest URL is not valid.";
+    setTicker([
+      "status: manifest rejected",
+      "error: " + (error.message || "invalid manifest URL"),
+      "allowed: HTTPS, localhost, or 127.0.0.1"
+    ]);
   }
 });
 
