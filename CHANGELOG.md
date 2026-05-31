@@ -16,6 +16,7 @@ Firmware customization highlights:
 - ITSZ Classic low-color UI skin.
 - GPS/compass refresh changes.
 - Dynamic/safe map behavior and map cache menu work.
+- Explicit on-device mesh idle, map GPS/WiFi/tile source, and message sent/heard/ACK/failed status labels.
 - Tools screen-correction sequence.
 - Forced physical USB serial API access for recovery.
 - SD-card message journal at `/itsz/history/messages.jsonl`.

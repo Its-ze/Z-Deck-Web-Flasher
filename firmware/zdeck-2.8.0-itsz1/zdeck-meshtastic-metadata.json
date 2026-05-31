@@ -3,27 +3,27 @@
   "build_epoch": 1780113600,
   "platformioTarget": "t-deck-tft",
   "mcu": "esp32s3",
-  "repo": "unknown",
+  "repo": "meshtastic/firmware",
   "files": [
     {
-      "name": "firmware-t-deck-tft-2.8.0.elf",
-      "md5": "46f64ba0f54e5d7e28e780a1d95c0e07",
-      "bytes": 25959980
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.elf",
+      "md5": "b9ad8830e85d562ead4bbbff5455d36d",
+      "bytes": 25960572
     },
     {
-      "name": "firmware-t-deck-tft-2.8.0.bin",
-      "md5": "d7b3a38d6dbe955c4db39b9bdfdc5475",
-      "bytes": 3647120,
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.bin",
+      "md5": "b4b819eac999e88269ac2ccb6309dbd4",
+      "bytes": 3648928,
       "part_name": "app0"
     },
     {
-      "name": "firmware-t-deck-tft-2.8.0.factory.bin",
-      "md5": "f6ca615215093e30fa3e62a64fecd209",
-      "bytes": 3712656
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.factory.bin",
+      "md5": "15d326a6587f2f2d37d65dbcf2bc0141",
+      "bytes": 3714464
     },
     {
-      "name": "littlefs-t-deck-tft-2.8.0.bin",
-      "md5": "1c30598d528c6a171c5d48d4c87a04ee",
+      "name": "littlefs-t-deck-tft-2.8.0.35b0590.bin",
+      "md5": "e7f76dff9f1ff1915faccf1a77074f39",
       "bytes": 3538944,
       "part_name": "spiffs"
     }

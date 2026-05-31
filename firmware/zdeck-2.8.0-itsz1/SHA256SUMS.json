@@ -1,13 +1,13 @@
 ﻿[
     {
-        "Name":  "bootloader.bin",
-        "Length":  15104,
-        "SHA256":  "2a71d69b471e20c2bac7fb469f3c6a807b3ebee780e348e5889db0da849ca363"
-    },
-    {
         "Name":  "boot_app0.bin",
         "Length":  8192,
         "SHA256":  "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0"
+    },
+    {
+        "Name":  "bootloader.bin",
+        "Length":  15104,
+        "SHA256":  "2a71d69b471e20c2bac7fb469f3c6a807b3ebee780e348e5889db0da849ca363"
     },
     {
         "Name":  "partitions.bin",
@@ -15,23 +15,28 @@
         "SHA256":  "bd0f7954aca2ef7d925ee21aaa1f3dc8822d1d6ce5cbbd26a135e5886bfff6ce"
     },
     {
+        "Name":  "SHA256SUMS.json",
+        "Length":  1192,
+        "SHA256":  "da980d0b119c6ea416e992288cf0e1ec69fc13b12b264ca7cb0b22753f27e0ee"
+    },
+    {
         "Name":  "zdeck-factory.bin",
-        "Length":  3712656,
-        "SHA256":  "d221f75c89392a3324f16042e07f4955fc8ba5eac710467d3c729ac693f1fe85"
+        "Length":  3714464,
+        "SHA256":  "58940eeb4a83a8ff73dcd809ceff2f6b291af804903102fec8d0258daa532c62"
     },
     {
         "Name":  "zdeck-firmware.bin",
-        "Length":  3647120,
-        "SHA256":  "a8f8393947e1f6e7d3418803f4f71b4f42e4ee1de65d65eed79ea249c88abe2a"
+        "Length":  3648928,
+        "SHA256":  "a4e87c2269d3a5c75e3edfce07db21c26922b8db6868e6b952e10f707e24049c"
     },
     {
         "Name":  "zdeck-littlefs.bin",
         "Length":  3538944,
-        "SHA256":  "b795c87a0d9e1d8fb2fee45a9eab79d2b191bc32d8f83314635ff3727fab66bd"
+        "SHA256":  "d2e5ca4f87c311a1c7c03a9a3917492929c96e7dc4048a3f1c8cd2b065e57174"
     },
     {
         "Name":  "zdeck-meshtastic-metadata.json",
-        "Length":  2043,
-        "SHA256":  "077d8cb9a6e6fcf6e05d343c1623d68e1c4da92eb229b42ffc05a7a5a906198e"
+        "Length":  2087,
+        "SHA256":  "56ddbb2b966c71bf1ab4a0bf867b8af98425f6212af71e6b48d2bbd74bb81b5a"
     }
 ]

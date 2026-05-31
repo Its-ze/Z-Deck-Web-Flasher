@@ -1,6 +1,6 @@
 {
   "name": "itsz-tdeck-realtime-gps-compass",
-  "description": "Use GPS course as a near-real-time compass heading source on the ITSZ T-Deck, refresh compass-capable frames faster when GPS heading is available, apply the low-color ITSZ Classic T-Deck UI skin, patch the TFT map for safer SD tile/path handling plus dynamic node centering, add an on-device internet/satellite map cache menu, add a Tools screen-correction sequence, and force physical USB API access for field recovery.",
+  "description": "Use GPS course as a near-real-time compass heading source on the ITSZ T-Deck, refresh compass-capable frames faster when GPS heading is available, apply the low-color ITSZ Classic T-Deck UI skin, patch the TFT map for safer SD tile/path handling plus dynamic node centering, add an on-device internet/satellite map cache menu, make map/message/signal status explicit on the pager UI, add a Tools screen-correction sequence, and force physical USB API access for field recovery.",
   "targetDevice": {
     "longName": "ITSZ T-Deck",
     "shortName": "TDK",
@@ -29,6 +29,8 @@
     "itsz/device-ui-map.patch",
     "itsz/device-ui-map-internet.patch",
     "itsz/device-ui-screen-correction.patch",
+    "itsz/device-ui-sd-message-journal.patch",
+    "itsz/device-ui-usability.patch",
     "src/SerialConsole.cpp",
     "src/configuration.h",
     "src/GPSStatus.h",
@@ -49,14 +51,14 @@
     "windowsCoreDirWorkaround": "C:\\p",
     "wslBuildHelper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\build-tdeck-wsl.sh",
     "latestFlashedBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-125414-t-deck-tft",
-    "latestBuiltBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-145358-t-deck-tft",
+    "latestBuiltBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-215349-t-deck-tft",
     "customBuild": {
       "firmwareVersion": "2.8.0.itsz1",
       "buildName": "ITSZ Classic",
       "displayName": "ITSZ T-Deck Classic",
-      "ui": "Low-color black/white/green palette closer to the original Meshtastic look."
+      "ui": "Low-color black/white/green palette closer to the original Meshtastic look, with explicit mesh idle, map source/GPS, and message delivery status labels."
     },
-    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-145358 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, the on-device internet/satellite map menu, forced physical USB serial API access, recovery controls, and Tools -> Screen Correction. Flash is pending bootloader mode."
+    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-215349 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, on-device internet/satellite map menu, explicit mesh idle/map source/message delivery labels, forced physical USB serial API access, recovery controls, SD message journal, and Tools -> Screen Correction. Flash is pending bootloader mode."
   },
   "flash": {
     "helper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\flash-latest-tdeck-build.ps1",
@@ -70,7 +72,7 @@
       "littlefs": "0xc90000"
     },
     "verified": true,
-    "pendingFlashBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-145358-t-deck-tft",
+    "pendingFlashBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-215349-t-deck-tft",
     "pendingReason": "Waiting for ESP32-S3 bootloader mode. Windows currently shows the app-side COM17 endpoint wedged with USB CDC error 31."
   },
   "privateBackup": {
