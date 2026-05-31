@@ -189,12 +189,48 @@ body::before {
   stroke-width: 3;
 }
 
-.deck-bezel {
+.deck-edge {
+  fill: url("#edgeGrad");
+  opacity: 0.9;
+}
+
+.case-facet {
+  fill: rgba(255, 255, 255, 0.035);
+  stroke: rgba(82, 255, 154, 0.08);
+  stroke-width: 1;
+}
+
+.facet-b,
+.facet-d {
+  fill: rgba(95, 215, 255, 0.035);
+}
+
+.facet-c,
+.facet-e {
+  fill: rgba(0, 0, 0, 0.16);
+}
+
+.case-highlight {
+  fill: rgba(255, 255, 255, 0.09);
+}
+
+.usb-port {
+  fill: #06100e;
+  stroke: rgba(95, 215, 255, 0.68);
+  stroke-width: 2;
+}
+
+.usb-slot {
+  fill: rgba(95, 215, 255, 0.72);
+}
+
+.screen-frame {
   fill: #070d0b;
   stroke: #3c504b;
   stroke-width: 2;
 }
 
+.screen-glass,
 .deck-screen-panel {
   fill: url("#screenGrad");
   stroke: var(--green);
@@ -203,19 +239,34 @@ body::before {
 }
 
 .screen-chart,
+.screen-map,
 .screen-orbit {
   fill: none;
   stroke: var(--green);
-  stroke-width: 3;
+  stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
   filter: url("#greenGlow");
+}
+
+.screen-map {
+  opacity: 0.38;
+  stroke-width: 1.5;
 }
 
 .screen-dot,
 .status-stack circle {
   fill: var(--green);
   filter: url("#greenGlow");
+}
+
+.screen-bar {
+  fill: rgba(82, 255, 154, 0.74);
+  filter: url("#greenGlow");
+}
+
+.screen-bar.short {
+  opacity: 0.45;
 }
 
 .screen-title,
@@ -235,6 +286,7 @@ body::before {
   opacity: 0.86;
 }
 
+.nav-spine,
 .center-rail {
   fill: #0b1110;
   stroke: #40534d;
@@ -254,8 +306,18 @@ body::before {
   stroke-width: 3;
 }
 
+.trackball-ring {
+  fill: rgba(8, 12, 11, 0.9);
+  stroke: rgba(217, 232, 224, 0.68);
+  stroke-width: 3;
+}
+
+.trackball-glint {
+  fill: rgba(255, 255, 255, 0.72);
+}
+
 .key-grid rect {
-  fill: #101817;
+  fill: url("#keyGrad");
   stroke: #64716d;
   stroke-width: 1.3;
 }
