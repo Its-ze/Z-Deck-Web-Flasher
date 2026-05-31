@@ -59,7 +59,7 @@ index 0fdd08d..08eca0c 100644
 @@ -121,6 +121,52 @@ uint32_t TFTView_320x240::pinKeys = 0;
  bool TFTView_320x240::screenLocked = false;
  bool TFTView_320x240::screenUnlockRequest = false;
- 
+
 +namespace
 +{
 +const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingRequest)
@@ -124,7 +124,7 @@ index 0fdd08d..08eca0c 100644
 @@ -2428,6 +2475,23 @@ void TFTView_320x240::setupDynamicMapMenu(void)
      lv_obj_set_width(mapCacheStatusLabel, lv_pct(94));
      lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
- 
+
 +    mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
 +    lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
 +    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
@@ -144,11 +144,11 @@ index 0fdd08d..08eca0c 100644
 +
      updateDynamicMapMenu();
  }
- 
+
 @@ -2442,39 +2506,75 @@ void TFTView_320x240::updateDynamicMapMenu(void)
      const bool hasWifiConfig = db.config.network.wifi_ssid[0] != '\0' && db.config.network.wifi_psk[0] != '\0';
      const char *ssid = db.connectionStatus.wifi.ssid[0] ? db.connectionStatus.wifi.ssid : db.config.network.wifi_ssid;
- 
+
 -    char buf[112];
 +    char buf[144];
      if (!hasNetwork) {
@@ -177,7 +177,7 @@ index 0fdd08d..08eca0c 100644
          lv_label_set_text(mapInternetStatusLabel, buf);
          lv_label_set_text(mapInternetButtonLabel, "WIFI ON");
      }
- 
+
      if (MapTileSettings::saveOK()) {
 -        lv_snprintf(buf, sizeof(buf), "Cache: SD backfill on z%d %s", MapTileSettings::getZoomLevel(),
 +        lv_snprintf(buf, sizeof(buf), "Tiles: online + SD cache z%d %s", MapTileSettings::getZoomLevel(),
@@ -228,7 +228,7 @@ index 0fdd08d..08eca0c 100644
 +    lv_label_set_text(mapStatusOverlayLabel, buf);
 +    lv_obj_move_foreground(mapStatusOverlayLabel);
  }
- 
+
  void TFTView_320x240::openWifiSettingsFromMap(void)
 @@ -2911,11 +3011,10 @@ void TFTView_320x240::loadMap(void)
              lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
@@ -244,14 +244,14 @@ index 0fdd08d..08eca0c 100644
              }
              map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
 @@ -3069,7 +3168,8 @@ void TFTView_320x240::loadMap(void)
- 
+
  void TFTView_320x240::updateLocationMap(uint32_t num)
  {
 -    lv_label_set_text_fmt(objects.top_map_label, _("Locations Map (%d/%d)"), num, nodeCount);
 +    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d located"), num, nodeCount);
 +    updateMapStatusOverlay(num);
  }
- 
+
  /**
 @@ -3155,6 +3255,8 @@ void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t *e)
      lv_obj_add_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
@@ -259,7 +259,7 @@ index 0fdd08d..08eca0c 100644
          lv_label_set_text(objects.detector_start_label, _("Stop"));
 +        lv_label_set_text(objects.detector_heard_label, _("listening + pinging mesh"));
 +        lv_obj_clear_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
- 
+
          // create radar animation
          lv_anim_t &a = THIS->radar;
 @@ -3170,6 +3272,7 @@ void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t *e)
@@ -290,12 +290,12 @@ index 0fdd08d..08eca0c 100644
 +    lv_obj_set_flex_flow(hiddenPanel, LV_FLEX_FLOW_COLUMN);
 +    lv_obj_set_flex_align(hiddenPanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
      hiddenPanel->user_data = (void *)requestId;
- 
+
      // add timestamp
 @@ -4924,6 +5031,21 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
- 
+
      add_style_chat_message_style(textLabel);
- 
+
 +    lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
 +    lv_obj_set_width(statusLabel, 200);
 +    lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
@@ -313,7 +313,7 @@ index 0fdd08d..08eca0c 100644
 +
      lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
      lv_obj_move_foreground(objects.message_input_area);
- 
+
 @@ -4934,6 +5056,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
      case LogMessage::eAcked:
          lv_obj_set_style_border_color(textLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -349,7 +349,7 @@ index 0fdd08d..08eca0c 100644
 +        handleTextMessageResponse((unsigned long)req.cookie, req.id, false, true);
      }
  }
- 
+
 @@ -6110,9 +6237,9 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
  void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
  {
@@ -374,7 +374,7 @@ index 0fdd08d..08eca0c 100644
 +                                  : isChannel ? colorMesh
 +                                  : ack       ? colorBlueGreen
 +                                              : colorYellow);
- 
+
              // store message
              break;
 @@ -6883,6 +7019,9 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
@@ -384,13 +384,13 @@ index 0fdd08d..08eca0c 100644
 +    lv_obj_set_style_pad_row(hiddenPanel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
 +    lv_obj_set_flex_flow(hiddenPanel, LV_FLEX_FLOW_COLUMN);
 +    lv_obj_set_flex_align(hiddenPanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
- 
+
      lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
      // calculate expected size of text bubble, to make it look nicer
 @@ -6893,6 +7032,13 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
      lv_label_set_text(msgLabel, msg);
      add_style_new_message_style(msgLabel);
- 
+
 +    lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
 +    lv_obj_set_width(statusLabel, 160);
 +    lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
@@ -404,7 +404,7 @@ index 0fdd08d..08eca0c 100644
 @@ -7802,12 +7948,19 @@ void TFTView_320x240::task_handler(void)
                      controller->sendPing();
                  }
- 
+
 -                // if we didn't hear any node for 1h assume we have no signal
 +                // A quiet mesh does not mean the radio is broken. Show a mesh-specific idle state.
                  if (curtime - lastHeard > secs_until_offline) {

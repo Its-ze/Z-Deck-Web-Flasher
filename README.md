@@ -1,8 +1,8 @@
 # Z-Deck Web Flasher
 
-Public GitHub Pages flasher for **Z-Deck Firmware Pack Beta 1**.
+Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.0 Public**.
 
-This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped beta. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
+This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped public build. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
 
 Live flasher:
 
@@ -33,7 +33,7 @@ Bootloader mode:
 
 The page defaults to `manifest.json`. The advanced field can point to another HTTPS ESP Web Tools manifest if you want to flash a different hosted build.
 
-For local private builds or arbitrary local firmware files, use the private pack's Windows installer:
+For arbitrary local firmware files, use the Windows installer from the firmware pack:
 
 ```powershell
 .\Install-ZDeck.ps1 -FirmwareDir .\firmware\your-build
@@ -41,11 +41,12 @@ For local private builds or arbitrary local firmware files, use the private pack
 
 ## Included Build
 
-- Release label: `Z-Deck 2.8.0.itsz1-beta.1`
-- Firmware base version: `2.8.0.itsz1`
+- Release label: `Z-Deck 0.2.0-public`
+- Firmware base version: `2.8.0.zdeck2`
 - Target: `t-deck-tft`
 - Chip: `ESP32-S3`
 - Layout: bootloader, partitions, boot_app0, OTA app slots, LittleFS
+- Message UI: received packets show measured hop count as `H#`; unknown route data shows `H?`; outbound limits use `TTL#`.
 
 ## Documentation
 

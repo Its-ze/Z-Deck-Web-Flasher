@@ -1,5 +1,5 @@
 diff --git a/bin/platformio-custom.py b/bin/platformio-custom.py
-index b75c66624..588cf2f94 100644
+index b75c66624..6793a169f 100644
 --- a/bin/platformio-custom.py
 +++ b/bin/platformio-custom.py
 @@ -7,6 +7,7 @@ import subprocess
@@ -8,7 +8,7 @@ index b75c66624..588cf2f94 100644
  from datetime import datetime
 +from pathlib import Path
  from typing import Dict
- 
+
  from readprops import readProps
 @@ -137,6 +138,8 @@ def manifest_write(files, env):
          "has_mui": False,
@@ -19,8 +19,8 @@ index b75c66624..588cf2f94 100644
      # Get partition table (generated in esp32_pre.py) if it exists
      if env.get("custom_mtjson_part"):
          # custom_mtjson_part is a JSON string, convert it back to a dict
-@@ -201,6 +204,21 @@ Import("projenv")
- 
+@@ -201,6 +204,22 @@ Import("projenv")
+
  prefsLoc = projenv["PROJECT_DIR"] + "/version.properties"
  verObj = readProps(prefsLoc)
 +
@@ -35,24 +35,27 @@ index b75c66624..588cf2f94 100644
 +
 +custom_version_suffix = get_project_option_value("custom_meshtastic_version_suffix")
 +custom_build_name = get_project_option_value("custom_meshtastic_build_name")
++custom_zdeck_pack_version = get_project_option_value("custom_zdeck_pack_version", "0.2.0-public")
 +if custom_version_suffix:
 +    verObj["long"] = "{}.{}".format(verObj["short"], custom_version_suffix)
 +
  print(f"Using meshtastic platformio-custom.py, firmware version {verObj['long']} on {env.get('PIOENV')}")
- 
+
  # get repository owner if git is installed
-@@ -242,6 +260,7 @@ build_epoch = int(current_date.timestamp())
+@@ -242,6 +261,9 @@ build_epoch = int(current_date.timestamp())
  flags = [
          "-DAPP_VERSION=" + verObj["long"],
          "-DAPP_VERSION_SHORT=" + verObj["short"],
 +        "-DAPP_BUILD_NAME=" + env.StringifyMacro(custom_build_name),
++        "-DZDECK_PACK_VERSION=" + env.StringifyMacro(custom_zdeck_pack_version),
++        "-DZDECK_PUBLIC_BUILD=1",
          "-DAPP_ENV=" + env.get("PIOENV"),
          "-DAPP_REPO=" + repo_owner,
          "-DBUILD_EPOCH=" + str(build_epoch),
-@@ -255,9 +274,106 @@ projenv.Append(
+@@ -255,9 +277,125 @@ projenv.Append(
      CCFLAGS=flags,
  )
- 
+
 +def apply_itsz_device_ui_map_patch(lib_root):
 +    pioenv = env.get("PIOENV")
 +    if pioenv != "t-deck-tft":
@@ -66,6 +69,9 @@ index b75c66624..588cf2f94 100644
 +        project_dir / "itsz" / "device-ui-sd-message-journal.patch",
 +        project_dir / "itsz" / "device-ui-usability.patch",
 +        project_dir / "itsz" / "device-ui-polish.patch",
++        project_dir / "itsz" / "device-ui-delivery-status.patch",
++        project_dir / "itsz" / "device-ui-brand-version.patch",
++        project_dir / "itsz" / "device-ui-zdeck-public-stack.patch",
 +    ]
 +    for patch_path in patch_paths:
 +        if not patch_path.exists():
@@ -102,7 +108,18 @@ index b75c66624..588cf2f94 100644
 +            ],
 +            "device-ui-polish.patch": [
 +                ("source/graphics/TFT/TFTView_320x240.cpp", "MAP WAITING"),
-+                ("source/graphics/TFT/TFTView_320x240.cpp", "TX SENT (NO READ)"),
++                ("source/graphics/TFT/TFTView_320x240.cpp", "LoRa listening\\nno mesh packets"),
++            ],
++            "device-ui-delivery-status.patch": [
++                ("source/graphics/TFT/TFTView_320x240.cpp", "RX CH %u H%d"),
++                ("source/graphics/TFT/TFTView_320x240.cpp", "BCAST TTL%u NO ACK"),
++            ],
++            "device-ui-brand-version.patch": [
++                ("source/graphics/TFT/TFTView_320x240.cpp", "itszBootFirmwareLabel"),
++            ],
++            "device-ui-zdeck-public-stack.patch": [
++                ("source/graphics/TFT/TFTView_320x240.cpp", "setupZDeckHealthTool"),
++                ("include/graphics/view/TFT/TFTView_320x240.h", "zDeckHealthPanel"),
 +            ],
 +        }.get(patch_name, [])
 +
@@ -151,31 +168,37 @@ index b75c66624..588cf2f94 100644
 +
  for lb in env.GetLibBuilders():
      if lb.name == "meshtastic-device-ui":
-         lb.env.Append(CPPDEFINES=[("APP_VERSION", verObj["long"])])
+-        lb.env.Append(CPPDEFINES=[("APP_VERSION", verObj["long"])])
++        lb.env.Append(CPPDEFINES=[
++            ("APP_VERSION", verObj["long"]),
++            ("APP_BUILD_NAME", env.StringifyMacro(custom_build_name)),
++            ("ZDECK_PACK_VERSION", env.StringifyMacro(custom_zdeck_pack_version)),
++            ("ZDECK_PUBLIC_BUILD", "1"),
++        ])
 +        apply_itsz_device_ui_map_patch(Path(env.subst("$PROJECT_LIBDEPS_DIR")) / lb.name)
          break
- 
+
  # Get the display resolution from macros
 diff --git a/src/GPSStatus.h b/src/GPSStatus.h
 index 25c7b1039..b808e4e86 100644
 --- a/src/GPSStatus.h
 +++ b/src/GPSStatus.h
 @@ -79,8 +79,16 @@ class GPSStatus : public Status
- 
+
      uint32_t getDOP() const { return p.PDOP; }
- 
+
 +    bool getHasHeading() const { return p.has_ground_track; }
 +
 +    float getHeadingDegrees() const { return p.ground_track * 1e-5f; }
 +
      uint32_t getHeading() const { return p.ground_track; }
- 
+
 +    bool getHasGroundSpeed() const { return p.has_ground_speed; }
 +
 +    float getGroundSpeedKmh() const { return p.ground_speed * 1e-2f; }
 +
      uint32_t getNumSatellites() const { return p.sats_in_view; }
- 
+
      /// Return millis() when the last GPS fix occurred (0 = never)
 diff --git a/src/SerialConsole.cpp b/src/SerialConsole.cpp
 index 2a3f08cbc..2e099298b 100644
@@ -187,7 +210,7 @@ index 2a3f08cbc..2e099298b 100644
  #include "configuration.h"
 +#include "main.h"
  #include "time.h"
- 
+
 +#include <cstring>
 +
  #if defined(ARDUINO_USB_CDC_ON_BOOT) && ARDUINO_USB_CDC_ON_BOOT
@@ -196,7 +219,7 @@ index 2a3f08cbc..2e099298b 100644
 @@ -26,6 +29,101 @@
  // Defaulting to the formerly removed phone_timeout_secs value of 15 minutes
  #define SERIAL_CONNECTION_TIMEOUT (15 * 60) * 1000UL
- 
+
 +#if defined(ITSZ_SERIAL_RECOVERY) && ITSZ_SERIAL_RECOVERY
 +namespace
 +{
@@ -293,12 +316,12 @@ index 2a3f08cbc..2e099298b 100644
 +#endif
 +
  SerialConsole *console;
- 
+
  void consoleInit()
 @@ -91,7 +189,25 @@ int32_t SerialConsole::runOnce()
      }
  #endif
- 
+
 +#if defined(ITSZ_SERIAL_RECOVERY) && ITSZ_SERIAL_RECOVERY
 +    char rxBuf[96];
 +    uint16_t rxLen = 0;
@@ -349,7 +372,7 @@ index d263d9ae1..32d266175 100644
 @@ -68,6 +68,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #error APP_VERSION must be set by the build environment
  #endif
- 
+
 +#ifndef APP_BUILD_NAME
 +#define APP_BUILD_NAME ""
 +#endif
@@ -370,19 +393,19 @@ index e581eb0ef..5477b8c5e 100644
              LOG_WARN("BOGUS course.value() REJECTED: %d", reader.course.value());
          }
 @@ -1828,6 +1829,7 @@ bool GPS::lookForLocation()
- 
+
      if (reader.speed.isUpdated() && reader.speed.isValid()) {
          p.ground_speed = reader.speed.kmph();
 +        p.has_ground_speed = true;
      }
- 
+
      return true;
 diff --git a/src/graphics/Screen.cpp b/src/graphics/Screen.cpp
 index 044db3637..c74412129 100644
 --- a/src/graphics/Screen.cpp
 +++ b/src/graphics/Screen.cpp
 @@ -1001,12 +1001,14 @@ int32_t Screen::runOnce()
- 
+
      uint32_t desiredFramerate = IDLE_FRAMERATE;
  #if HAS_GPS && !defined(USE_EINK)
 -    if (showingNormalScreen && hasCompass) {
@@ -427,7 +450,7 @@ index 877835ea6..4ab2f7183 100644
 --- a/src/graphics/TFTColorRegions.cpp
 +++ b/src/graphics/TFTColorRegions.cpp
 @@ -50,12 +50,21 @@ static inline bool isBodyColorRole(TFTColorRole role)
- 
+
  static inline bool isMonochromeTheme(uint32_t themeId)
  {
 -    return themeId == ThemeID::MeshtasticGreen || themeId == ThemeID::ClassicRed || themeId == ThemeID::MonochromeWhite;
@@ -437,7 +460,7 @@ index 877835ea6..4ab2f7183 100644
 +#endif
 +        ;
  }
- 
+
  static inline uint16_t getMonochromeAccent(uint32_t themeId)
  {
 -    return (themeId == ThemeID::MeshtasticGreen) ? TFTPalette::MeshtasticGreen
@@ -505,7 +528,7 @@ index 516a9f057..c7952cd2f 100644
 --- a/src/graphics/TFTPalette.h
 +++ b/src/graphics/TFTPalette.h
 @@ -58,12 +58,14 @@ constexpr uint16_t ClassicRed = rgb565(255, 64, 64);
- 
+
  // Fast contrast picker for monochrome glyph overlays on arbitrary RGB565 backgrounds.
  // Uses channel-sum brightness approximation to keep code size small.
 +constexpr uint16_t rgb565ChannelSum(uint16_t backgroundColor)
@@ -521,16 +544,16 @@ index 516a9f057..c7952cd2f 100644
 -    return ((r + g + b) >= 70) ? DarkGray : White;
 +    return (rgb565ChannelSum(backgroundColor) >= 70) ? DarkGray : White;
  }
- 
+
  } // namespace TFTPalette
 diff --git a/src/graphics/draw/DebugRenderer.cpp b/src/graphics/draw/DebugRenderer.cpp
 index 67136437a..0ce4a642a 100644
 --- a/src/graphics/draw/DebugRenderer.cpp
 +++ b/src/graphics/draw/DebugRenderer.cpp
 @@ -701,6 +701,13 @@ void drawSystemScreen(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x
- 
+
      display->drawString(nameX, getTextPositions(display)[line++], appversionstr);
- 
+
 +    const char *buildName = APP_BUILD_NAME;
 +    if (buildName[0] && (SCREEN_HEIGHT > 64 || line <= 5)) {
 +        textWidth = display->getStringWidth(buildName);
@@ -546,7 +569,7 @@ index cfde10124..3ebdc085d 100644
 --- a/src/graphics/draw/UIRenderer.cpp
 +++ b/src/graphics/draw/UIRenderer.cpp
 @@ -1498,7 +1498,8 @@ void UIRenderer::drawIconScreen(const char *upperMsg, OLEDDisplay *display, OLED
- 
+
      display->setFont(FONT_MEDIUM);
      display->setTextAlignment(TEXT_ALIGN_LEFT);
 -    const char *title = "meshtastic.org";
@@ -586,6 +609,67 @@ index cfde10124..3ebdc085d 100644
          double headingLat = 0.0;
          double headingLon = 0.0;
          if (hasLiveGpsFix) {
+diff --git a/src/main.cpp b/src/main.cpp
+index 28842734c..9ec4eafdc 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -222,7 +222,7 @@ std::pair<uint8_t, TwoWire *> nodeTelemetrySensorsMap[_meshtastic_TelemetrySenso
+
+ Router *router = NULL; // Users of router don't care what sort of subclass implements that API
+
+-const char *firmware_version = optstr(APP_VERSION_SHORT);
++const char *firmware_version = optstr(APP_VERSION);
+
+ const char *getDeviceName()
+ {
+diff --git a/src/mesh/NodeDB.cpp b/src/mesh/NodeDB.cpp
+index 8660aefae..b08472fbf 100644
+--- a/src/mesh/NodeDB.cpp
++++ b/src/mesh/NodeDB.cpp
+@@ -1716,6 +1716,43 @@ void NodeDB::loadFromDisk()
+         }
+     }
+
++#if defined(ITSZ_TDECK_GPS_DEFAULTS) && HAS_GPS
++    bool itszGpsConfigChanged = false;
++    const bool itszGpsWasBroken =
++        config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT || config.position.rx_gpio == 0 ||
++        config.position.tx_gpio == 0;
++#if defined(GPS_RX_PIN)
++    if (config.position.rx_gpio == 0) {
++        config.position.rx_gpio = GPS_RX_PIN;
++        itszGpsConfigChanged = true;
++    }
++#endif
++#if defined(GPS_TX_PIN)
++    if (config.position.tx_gpio == 0) {
++        config.position.tx_gpio = GPS_TX_PIN;
++        itszGpsConfigChanged = true;
++    }
++#endif
++    if (config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
++        config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
++        itszGpsConfigChanged = true;
++    }
++    if (itszGpsWasBroken &&
++        (config.position.gps_update_interval == 0 || config.position.gps_update_interval == default_gps_update_interval)) {
++#ifdef USERPREFS_CONFIG_GPS_UPDATE_INTERVAL
++        config.position.gps_update_interval = USERPREFS_CONFIG_GPS_UPDATE_INTERVAL;
++#else
++        config.position.gps_update_interval = default_gps_update_interval;
++#endif
++        itszGpsConfigChanged = true;
++    }
++    if (itszGpsConfigChanged) {
++        LOG_WARN("Z-Deck GPS defaults repaired: mode=%d rx=%u tx=%u interval=%u", config.position.gps_mode,
++                 config.position.rx_gpio, config.position.tx_gpio, config.position.gps_update_interval);
++        saveToDisk(SEGMENT_CONFIG);
++    }
++#endif
++
+     // Coerce LoRa config fields derived from presets while bootstrapping.
+     // Some clients/UI components display bandwidth/spread_factor directly from config even in preset mode.
+     if (config.has_lora && config.lora.use_preset) {
 diff --git a/src/modules/AdminModule.cpp b/src/modules/AdminModule.cpp
 index ba1cfdb97..ecb1df953 100644
 --- a/src/modules/AdminModule.cpp
@@ -617,7 +701,7 @@ index dbc573c95..a4b6900ca 100644
 @@ -192,6 +195,30 @@ void esp32Loop()
      // radio.radioIf.canSleep();
  }
- 
+
 +void enterDfuMode()
 +{
 +#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
@@ -646,32 +730,52 @@ index dbc573c95..a4b6900ca 100644
  {
      /*
 diff --git a/variants/esp32s3/t-deck/platformio.ini b/variants/esp32s3/t-deck/platformio.ini
-index a7701549f..888ace143 100644
+index a7701549f..9728ce762 100644
 --- a/variants/esp32s3/t-deck/platformio.ini
 +++ b/variants/esp32s3/t-deck/platformio.ini
 @@ -25,6 +25,8 @@ build_src_filter =
- build_flags = ${esp32s3_base.build_flags} 
-   -D T_DECK 
+ build_flags = ${esp32s3_base.build_flags}
+   -D T_DECK
    -D BOARD_HAS_PSRAM
 +  -D ITSZ_FORCE_USB_SERIAL_API=1
 +  -D ITSZ_SERIAL_RECOVERY=1
    -I variants/esp32s3/t-deck
- 
+
  lib_deps = ${esp32s3_base.lib_deps}
-@@ -38,9 +40,13 @@ lib_deps = ${esp32s3_base.lib_deps}
+@@ -38,9 +40,17 @@ lib_deps = ${esp32s3_base.lib_deps}
  [env:t-deck-tft]
  extends = env:t-deck
  board_level = pr
-+custom_meshtastic_display_name = ITSZ T-Deck Classic
-+custom_meshtastic_version_suffix = itsz1
-+custom_meshtastic_build_name = ITSZ Classic
- 
++custom_meshtastic_display_name = Z-Deck T-Deck
++custom_meshtastic_version_suffix = zdeck2
++custom_meshtastic_build_name = Z-Deck Pack
++custom_zdeck_pack_version = 0.2.0-public
+
  build_flags =
    ${env:t-deck.build_flags}
 +  -D ITSZ_CLASSIC_UI=1
++  -D ITSZ_TDECK_GPS_DEFAULTS=1
++  -D USERPREFS_CONFIG_GPS_MODE=meshtastic_Config_PositionConfig_GpsMode_ENABLED
++  -D USERPREFS_CONFIG_GPS_UPDATE_INTERVAL=5
    -D CONFIG_DISABLE_HAL_LOCKS=1 ; "feels" to be a bit more stable without locks
    -D INPUTDRIVER_I2C_KBD_TYPE=0x55
    -D INPUTDRIVER_ENCODER_TYPE=3
+diff --git a/variants/esp32s3/t-deck/variant.h b/variants/esp32s3/t-deck/variant.h
+index eb1bbdfef..42b1f7635 100644
+--- a/variants/esp32s3/t-deck/variant.h
++++ b/variants/esp32s3/t-deck/variant.h
+@@ -37,7 +37,11 @@
+ #define BUTTON_ACTIVE_LOW true
+ #define BUTTON_ACTIVE_PULLUP true
+
++#if defined(ITSZ_TDECK_GPS_DEFAULTS)
++#define GPS_DEFAULT_NOT_PRESENT 0
++#else
+ #define GPS_DEFAULT_NOT_PRESENT 1
++#endif
+ #define GPS_RX_PIN 44
+ #define GPS_TX_PIN 43
+
 diff --git a/itsz/device-ui-map.patch b/itsz/device-ui-map.patch
 new file mode 100644
 index 000000000..db3285659
@@ -710,11 +814,11 @@ index 000000000..db3285659
 +@@ -34,7 +52,8 @@ class GeoPoint
 +         //           FLOATING_POINT(std::atan(std::sinh(FLOATING_POINT(PI) * (1.0 - 2.0 * FLOATING_POINT(yTile) / n))));
 +     }
-+ 
++
 +-    GeoPoint(float lat, float lon, uint8_t zoom) : latitude(lat), longitude(lon), zoomLevel(255) { setZoom(zoom); }
 ++    GeoPoint(float lat, float lon, uint8_t zoom) : latitude(clampLatitude(lat)), longitude(wrapLongitude(lon)), zoomLevel(255)
 ++    { setZoom(zoom); }
-+ 
++
 +     void setZoom(uint8_t zoom)
 +     {
 +@@ -42,13 +61,29 @@ class GeoPoint
@@ -793,7 +897,7 @@ index 000000000..db3285659
 ++            } else
 ++                yPos = size - 1;
 +         }
-+ 
++
 +-        auto n = 1 << zoomLevel;
 +         float lon = FLOATING_POINT(xTile) / n * FLOATING_POINT(360.0) - FLOATING_POINT(180.0);
 +         float lat = FLOATING_POINT(180.0) / FLOATING_POINT(PI) *
@@ -804,7 +908,7 @@ index 000000000..db3285659
 +@@ -22,20 +22,31 @@ class MapTileSettings
 +     static float getDefaultLon(void) { return defaultLon; }
 +     static void setDefaultLon(float lon) { defaultLon = lon; }
-+ 
++
 +     static const char *getPrefix(void) { return prefix; }
 +-    static void setPrefix(const char *p) { strcpy(prefix, p); }
 ++    static void setPrefix(const char *p)
@@ -812,7 +916,7 @@ index 000000000..db3285659
 ++        strncpy(prefix, p, sizeof(prefix) - 1);
 ++        prefix[sizeof(prefix) - 1] = '\0';
 ++    }
-+ 
++
 +     static const char *getTileStyle(void) { return tileStyle; }
 +     static void setTileStyle(const char *p)
 +     {
@@ -827,7 +931,7 @@ index 000000000..db3285659
 ++            tileStyle[len + 1] = '\0';
 ++        }
 +     }
-+ 
++
 +     static const char *getTileFormat(void) { return tileFormat; }
 +-    static void setTileFormat(const char *p) { strcpy(tileFormat, p); }
 ++    static void setTileFormat(const char *p)
@@ -835,7 +939,7 @@ index 000000000..db3285659
 ++        strncpy(tileFormat, p, sizeof(tileFormat) - 1);
 ++        tileFormat[sizeof(tileFormat) - 1] = '\0';
 ++    }
-+ 
++
 +     static uint16_t getTileProvider(void) { return tileProviderId; }
 +     static void setTileProvider(uint16_t id) { tileProviderId = id; }
 +@@ -55,10 +64,10 @@ class MapTileSettings
@@ -857,12 +961,12 @@ index 000000000..db3285659
 ++++ b/include/graphics/map/OSMTiles.h
 +@@ -7,7 +7,7 @@
 + #include <stdint.h>
-+ 
++
 + #ifndef IMG_PATH_LEN
 +-#define IMG_PATH_LEN 64
 ++#define IMG_PATH_LEN 128
 + #endif
-+ 
++
 + /**
 +diff --git a/source/graphics/map/MapTileSettings.cpp b/source/graphics/map/MapTileSettings.cpp
 +--- a/source/graphics/map/MapTileSettings.cpp
@@ -896,7 +1000,7 @@ index 000000000..db3285659
 +--- a/source/graphics/map/SDCardService.cpp
 ++++ b/source/graphics/map/SDCardService.cpp
 +@@ -36,8 +36,8 @@ SDCardService::~SDCardService()
-+ 
++
 + bool SDCardService::load(const char *name, void *img)
 + {
 +-    char buf[128] = DRIVE_LETTER ":";
@@ -910,7 +1014,7 @@ index 000000000..db3285659
 +--- a/source/graphics/map/SdFatService.cpp
 ++++ b/source/graphics/map/SdFatService.cpp
 +@@ -36,8 +36,8 @@ SdFatService::~SdFatService()
-+ 
++
 + bool SdFatService::load(const char *name, void *img)
 + {
 +-    char buf[128] = DRIVE_LETTER ":";
@@ -928,9 +1032,9 @@ index 000000000..db3285659
 + #include "util/ILog.h"
 + #include <assert.h>
 ++#include <cmath>
-+ 
++
 + #define HASH(X, Y) (((X) << 16) | ((Y)&0xFFFF))
-+ 
++
 +@@ -214,14 +215,39 @@ void MapPanel::center(void)
 + {
 +     updateDimensions();
@@ -972,9 +1076,9 @@ index 000000000..db3285659
 ++        tilesY = 1;
 +     needsRedraw = true;
 + }
-+ 
++
 +@@ -289,14 +306,16 @@ void MapPanel::moveCurrent(void)
-+ 
++
 + void MapPanel::setZoom(uint8_t zoom)
 + {
 +-    if (zoom > 1 && zoom <= 20) {
@@ -996,10 +1100,10 @@ index 000000000..db3285659
 ++    scrolled.setZoom(zoom);
 ++    center();
 + }
-+ 
++
 + void MapPanel::updateDimensions(void)
 +@@ -336,9 +354,10 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
-+ 
++
 +     // first check if we are already at the edge of the world tile map
 +     // TODO: allow sub-tile movement to the exact border (adapt scrollX/scrollY)
 ++    const uint32_t worldTiles = 1UL << MapTileSettings::getZoomLevel();
@@ -1010,7 +1114,7 @@ index 000000000..db3285659
 ++        (yStart + tilesY >= worldTiles && scrollY < 0)) {
 +         return false;
 +     }
-+ 
++
 +@@ -493,9 +512,10 @@ void MapPanel::update(uint32_t id, float lat, float lon)
 + {
 +     auto it = mapObjects.find(id);
@@ -1021,13 +1125,13 @@ index 000000000..db3285659
 +     }
 +-    drawObject(*it->second);
 + }
-+ 
++
 + void MapPanel::update(uint32_t id, bool filtered)
 +diff --git a/source/graphics/common/SdCard.cpp b/source/graphics/common/SdCard.cpp
 +--- a/source/graphics/common/SdCard.cpp
 ++++ b/source/graphics/common/SdCard.cpp
 +@@ -166,7 +166,13 @@ std::set<std::string> SDCard::loadMapStyles(const char *folder)
-+ 
++
 + std::string SDCard::getUrlProvider(const char *folder, const char *style)
 + {
 +-    String filename = String(folder) + "/" + String(style) + "/.url";
@@ -1042,7 +1146,7 @@ index 000000000..db3285659
 +     if (file) {
 +         String url = file.readStringUntil('\n');
 +@@ -311,7 +317,13 @@ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
-+ 
++
 + std::string SdFsCard::getUrlProvider(const char *folder, const char *style)
 + {
 +-    String filename = String(folder) + "/" + String(style) + "/.url";
@@ -1060,7 +1164,7 @@ index 000000000..db3285659
 +--- a/source/graphics/TFT/TFTView_320x240.cpp
 ++++ b/source/graphics/TFT/TFTView_320x240.cpp
 +@@ -302,18 +302,24 @@ bool TFTView_320x240::init(void)
-+ 
++
 +     // function callback for the map panel node symbol
 +     drawObjectCB = [this](uint32_t id, uint16_t x, uint16_t y, uint8_t zoom) {
 +-        auto img = nodeObjects[id];
@@ -1158,7 +1262,7 @@ index 000000000..db3285659
 ++                latcenter /= count;
 ++                loncenter /= count;
 ++                map->setHomeLocation(latcenter * 1e-7, loncenter * 1e-7);
-+ 
++
 +-            // calculate optimal zoom factor to fit in all nodes of this range
 +-            lv_obj_update_layout(objects.raw_map_panel);
 +-            float rangeDeg = 1e-7 * (sortedLon[(pp - 1) * sortedLon.size() / pp] - sortedLon[sortedLon.size() / pp]);
@@ -1211,11 +1315,11 @@ index 000000000..db3285659
 +@@ -2714,7 +2737,7 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon
 +         lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
 +         lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-+ 
++
 +-        lv_obj_t *p = nodes[nodeNum];
 ++        lv_obj_t *p = nodeIt->second;
 +         lv_label_set_text_fmt(lbl, "%s", lv_label_get_text(p->LV_OBJ_IDX(node_lbs_idx)));
-+ 
++
 +         // position label callback
 +@@ -2732,5 +2755,6 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon
 +         if (map) {
@@ -1225,7 +1329,7 @@ index 000000000..db3285659
 +     }
 + }
 +@@ -4920,12 +4944,16 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon
-+ 
++
 +     if (lat != 0 && lon != 0) {
 +         char buf[32];
 +         sprintf(buf, "%.5f %.5f", lat * 1e-7, lon * 1e-7);
@@ -1270,7 +1374,7 @@ index 000000000..f1743da55
 +     static void ui_event_positionButton(lv_event_t *e);
 ++    static void ui_event_mapInternetButton(lv_event_t *e);
 ++    static void ui_event_mapCacheButton(lv_event_t *e);
-+ 
++
 +     // animations
 +     static void ui_anim_node_panel_cb(void *var, int32_t v);
 +@@ -429,6 +435,13 @@ class TFTView_320x240 : public MeshtasticView
@@ -1289,7 +1393,7 @@ index 000000000..f1743da55
 +     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
 +@@ -444,4 +457,4 @@ class TFTView_320x240 : public MeshtasticView
 +     };
-+ 
++
 +     meshtastic_DeviceProfile_full db{}; // full copy of the node's configuration db (except nodeinfos) plus ui data
 +-};
 +\ No newline at end of file
@@ -1303,7 +1407,7 @@ index 000000000..f1743da55
 +     lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 +     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 ++    setupDynamicMapMenu();
-+ 
++
 +     // tools buttons
 +     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
 +@@ -1172,6 +1173,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
@@ -1332,7 +1436,7 @@ index 000000000..f1743da55
 + }
 +@@ -2354,6 +2358,7 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
 +     MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
-+ 
++
 +     THIS->controller->storeUIConfig(THIS->db.uiConfig);
 ++    THIS->updateDynamicMapMenu();
 +     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
@@ -1346,7 +1450,7 @@ index 000000000..f1743da55
 +     lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
 +     THIS->map->forceRedraw();
 + }
-+ 
++
 ++void TFTView_320x240::setupDynamicMapMenu(void)
 ++{
 ++    if (mapInternetStatusLabel)
@@ -1511,12 +1615,12 @@ index 000000000..f1743da55
 + {
 +     // navigate to node in node list
 +@@ -2706,6 +2872,7 @@ void TFTView_320x240::loadMap(void)
-+ 
++
 +     lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
 +     lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
 ++    updateDynamicMapMenu();
 + }
-+ 
++
 + void TFTView_320x240::updateLocationMap(uint32_t num)
 +@@ -4023,9 +4190,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
 +                 THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{THIS->db.config.network}, THIS->ownNode);
@@ -1553,7 +1657,7 @@ index 000000000..f1743da55
 +     }
 ++    updateDynamicMapMenu();
 + }
-+ 
++
 + // ResponseHandler callbacks
 +@@ -6013,6 +6187,7 @@ void TFTView_320x240::updateNetworkConfig(const meshtastic_Config_NetworkConfig
 +     char buf[40];
@@ -1561,7 +1665,7 @@ index 000000000..f1743da55
 +     lv_label_set_text(objects.basic_settings_wifi_label, buf);
 ++    updateDynamicMapMenu();
 + }
-+ 
++
 + void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg)
 +@@ -7423,6 +7598,9 @@ void TFTView_320x240::task_handler(void)
 +                 if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
@@ -1579,12 +1683,12 @@ index 000000000..f1743da55
 ++++ b/source/graphics/map/TileProvider.cpp
 +@@ -4,7 +4,8 @@
 + #include <algorithm>
-+ 
++
 + std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates = {
 +-    {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"}};
 ++    {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"},
 ++    {"URL: Esri World Imagery", "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}};
-+ 
++
 + std::string TileProvider::url(const char *filename)
 + {
 +diff --git a/source/graphics/map/URLService.cpp b/source/graphics/map/URLService.cpp
@@ -1598,9 +1702,9 @@ index 000000000..f1743da55
 ++#include "WiFi.h"
 + #include "lvgl.h"
 + #include "util/ILog.h"
-+ 
++
 +@@ -18,6 +19,11 @@ URLService::~URLService() {}
-+ 
++
 + bool URLService::load(const char *name, void *img)
 + {
 ++    if (WiFi.status() != WL_CONNECTED) {
@@ -1612,7 +1716,7 @@ index 000000000..f1743da55
 +         decltype(http) &client;
 +         ~HttpEndGuard() { client.end(); }
 +@@ -30,6 +36,7 @@ bool URLService::load(const char *name, void *img)
-+ 
++
 +     // transform filename to provider url
 +     std::string url = TileProvider::url(name);
 ++    http.setTimeout(2500);
@@ -1622,7 +1726,7 @@ index 000000000..f1743da55
 +@@ -86,4 +93,4 @@ bool URLService::load(const char *name, void *img)
 +     return true;
 + }
-+ 
++
 +-#endif
 +\ No newline at end of file
 ++#endif
@@ -1652,7 +1756,7 @@ index 000000000..724fb9433
 +     static void timer_event_shutdown(lv_timer_t *timer);
 +     static void timer_event_programming_mode(lv_timer_t *timer);
 ++    static void timer_event_screen_correction(lv_timer_t *timer);
-+ 
++
 +     // lvgl event callbacks
 +     static void ui_event_LogoButton(lv_event_t *e);
 +@@ -386,6 +391,7 @@ class TFTView_320x240 : public MeshtasticView
@@ -1660,7 +1764,7 @@ index 000000000..724fb9433
 +     static void ui_event_mapInternetButton(lv_event_t *e);
 +     static void ui_event_mapCacheButton(lv_event_t *e);
 ++    static void ui_event_screenCorrectionButton(lv_event_t *e);
-+ 
++
 +     // animations
 +     static void ui_anim_node_panel_cb(void *var, int32_t v);
 +@@ -442,6 +448,11 @@ class TFTView_320x240 : public MeshtasticView
@@ -1684,13 +1788,13 @@ index 000000000..724fb9433
 +     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 +     setupDynamicMapMenu();
 ++    setupScreenCorrectionTool();
-+ 
++
 +     // tools buttons
 +     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
 +@@ -949,6 +950,21 @@ void TFTView_320x240::timer_event_programming_mode(lv_timer_t *timer)
 +     lv_obj_remove_event_cb(objects.boot_logo_button, ui_event_LogoButton);
 + }
-+ 
++
 ++void TFTView_320x240::timer_event_screen_correction(lv_timer_t *timer)
 ++{
 ++    if (!THIS->screenCorrectionOverlay || timer != THIS->screenCorrectionTimer)
@@ -1708,11 +1812,11 @@ index 000000000..724fb9433
 ++
 + void TFTView_320x240::ui_event_LogoButton(lv_event_t *e)
 + {
-+ 
++
 +@@ -2533,6 +2549,182 @@ void TFTView_320x240::ui_event_mapCacheButton(lv_event_t *e)
 +         THIS->rememberCurrentMapArea();
 + }
-+ 
++
 ++void TFTView_320x240::setupScreenCorrectionTool(void)
 ++{
 ++    if (screenCorrectionButton || !objects.tab_page_tools)
@@ -1911,12 +2015,12 @@ index 000000000..6b9e3414b
 ++#endif
 + #include <algorithm>
 ++#include <cstdio>
-+ 
++
 + #if defined(ARCH_PORTDUINO)
 + #include "PortduinoFS.h"
 +@@ -15,5 +19,103 @@ const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
 + constexpr const char *logDir = "/messages";
-+ 
++
 ++namespace
 ++{
 ++#if defined(HAS_SDCARD) || defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
@@ -2025,7 +2129,7 @@ index 000000000..6b9e3414b
 ++        itszAppendSdMessageJournal("sent", myNodeNum, to, ch, msgTime, msgLen, (const uint8_t *)textmsg);
 +     }
 + }
-+ 
++
 +@@ -946,6 +1046,8 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
 +         view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
 +         log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
@@ -2102,7 +2206,7 @@ index 000000000..ac9e86f2b
 +@@ -121,6 +121,52 @@ uint32_t TFTView_320x240::pinKeys = 0;
 + bool TFTView_320x240::screenLocked = false;
 + bool TFTView_320x240::screenUnlockRequest = false;
-+ 
++
 ++namespace
 ++{
 ++const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingRequest)
@@ -2167,7 +2271,7 @@ index 000000000..ac9e86f2b
 +@@ -2428,6 +2475,23 @@ void TFTView_320x240::setupDynamicMapMenu(void)
 +     lv_obj_set_width(mapCacheStatusLabel, lv_pct(94));
 +     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
-+ 
++
 ++    mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
 ++    lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
 ++    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
@@ -2187,11 +2291,11 @@ index 000000000..ac9e86f2b
 ++
 +     updateDynamicMapMenu();
 + }
-+ 
++
 +@@ -2442,39 +2506,75 @@ void TFTView_320x240::updateDynamicMapMenu(void)
 +     const bool hasWifiConfig = db.config.network.wifi_ssid[0] != '\0' && db.config.network.wifi_psk[0] != '\0';
 +     const char *ssid = db.connectionStatus.wifi.ssid[0] ? db.connectionStatus.wifi.ssid : db.config.network.wifi_ssid;
-+ 
++
 +-    char buf[112];
 ++    char buf[144];
 +     if (!hasNetwork) {
@@ -2220,7 +2324,7 @@ index 000000000..ac9e86f2b
 +         lv_label_set_text(mapInternetStatusLabel, buf);
 +         lv_label_set_text(mapInternetButtonLabel, "WIFI ON");
 +     }
-+ 
++
 +     if (MapTileSettings::saveOK()) {
 +-        lv_snprintf(buf, sizeof(buf), "Cache: SD backfill on z%d %s", MapTileSettings::getZoomLevel(),
 ++        lv_snprintf(buf, sizeof(buf), "Tiles: online + SD cache z%d %s", MapTileSettings::getZoomLevel(),
@@ -2271,7 +2375,7 @@ index 000000000..ac9e86f2b
 ++    lv_label_set_text(mapStatusOverlayLabel, buf);
 ++    lv_obj_move_foreground(mapStatusOverlayLabel);
 + }
-+ 
++
 + void TFTView_320x240::openWifiSettingsFromMap(void)
 +@@ -2911,11 +3011,10 @@ void TFTView_320x240::loadMap(void)
 +             lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
@@ -2287,14 +2391,14 @@ index 000000000..ac9e86f2b
 +             }
 +             map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
 +@@ -3069,7 +3168,8 @@ void TFTView_320x240::loadMap(void)
-+ 
++
 + void TFTView_320x240::updateLocationMap(uint32_t num)
 + {
 +-    lv_label_set_text_fmt(objects.top_map_label, _("Locations Map (%d/%d)"), num, nodeCount);
 ++    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d located"), num, nodeCount);
 ++    updateMapStatusOverlay(num);
 + }
-+ 
++
 + /**
 +@@ -3155,6 +3255,8 @@ void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t *e)
 +     lv_obj_add_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
@@ -2302,7 +2406,7 @@ index 000000000..ac9e86f2b
 +         lv_label_set_text(objects.detector_start_label, _("Stop"));
 ++        lv_label_set_text(objects.detector_heard_label, _("listening + pinging mesh"));
 ++        lv_obj_clear_flag(objects.detector_heard_label, LV_OBJ_FLAG_HIDDEN);
-+ 
++
 +         // create radar animation
 +         lv_anim_t &a = THIS->radar;
 +@@ -3170,6 +3272,7 @@ void TFTView_320x240::ui_event_mesh_detector_start(_lv_event_t *e)
@@ -2333,12 +2437,12 @@ index 000000000..ac9e86f2b
 ++    lv_obj_set_flex_flow(hiddenPanel, LV_FLEX_FLOW_COLUMN);
 ++    lv_obj_set_flex_align(hiddenPanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
 +     hiddenPanel->user_data = (void *)requestId;
-+ 
++
 +     // add timestamp
 +@@ -4924,6 +5031,21 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
-+ 
++
 +     add_style_chat_message_style(textLabel);
-+ 
++
 ++    lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
 ++    lv_obj_set_width(statusLabel, 200);
 ++    lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
@@ -2356,7 +2460,7 @@ index 000000000..ac9e86f2b
 ++
 +     lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
 +     lv_obj_move_foreground(objects.message_input_area);
-+ 
++
 +@@ -4934,6 +5056,7 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 +     case LogMessage::eAcked:
 +         lv_obj_set_style_border_color(textLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -2392,7 +2496,7 @@ index 000000000..ac9e86f2b
 ++        handleTextMessageResponse((unsigned long)req.cookie, req.id, false, true);
 +     }
 + }
-+ 
++
 +@@ -6110,9 +6237,9 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
 + void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
 + {
@@ -2417,7 +2521,7 @@ index 000000000..ac9e86f2b
 ++                                  : isChannel ? colorMesh
 ++                                  : ack       ? colorBlueGreen
 ++                                              : colorYellow);
-+ 
++
 +             // store message
 +             break;
 +@@ -6883,6 +7019,9 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
@@ -2427,13 +2531,13 @@ index 000000000..ac9e86f2b
 ++    lv_obj_set_style_pad_row(hiddenPanel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
 ++    lv_obj_set_flex_flow(hiddenPanel, LV_FLEX_FLOW_COLUMN);
 ++    lv_obj_set_flex_align(hiddenPanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
-+ 
++
 +     lv_obj_t *msgLabel = lv_label_create(hiddenPanel);
 +     // calculate expected size of text bubble, to make it look nicer
 +@@ -6893,6 +7032,13 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
 +     lv_label_set_text(msgLabel, msg);
 +     add_style_new_message_style(msgLabel);
-+ 
++
 ++    lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
 ++    lv_obj_set_width(statusLabel, 160);
 ++    lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
@@ -2447,7 +2551,7 @@ index 000000000..ac9e86f2b
 +@@ -7802,12 +7948,19 @@ void TFTView_320x240::task_handler(void)
 +                     controller->sendPing();
 +                 }
-+ 
++
 +-                // if we didn't hear any node for 1h assume we have no signal
 ++                // A quiet mesh does not mean the radio is broken. Show a mesh-specific idle state.
 +                 if (curtime - lastHeard > secs_until_offline) {
@@ -2526,7 +2630,7 @@ index 000000000..9792b9bb8
 ++        return pendingRequest ? "TX QUEUED" : "TX SENT";
 +     }
 + }
-+ 
++
 +@@ -164,6 +164,7 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
 +     lv_obj_t *statusLabel = panel->spec_attr->children[1];
 +     lv_label_set_text(statusLabel, text);
@@ -2534,10 +2638,10 @@ index 000000000..9792b9bb8
 ++    lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
 + }
 + } // namespace
-+ 
++
 +@@ -2476,21 +2477,22 @@ void TFTView_320x240::setupDynamicMapMenu(void)
 +     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
-+ 
++
 +     mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
 +-    lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
 +-    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
@@ -2565,13 +2669,13 @@ index 000000000..9792b9bb8
 +     lv_label_set_long_mode(mapStatusOverlayLabel, LV_LABEL_LONG_WRAP);
 +-    lv_label_set_text(mapStatusOverlayLabel, "Map status loading...");
 ++    lv_label_set_text(mapStatusOverlayLabel, "MAP STATUS\nwaiting for GPS/tiles");
-+ 
++
 +     updateDynamicMapMenu();
 + }
 +@@ -2567,12 +2569,36 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
 +         lv_snprintf(gps, sizeof(gps), "GPS off");
 +     }
-+ 
++
 +-    const char *tiles = wifiConnected ? "online tiles" : cardDetected ? "SD tiles" : "no tiles";
 +-    const char *locs = objectsOnMap > 0 ? "nodes plotted" : nodeCount > 0 ? "nodes lack GPS" : "no node locations";
 ++    const bool mapUseful = gpsReady && objectsOnMap > 0;
@@ -2595,7 +2699,7 @@ index 000000000..9792b9bb8
 ++        lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
 ++        lv_obj_set_style_text_color(mapStatusOverlayLabel, gpsReady ? colorLightGray : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
 ++    }
-+ 
++
 +     char buf[128];
 +-    lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
 +-                locs);
@@ -2610,17 +2714,17 @@ index 000000000..9792b9bb8
 +     lv_obj_move_foreground(mapStatusOverlayLabel);
 + }
 +@@ -3168,7 +3194,7 @@ void TFTView_320x240::loadMap(void)
-+ 
++
 + void TFTView_320x240::updateLocationMap(uint32_t num)
 + {
 +-    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d located"), num, nodeCount);
 ++    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d GPS"), num, nodeCount);
 +     updateMapStatusOverlay(num);
 + }
-+ 
++
 +@@ -5032,11 +5058,20 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
 +     add_style_chat_message_style(textLabel);
-+ 
++
 +     lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
 +-    lv_obj_set_width(statusLabel, 200);
 ++    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
@@ -2657,7 +2761,7 @@ index 000000000..9792b9bb8
 +                                   : ack       ? colorBlueGreen
 +@@ -7033,11 +7068,20 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
 +     add_style_new_message_style(msgLabel);
-+ 
++
 +     lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
 +-    lv_obj_set_width(statusLabel, 160);
 ++    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
@@ -2676,7 +2780,7 @@ index 000000000..9792b9bb8
 ++    lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
 ++    lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
 ++    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
-+ 
++
 +     if (state == MeshtasticView::eRunning) {
 +         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
 +@@ -7953,13 +7997,13 @@ void TFTView_320x240::task_handler(void)
@@ -2697,3 +2801,477 @@ index 000000000..9792b9bb8
 +                     }
 +                 }
 +             }
+diff --git a/itsz/device-ui-delivery-status.patch b/itsz/device-ui-delivery-status.patch
+new file mode 100644
+index 000000000..145d302d1
+--- /dev/null
++++ b/itsz/device-ui-delivery-status.patch
+@@ -0,0 +1,264 @@
++diff --git a/include/graphics/common/MeshtasticView.h b/include/graphics/common/MeshtasticView.h
++index 70a4709..bff9504 100644
++--- a/include/graphics/common/MeshtasticView.h
+++++ b/include/graphics/common/MeshtasticView.h
++@@ -135,7 +135,10 @@ class MeshtasticView : public DeviceGUI
++     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) {}
++     virtual void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) {}
++     virtual void packetReceived(const meshtastic_MeshPacket &p);
++-    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) {}
+++    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false,
+++                            int8_t hopsUsed = -1)
+++    {
+++    }
++     virtual void restoreMessage(const LogMessage &msg) {}
++
++     virtual void notifyRestoreMessages(int32_t percentage) {}
++diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
++index 71847fe..d8c87f0 100644
++--- a/include/graphics/view/TFT/TFTView_320x240.h
+++++ b/include/graphics/view/TFT/TFTView_320x240.h
++@@ -82,7 +82,8 @@ class TFTView_320x240 : public MeshtasticView
++     void blankScreen(bool enable) override;
++     void screenSaving(bool enabled) override;
++     bool isScreenLocked(void) override;
++-    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true) override;
+++    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true,
+++                    int8_t hopsUsed = -1) override;
++     void restoreMessage(const LogMessage &msg) override;
++     void removeNode(uint32_t nodeNum) override;
++
++@@ -159,9 +160,10 @@ class TFTView_320x240 : public MeshtasticView
++     // own chat message
++     virtual void handleAddMessage(char *msg);
++     // add own message to current chat
++-    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status);
+++    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status,
+++                            uint8_t hopLimit = 0, bool ackExpected = false, bool isChannel = false);
++     // add new message to container
++-    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
+++    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg, int8_t hopsUsed = -1);
++     // create empty message container for node or group channel
++     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
++     // filter or highlight node
++@@ -169,7 +171,7 @@ class TFTView_320x240 : public MeshtasticView
++     // display message alert popup
++     virtual void messageAlert(const char *alert, bool show);
++     // mark sent message as received
++-    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err);
+++    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err, int8_t hopsUsed = -1);
++     // set node image based on role
++     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img);
++     // apply filter and count number of filtered nodes
++diff --git a/source/graphics/common/ViewController.cpp b/source/graphics/common/ViewController.cpp
++index 8918efa..3c06202 100644
++--- a/source/graphics/common/ViewController.cpp
+++++ b/source/graphics/common/ViewController.cpp
++@@ -1040,8 +1040,12 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
++             ILOG_WARN("ignoring message with invalid channel %d", (int)p.channel);
++             break;
++         }
++-        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
+++        int8_t hopsUsed = -1;
+++        if (p.hop_start > 0 && p.hop_limit <= p.hop_start) {
+++            hopsUsed = p.hop_start - p.hop_limit;
+++        }
+++        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time, false, hopsUsed);
++         log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
++                                 (const uint8_t *)p.decoded.payload.bytes));
++         itszAppendSdMessageJournal("received", p.from, p.to, p.channel, time, p.decoded.payload.size,
++                                    (const uint8_t *)p.decoded.payload.bytes);
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++index 4370ac8..fc5cc78 100644
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -138,7 +138,7 @@ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingReq
++     case LogMessage::eDeleted:
++         return "DELETED";
++     default:
++-        return pendingRequest ? "TX QUEUED" : "TX SENT";
+++        return pendingRequest ? "WAIT ACK" : "TX SENT";
++     }
++ }
++
++@@ -166,6 +166,13 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
++     lv_obj_set_style_text_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
++ }
+++
+++int8_t itszPacketHops(const meshtastic_MeshPacket &p)
+++{
+++    if (p.hop_start > 0 && p.hop_limit <= p.hop_start)
+++        return p.hop_start - p.hop_limit;
+++    return -1;
+++}
++ } // namespace
++
++ TFTView_320x240 *TFTView_320x240::instance(void)
++@@ -5015,14 +5022,15 @@ void TFTView_320x240::handleAddMessage(char *msg)
++             msg[i] = '\n';
++
++     controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
++-    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
+++    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone, hopLimit, channelOrNode >= c_max_channels,
+++               channelOrNode < c_max_channels);
++ }
++
++ /**
++  * display message that has just been written and sent out
++  */
++ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
++-                                 LogMessage::MsgStatus status)
+++                                 LogMessage::MsgStatus status, uint8_t hopLimit, bool ackExpected, bool isChannel)
++ {
++     lv_obj_t *hiddenPanel = lv_obj_create(container);
++     lv_obj_set_width(hiddenPanel, lv_pct(100));
++@@ -5069,11 +5077,24 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
++     lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    statusLabel->user_data = (void *)(uintptr_t)hopLimit;
++     char statusBuf[52];
++     if (requestId) {
++-        lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
++-                    (unsigned int)(requestId & 0xffff));
+++        if (isChannel && hopLimit > 0) {
+++            lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST TTL%u NO ACK #%04x", (unsigned int)hopLimit,
+++                        (unsigned int)(requestId & 0xffff));
+++        } else if (ackExpected && hopLimit > 0) {
+++            lv_snprintf(statusBuf, sizeof(statusBuf), "WAIT ACK TTL%u #%04x", (unsigned int)hopLimit,
+++                        (unsigned int)(requestId & 0xffff));
+++        } else if (hopLimit > 0) {
+++            lv_snprintf(statusBuf, sizeof(statusBuf), "%s TTL%u #%04x",
+++                        itszOutgoingStatusText(status, status == LogMessage::eNone), (unsigned int)hopLimit,
+++                        (unsigned int)(requestId & 0xffff));
+++        } else {
+++            lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
+++                        (unsigned int)(requestId & 0xffff));
+++        }
++     } else {
++         lv_snprintf(statusBuf, sizeof(statusBuf), "%s", itszOutgoingStatusText(status, false));
++     }
++@@ -5800,7 +5825,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
++             if (req.type == ResponseHandler::TraceRouteRequest) {
++                 handleTraceRouteResponse(routing);
++             } else if (req.type == ResponseHandler::TextMessageRequest) {
++-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false);
+++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false, itszPacketHops(p));
++             } else if (req.type == ResponseHandler::PositionRequest) {
++                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
++             }
++@@ -5811,7 +5836,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
++             if (req.type == ResponseHandler::TraceRouteRequest) {
++                 handleTraceRouteResponse(routing);
++             } else if (req.type == ResponseHandler::TextMessageRequest) {
++-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true, itszPacketHops(p));
++             }
++         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
++             if (req.type == ResponseHandler::PositionRequest) {
++@@ -5821,7 +5846,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
++                    routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY) {
++             if (req.type == ResponseHandler::TextMessageRequest) {
++-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true, itszPacketHops(p));
++                 // we probably have a wrong key; mark it as bad and don't use in future
++                 if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
++                     ILOG_DEBUG("public key mismatch");
++                     nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
++@@ -6272,7 +6297,7 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
++  * @param id
++  * @param ack
++  */
++-void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
+++void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err, int8_t hopsUsed)
++ {
++     lv_obj_t *msgContainer;
++     const bool isChannel = channelOrNode < c_max_channels;
++@@ -6295,20 +6320,34 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
++         if (requestId == id) {
++             // now give the textlabel border another color
++             lv_obj_t *textLabel = panel->spec_attr->children[0];
+++            lv_obj_t *statusLabel = panel->spec_attr->child_cnt > 1 ? panel->spec_attr->children[1] : nullptr;
+++            uint8_t hopLimit = statusLabel ? (uint8_t)(uintptr_t)statusLabel->user_data : 0;
++             lv_obj_set_style_border_color(textLabel,
++-                                          err   ? colorRed
+++                                          isChannel ? colorMesh
+++                                          : err   ? colorRed
++                                           : ack ? colorBlueGreen
++                                                 : colorYellow,
++                                           LV_PART_MAIN | LV_STATE_DEFAULT);
++-            itszSetOutgoingStatus(panel,
++-                                  err       ? "TX FAIL"
++-                                  : isChannel ? "TX SENT (NO READ)"
++-                                  : ack       ? "TX ACK"
++-                                              : "TX HEARD",
++-                                  err       ? colorRed
++-                                  : isChannel ? colorMesh
++-                                  : ack       ? colorBlueGreen
++-                                              : colorYellow);
+++            char statusBuf[52];
+++            if (isChannel) {
+++                if (hopLimit > 0)
+++                    lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST TTL%u NO ACK", (unsigned int)hopLimit);
+++                else
+++                    lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST NO ACK");
+++            } else if (hopsUsed >= 0) {
+++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H%d", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD",
+++                            (int)hopsUsed);
+++            } else if (hopLimit > 0) {
+++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H? TTL%u", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD",
+++                            (unsigned int)hopLimit);
+++            } else {
+++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H?", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD");
+++            }
+++            itszSetOutgoingStatus(panel, statusBuf,
+++                                  isChannel ? colorMesh
+++                                  : err     ? colorRed
+++                                  : ack     ? colorBlueGreen
+++                                            : colorYellow);
++
++             // store message
++             break;
++@@ -6983,7 +7023,8 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
++  * @param time in/out: message time (maybe overwritten when 0)
++  * @param restore if restoring then skip banners and highlight
++  */
++-void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore)
+++void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore,
+++                                 int8_t hopsUsed)
++ {
++     ILOG_DEBUG("newMessage: from:0x%08x, to:0x%08x, ch:%d, time:%d", from, to, ch, msgTime);
++     int pos = 0;
++@@ -7012,7 +7053,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
++     sprintf(&buf[pos], "%s", msg);
++
++     // place message into container
++-    newMessage(from, container, ch, buf);
+++    newMessage(from, container, ch, buf, hopsUsed);
++
++     if (!restore) {
++         // display msg popup if not already viewing the messages
++@@ -7044,7 +7085,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
++  * @param ch
++  * @param msg
++  */
++-void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg)
+++void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg, int8_t hopsUsed)
++ {
++     lv_obj_t *hiddenPanel = lv_obj_create(container);
++     lv_obj_set_width(hiddenPanel, lv_pct(100));
++@@ -7081,7 +7122,11 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
++     lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
+++    if (hopsUsed >= 0) {
+++        lv_label_set_text_fmt(statusLabel, "RX CH %u H%d", (unsigned int)ch, (int)hopsUsed);
+++    } else {
+++        lv_label_set_text_fmt(statusLabel, "RX CH %u H?", (unsigned int)ch);
+++    }
++
++     if (state == MeshtasticView::eRunning) {
++         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
+diff --git a/itsz/device-ui-brand-version.patch b/itsz/device-ui-brand-version.patch
+new file mode 100644
+index 000000000..b8b0023f6
+--- /dev/null
++++ b/itsz/device-ui-brand-version.patch
+@@ -0,0 +1,44 @@
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -113,5 +113,26 @@
++ extern const char *firmware_version;
++
+++#ifndef APP_BUILD_NAME
+++#define APP_BUILD_NAME ""
+++#endif
+++
+++#ifndef ZDECK_PACK_VERSION
+++#define ZDECK_PACK_VERSION "dev"
+++#endif
+++
+++static const char *itszBootFirmwareLabel()
+++{
+++    static char label[72];
+++    if (label[0] == '\0') {
+++        const char *buildName = APP_BUILD_NAME;
+++        if (buildName != nullptr && buildName[0] != '\0')
+++            snprintf(label, sizeof(label), "%s %s\n%s", buildName, ZDECK_PACK_VERSION, firmware_version);
+++        else
+++            snprintf(label, sizeof(label), "%s", firmware_version);
+++    }
+++    return label;
+++}
+++
++ TFTView_320x240 *TFTView_320x240::gui = nullptr;
++ lv_obj_t *TFTView_320x240::currentPanel = nullptr;
++ lv_obj_t *TFTView_320x240::spinnerButton = nullptr;
++@@ -232,10 +249,12 @@
++     // if boot logo is too big remove the label and center the image
++     lv_obj_update_layout(objects.boot_logo);
++     if (lv_obj_get_height(objects.boot_logo) > lv_display_get_vertical_resolution(displaydriver->getDisplay()) / 2) {
++         lv_obj_set_pos(objects.boot_logo, 0, 0);
++         lv_obj_add_flag(objects.firmware_label, LV_OBJ_FLAG_HIDDEN);
++     } else {
++-        lv_label_set_text(objects.firmware_label, firmware_version);
+++        lv_obj_set_width(objects.firmware_label, lv_pct(90));
+++        lv_obj_set_style_text_align(objects.firmware_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+++        lv_label_set_text(objects.firmware_label, itszBootFirmwareLabel());
++     }
++
++     time(&lastrun60);
+diff --git a/itsz/device-ui-zdeck-public-stack.patch b/itsz/device-ui-zdeck-public-stack.patch
+new file mode 100644
+index 000000000..903498767
+--- /dev/null
++++ b/itsz/device-ui-zdeck-public-stack.patch
+@@ -0,0 +1,148 @@
++diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
++--- a/include/graphics/view/TFT/TFTView_320x240.h
+++++ b/include/graphics/view/TFT/TFTView_320x240.h
++@@ -197,6 +197,8 @@
++     void updateMapStatusOverlay(uint32_t objectsOnMap);
++     void openWifiSettingsFromMap(void);
++     void rememberCurrentMapArea(void);
+++    void setupZDeckHealthTool(void);
+++    void updateZDeckHealthPanel(void);
++     void setupScreenCorrectionTool(void);
++     void startScreenCorrection(void);
++     void stopScreenCorrection(void);
++@@ -395,6 +397,7 @@
++     static void ui_event_positionButton(lv_event_t *e);
++     static void ui_event_mapInternetButton(lv_event_t *e);
++     static void ui_event_mapCacheButton(lv_event_t *e);
+++    static void ui_event_zdeckHealthButton(lv_event_t *e);
++     static void ui_event_screenCorrectionButton(lv_event_t *e);
++
++     // animations
++@@ -454,6 +457,10 @@
++     lv_obj_t *mapCacheStatusLabel = nullptr;
++     lv_obj_t *mapStatusOverlayLabel = nullptr;             // map screen reason/status hint
++     lv_obj_t *settingsDisabledPanel = nullptr;             // panel disabled while a settings popup is open
+++    lv_obj_t *zDeckHealthButton = nullptr;                  // public Z-Deck system health button
+++    lv_obj_t *zDeckHealthButtonLabel = nullptr;
+++    lv_obj_t *zDeckHealthPanel = nullptr;                   // public Z-Deck status summary
+++    lv_obj_t *zDeckHealthLabel = nullptr;
++     lv_obj_t *screenCorrectionButton = nullptr;             // screen burn-in/correction tool button
++     lv_obj_t *screenCorrectionButtonLabel = nullptr;
++     lv_obj_t *screenCorrectionOverlay = nullptr;            // full-screen correction overlay
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -956,6 +956,7 @@
++     lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
++     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
++     setupDynamicMapMenu();
+++    setupZDeckHealthTool();
++     setupScreenCorrectionTool();
++
++     // tools buttons
++@@ -2722,6 +2723,95 @@
++     lv_obj_set_style_align(screenCorrectionButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++ }
++
+++void TFTView_320x240::setupZDeckHealthTool(void)
+++{
+++    if (zDeckHealthButton || !objects.tab_page_tools)
+++        return;
+++
+++    zDeckHealthButton = lv_btn_create(objects.tab_page_tools);
+++    lv_obj_set_size(zDeckHealthButton, LV_PCT(95), 30);
+++    add_style_settings_button_style(zDeckHealthButton);
+++    lv_obj_set_style_align(zDeckHealthButton, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_shadow_width(zDeckHealthButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_color(zDeckHealthButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_color(zDeckHealthButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_width(zDeckHealthButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_add_event_cb(zDeckHealthButton, ui_event_zdeckHealthButton, LV_EVENT_CLICKED, NULL);
+++
+++    zDeckHealthButtonLabel = lv_label_create(zDeckHealthButton);
+++    lv_obj_set_size(zDeckHealthButtonLabel, LV_PCT(100), LV_SIZE_CONTENT);
+++    lv_label_set_long_mode(zDeckHealthButtonLabel, LV_LABEL_LONG_DOT);
+++    lv_label_set_text(zDeckHealthButtonLabel, "Z-Deck Health");
+++    lv_obj_set_style_align(zDeckHealthButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+++
+++    zDeckHealthPanel = lv_obj_create(objects.tab_page_tools);
+++    lv_obj_set_size(zDeckHealthPanel, LV_PCT(95), 114);
+++    lv_obj_clear_flag(zDeckHealthPanel, LV_OBJ_FLAG_SCROLLABLE);
+++    lv_obj_set_style_bg_color(zDeckHealthPanel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_opa(zDeckHealthPanel, 190, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_color(zDeckHealthPanel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_width(zDeckHealthPanel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_radius(zDeckHealthPanel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_all(zDeckHealthPanel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+++
+++    zDeckHealthLabel = lv_label_create(zDeckHealthPanel);
+++    lv_obj_set_width(zDeckHealthLabel, LV_PCT(100));
+++    lv_label_set_long_mode(zDeckHealthLabel, LV_LABEL_LONG_WRAP);
+++    lv_obj_set_style_text_font(zDeckHealthLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_text_color(zDeckHealthLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+++
+++    updateZDeckHealthPanel();
+++}
+++
+++void TFTView_320x240::updateZDeckHealthPanel(void)
+++{
+++    if (!zDeckHealthLabel)
+++        return;
+++
+++    uint8_t enabledChannels = 0;
+++    const char *primary = "LongFast";
+++    for (int i = 0; i < c_max_channels; i++) {
+++        meshtastic_Channel &ch = db.channel[i];
+++        if (ch.has_settings && ch.role != meshtastic_Channel_Role_DISABLED) {
+++            enabledChannels++;
+++            if (ch.role == meshtastic_Channel_Role_PRIMARY) {
+++                primary = strlen(ch.settings.name) ? ch.settings.name : LoRaPresets::modemPresetToString(db.config.lora.modem_preset);
+++            }
+++        }
+++    }
+++
+++    const char *gps =
+++        db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT
+++            ? "not present"
+++            : db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED ? "enabled" : "off";
+++    const char *wifi = db.config.has_network && db.config.network.wifi_enabled ? "on" : "off";
+++    const char *sd = cardDetected ? "ready" : "missing";
+++    const bool longFastDefault = strcmp(primary, "LongFast") == 0 && enabledChannels <= 1;
+++
+++    char buf[300];
+++    lv_snprintf(buf, sizeof(buf),
+++                "Z-Deck %s | FW %s\n"
+++                "Public profile: %s\n"
+++                "Primary: %s | channels %u\n"
+++                "GPS: %s RX%u/TX%u sats %u\n"
+++                "SD: %s | WiFi %s | nodes %u\n"
+++                "Add channels: Settings > Channel",
+++                ZDECK_PACK_VERSION, firmware_version, longFastDefault ? "LongFast only" : "custom channels", primary,
+++                (unsigned int)enabledChannels, gps, (unsigned int)db.config.position.rx_gpio,
+++                (unsigned int)db.config.position.tx_gpio, (unsigned int)gpsSatellites, sd, wifi, (unsigned int)nodeCount);
+++    lv_label_set_text(zDeckHealthLabel, buf);
+++}
+++
+++void TFTView_320x240::ui_event_zdeckHealthButton(lv_event_t *e)
+++{
+++    lv_event_code_t event_code = lv_event_get_code(e);
+++    if (event_code != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
+++        return;
+++
+++    THIS->updateZDeckHealthPanel();
+++    THIS->messageAlert("Z-Deck health refreshed", true);
+++}
+++
++ void TFTView_320x240::startScreenCorrection(void)
++ {
++     stopScreenCorrection();
++@@ -8130,6 +8218,9 @@
++                 if (activePanel == objects.map_panel) {
++                     updateDynamicMapMenu();
++                 }
+++                if (activePanel == objects.controller_panel) {
+++                    updateZDeckHealthPanel();
+++                }
++             }
++             if (curtime - lastrun60 >= 60) { // call every 60s
++                 lastrun60 = curtime;

@@ -19,7 +19,7 @@ index c278737..7ba7b97 100644
      static void ui_event_positionButton(lv_event_t *e);
 +    static void ui_event_mapInternetButton(lv_event_t *e);
 +    static void ui_event_mapCacheButton(lv_event_t *e);
- 
+
      // animations
      static void ui_anim_node_panel_cb(void *var, int32_t v);
 @@ -429,6 +435,13 @@ class TFTView_320x240 : public MeshtasticView
@@ -38,7 +38,7 @@ index c278737..7ba7b97 100644
      struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
 @@ -444,4 +457,4 @@ class TFTView_320x240 : public MeshtasticView
      };
- 
+
      meshtastic_DeviceProfile_full db{}; // full copy of the node's configuration db (except nodeinfos) plus ui data
 -};
 \ No newline at end of file
@@ -52,7 +52,7 @@ index 01a3289..8e60eba 100644
      lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
      lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
 +    setupDynamicMapMenu();
- 
+
      // tools buttons
      lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
 @@ -1172,6 +1173,7 @@ void TFTView_320x240::ui_event_MapButton(lv_event_t *e)
@@ -81,7 +81,7 @@ index 01a3289..8e60eba 100644
  }
 @@ -2354,6 +2358,7 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
      MapTileSettings::setSaveOK(!url.empty()); // enable SD save if .url exists
- 
+
      THIS->controller->storeUIConfig(THIS->db.uiConfig);
 +    THIS->updateDynamicMapMenu();
      lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
@@ -95,7 +95,7 @@ index 01a3289..8e60eba 100644
      lv_obj_add_flag(objects.map_osd_panel, LV_OBJ_FLAG_HIDDEN);
      THIS->map->forceRedraw();
  }
- 
+
 +void TFTView_320x240::setupDynamicMapMenu(void)
 +{
 +    if (mapInternetStatusLabel)
@@ -260,12 +260,12 @@ index 01a3289..8e60eba 100644
  {
      // navigate to node in node list
 @@ -2706,6 +2872,7 @@ void TFTView_320x240::loadMap(void)
- 
+
      lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
      lv_obj_clear_flag(objects.raw_map_panel, LV_OBJ_FLAG_HIDDEN);
 +    updateDynamicMapMenu();
  }
- 
+
  void TFTView_320x240::updateLocationMap(uint32_t num)
 @@ -4023,9 +4190,12 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                  THIS->controller->sendConfig(meshtastic_Config_NetworkConfig{THIS->db.config.network}, THIS->ownNode);
@@ -302,7 +302,7 @@ index 01a3289..8e60eba 100644
      }
 +    updateDynamicMapMenu();
  }
- 
+
  // ResponseHandler callbacks
 @@ -6013,6 +6187,7 @@ void TFTView_320x240::updateNetworkConfig(const meshtastic_Config_NetworkConfig
      char buf[40];
@@ -310,7 +310,7 @@ index 01a3289..8e60eba 100644
      lv_label_set_text(objects.basic_settings_wifi_label, buf);
 +    updateDynamicMapMenu();
  }
- 
+
  void TFTView_320x240::updateDisplayConfig(const meshtastic_Config_DisplayConfig &cfg)
 @@ -7423,6 +7598,9 @@ void TFTView_320x240::task_handler(void)
                  if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
@@ -328,12 +328,12 @@ index bdcf442..cabaf95 100644
 +++ b/source/graphics/map/TileProvider.cpp
 @@ -4,7 +4,8 @@
  #include <algorithm>
- 
+
  std::vector<std::tuple<std::string, std::string>> TileProvider::urlTemplates = {
 -    {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"}};
 +    {"URL: Google Maps", "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}"},
 +    {"URL: Esri World Imagery", "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}};
- 
+
  std::string TileProvider::url(const char *filename)
  {
 diff --git a/source/graphics/map/URLService.cpp b/source/graphics/map/URLService.cpp
@@ -347,9 +347,9 @@ index 0ca96af..fd2597d 100644
 +#include "WiFi.h"
  #include "lvgl.h"
  #include "util/ILog.h"
- 
+
 @@ -18,6 +19,11 @@ URLService::~URLService() {}
- 
+
  bool URLService::load(const char *name, void *img)
  {
 +    if (WiFi.status() != WL_CONNECTED) {
@@ -361,7 +361,7 @@ index 0ca96af..fd2597d 100644
          decltype(http) &client;
          ~HttpEndGuard() { client.end(); }
 @@ -30,6 +36,7 @@ bool URLService::load(const char *name, void *img)
- 
+
      // transform filename to provider url
      std::string url = TileProvider::url(name);
 +    http.setTimeout(2500);
@@ -371,7 +371,7 @@ index 0ca96af..fd2597d 100644
 @@ -86,4 +93,4 @@ bool URLService::load(const char *name, void *img)
      return true;
  }
- 
+
 -#endif
 \ No newline at end of file
 +#endif

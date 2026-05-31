@@ -1,7 +1,7 @@
 const lines = [
   "deck bus: waiting for USB-C signal",
   "serial probe: ESP32-S3 target expected",
-  "firmware: Z-Deck 2.8.0.itsz1",
+  "firmware: Z-Deck 0.2.0-public",
   "layout: app0 + app1 + littlefs",
   "ready: connect deck and authorize serial"
 ];

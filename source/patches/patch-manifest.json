@@ -1,83 +1,51 @@
 {
-  "name": "itsz-tdeck-realtime-gps-compass",
-  "description": "Use GPS course as a near-real-time compass heading source on the ITSZ T-Deck, refresh compass-capable frames faster when GPS heading is available, apply the low-color ITSZ Classic T-Deck UI skin, patch the TFT map for safer SD tile/path handling plus dynamic node centering, add an on-device internet/satellite map cache menu, make map/message/signal status explicit on the pager UI, add polished map waiting/status cards and TX/RX chips, add a Tools screen-correction sequence, and force physical USB API access for field recovery.",
-  "targetDevice": {
-    "longName": "ITSZ T-Deck",
-    "shortName": "TDK",
-    "nodeId": "!a1cd2ac8",
-    "reportedFirmware": "2.8.0.35b0590",
-    "platformEnvironment": "t-deck-tft",
-    "hardwareModel": "T_DECK",
-    "sdCard": "32GB installed; firmware mount not yet API-verified"
-  },
-  "lastKnownWorkingRuntime": {
-    "firmwareVersion": "2.8.0.itsz1",
-    "platformEnvironment": "t-deck-tft",
-    "appPort": "COM17",
-    "status": "Working and configured on 2026-05-31 after flashing the 20260530-222402 Z-Deck UI polish build. The T-Deck enumerated as COM17, completed Meshtastic serial API handshakes, reported firmware 2.8.0.itsz1, owner ITSZ T-Deck / TDK, LongFast primary, and ITSZPriv secondary.",
-    "configDoc": "F:\\Dropbox\\Dev Ops\\T-Deck\\docs\\stable-runtime-2026-05-29.md"
-  },
-  "source": {
-    "repository": "https://github.com/meshtastic/firmware.git",
-    "branch": "2.8",
-    "patchBase": "origin/2.8",
-    "localPath": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\meshtastic-firmware-2.8"
-  },
-  "patchFile": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\patches\\itsz-tdeck-realtime-gps-compass.patch",
-  "editedFiles": [
-    "bin/platformio-custom.py",
-    "itsz/device-ui-map.patch",
-    "itsz/device-ui-map-internet.patch",
-    "itsz/device-ui-screen-correction.patch",
-    "itsz/device-ui-sd-message-journal.patch",
-    "itsz/device-ui-usability.patch",
-    "itsz/device-ui-polish.patch",
-    "src/SerialConsole.cpp",
-    "src/configuration.h",
-    "src/GPSStatus.h",
-    "src/gps/GPS.cpp",
-    "src/graphics/Screen.cpp",
-    "src/graphics/TFTColorRegions.cpp",
-    "src/graphics/TFTColorRegions.h",
-    "src/graphics/TFTPalette.h",
-    "src/graphics/draw/DebugRenderer.cpp",
-    "src/graphics/draw/UIRenderer.cpp",
-    "variants/esp32s3/t-deck/platformio.ini"
-  ],
-  "liveConfig": {
-    "position.gps_update_interval": 5
-  },
-  "build": {
-    "preferredEnvironment": "t-deck-tft",
-    "windowsCoreDirWorkaround": "C:\\p",
-    "wslBuildHelper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\build-tdeck-wsl.sh",
-    "latestFlashedBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-222402-t-deck-tft",
-    "latestBuiltBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-222402-t-deck-tft",
-    "customBuild": {
-      "firmwareVersion": "2.8.0.itsz1",
-      "buildName": "ITSZ Classic",
-      "displayName": "ITSZ T-Deck Classic",
-      "ui": "Low-color black/white/green palette closer to the original Meshtastic look, with explicit mesh idle, map source/GPS, a centered map waiting card when GPS/tiles are not ready, and compact TX/RX status chips for sent/heard/ack/fail."
-    },
-    "status": "WSL build path produced flashable t-deck-tft images. The 20260530-222402 build includes the ITSZ Classic UI skin, dynamic/safe TFT map patch, on-device internet/satellite map menu, explicit mesh idle/map source/message delivery labels, polished map waiting/status card, clearer TX/RX status chips, forced physical USB serial API access, recovery controls, SD message journal, and Tools -> Screen Correction. Flash completed and esptool verified writes on COM16; normal boot later enumerated as COM17 and Meshtastic API verification passed."
-  },
-  "flash": {
-    "helper": "F:\\Dropbox\\Dev Ops\\T-Deck\\tools\\flash-latest-tdeck-build.ps1",
-    "port": "COM16",
-    "layout": {
-      "bootloader": "0x0",
-      "partitions": "0x8000",
-      "boot_app0": "0xe000",
-      "app0": "0x10000",
-      "app1": "0x650000",
-      "littlefs": "0xc90000"
-    },
-    "verified": true,
-    "pendingFlashBuild": "F:\\Dropbox\\Dev Ops\\T-Deck\\firmware\\builds\\20260530-222402-t-deck-tft",
-    "pendingReason": "No pending flash action. Runtime API verified on COM17 after normal reset; owner and public channel names restored, and ITSZPriv secondary channel name verified without exposing secret material."
-  },
-  "privateBackup": {
-    "repository": "Its-ze/MeshTas-Private-Keys",
-    "folder": "local/T-Deck/20260530-145903-itsz-tdeck-desired-settings-and-keys"
-  }
+    "name":  "zdeck-public-stack",
+    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, GPS/compass refresh fixes, map/cache status, clearer message delivery labels, hop counters where packet route data exposes them, SD message journal support, screen correction tools, and a public on-device health panel.",
+    "release":  {
+                    "label":  "Z-Deck 0.2.0-public",
+                    "firmwareVersion":  "2.8.0.zdeck2",
+                    "packVersion":  "0.2.0-public",
+                    "channelDefaults":  "LongFast only",
+                    "privateChannelsBundled":  false,
+                    "privateKeysBundled":  false,
+                    "adminKeysBundled":  false
+                },
+    "targetDevice":  {
+                         "longName":  "Z-Deck T-Deck",
+                         "shortName":  "ZDK",
+                         "platformEnvironment":  "t-deck-tft",
+                         "hardwareModel":  "T_DECK",
+                         "flashSize":  "16MB",
+                         "sdCard":  "Supported for maps and local message journal; not required to boot."
+                     },
+    "source":  {
+                   "repository":  "https://github.com/meshtastic/firmware.git",
+                   "branch":  "2.8",
+                   "patchBase":  "origin/2.8"
+               },
+    "build":  {
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck2-public",
+                  "latestBuiltFrom":  "20260531-122626-t-deck-tft",
+                  "status":  "WSL build completed successfully. Runtime serial API verification still requires the hardware booted in normal mode rather than ESP32-S3 bootloader mode."
+              },
+    "patchFiles":  [
+                       "device-ui-brand-version.patch",
+                       "device-ui-map.patch",
+                       "device-ui-map-internet.patch",
+                       "device-ui-screen-correction.patch",
+                       "device-ui-sd-message-journal.patch",
+                       "device-ui-usability.patch",
+                       "device-ui-polish.patch",
+                       "device-ui-delivery-status.patch",
+                       "device-ui-zdeck-public-stack.patch",
+                       "zdeck-full-source.patch"
+                   ],
+    "publicSetup":  {
+                        "ownerDefault":  "Z-Deck",
+                        "shortNameDefault":  "ZDK",
+                        "regionDefault":  "US",
+                        "presetDefault":  "LongFast",
+                        "hopLimitDefault":  3,
+                        "notes":  "Users can add their own channels, PSKs, owner names, and admin configuration after flashing with the Meshtastic app or CLI. No private channel data is shipped."
+                    }
 }

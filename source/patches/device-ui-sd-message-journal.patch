@@ -11,12 +11,12 @@ index 49b3052f4..e0c37e7e6 100644
 +#endif
  #include <algorithm>
 +#include <cstdio>
- 
+
  #if defined(ARCH_PORTDUINO)
  #include "PortduinoFS.h"
 @@ -15,5 +19,103 @@ const size_t DATA_PAYLOAD_LEN = meshtastic_Constants_DATA_PAYLOAD_LEN;
  constexpr const char *logDir = "/messages";
- 
+
 +namespace
 +{
 +#if defined(HAS_SDCARD) || defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
@@ -125,7 +125,7 @@ index 49b3052f4..e0c37e7e6 100644
 +        itszAppendSdMessageJournal("sent", myNodeNum, to, ch, msgTime, msgLen, (const uint8_t *)textmsg);
      }
  }
- 
+
 @@ -946,6 +1046,8 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
          view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
          log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,

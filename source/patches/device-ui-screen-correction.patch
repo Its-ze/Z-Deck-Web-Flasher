@@ -18,7 +18,7 @@ index 7ba7b9757..efc2c70e4 100644
      static void timer_event_shutdown(lv_timer_t *timer);
      static void timer_event_programming_mode(lv_timer_t *timer);
 +    static void timer_event_screen_correction(lv_timer_t *timer);
- 
+
      // lvgl event callbacks
      static void ui_event_LogoButton(lv_event_t *e);
 @@ -386,6 +391,7 @@ class TFTView_320x240 : public MeshtasticView
@@ -26,7 +26,7 @@ index 7ba7b9757..efc2c70e4 100644
      static void ui_event_mapInternetButton(lv_event_t *e);
      static void ui_event_mapCacheButton(lv_event_t *e);
 +    static void ui_event_screenCorrectionButton(lv_event_t *e);
- 
+
      // animations
      static void ui_anim_node_panel_cb(void *var, int32_t v);
 @@ -442,6 +448,11 @@ class TFTView_320x240 : public MeshtasticView
@@ -50,13 +50,13 @@ index 8e60eba20..0fdd08d5f 100644
      lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
      setupDynamicMapMenu();
 +    setupScreenCorrectionTool();
- 
+
      // tools buttons
      lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
 @@ -949,6 +950,21 @@ void TFTView_320x240::timer_event_programming_mode(lv_timer_t *timer)
      lv_obj_remove_event_cb(objects.boot_logo_button, ui_event_LogoButton);
  }
- 
+
 +void TFTView_320x240::timer_event_screen_correction(lv_timer_t *timer)
 +{
 +    if (!THIS->screenCorrectionOverlay || timer != THIS->screenCorrectionTimer)
@@ -74,11 +74,11 @@ index 8e60eba20..0fdd08d5f 100644
 +
  void TFTView_320x240::ui_event_LogoButton(lv_event_t *e)
  {
- 
+
 @@ -2533,6 +2549,182 @@ void TFTView_320x240::ui_event_mapCacheButton(lv_event_t *e)
          THIS->rememberCurrentMapArea();
  }
- 
+
 +void TFTView_320x240::setupScreenCorrectionTool(void)
 +{
 +    if (screenCorrectionButton || !objects.tab_page_tools)

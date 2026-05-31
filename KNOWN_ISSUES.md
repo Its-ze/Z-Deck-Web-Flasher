@@ -1,7 +1,7 @@
 # Known Issues
 
 - This is beta firmware. Treat it as experimental.
-- The firmware base reports `2.8.0.itsz1`; the public release label is `2.8.0.itsz1-beta.1`.
+- The firmware base reports `2.8.0.zdeck2`; the public release label is `0.2.0-public`.
 - The SD-card message journal stores message text locally in plaintext.
 - SD-card behavior depends on the card mounting correctly at runtime.
 - GPS and map behavior depends on sky view, valid GPS wiring, and available/cached map tiles.
