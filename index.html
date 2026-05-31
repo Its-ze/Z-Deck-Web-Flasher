@@ -18,34 +18,105 @@
           <em>0.2.0 PUBLIC</em>
         </div>
         <div class="usb-scene" aria-hidden="true">
-          <div class="scene-grid"></div>
-          <div class="signal-rings"><i></i><i></i><i></i></div>
-          <div class="cable"></div>
-          <div class="usb-plug">
-            <span></span><span></span>
-          </div>
-          <div class="data-pulse p1"></div>
-          <div class="data-pulse p2"></div>
-          <div class="data-pulse p3"></div>
-          <div class="deck-device">
-            <div class="deck-screen">
-              <div class="screen-top">
-                <b>Z-DECK</b>
-                <span>USB</span>
-              </div>
-              <div class="screen-main">LongFast</div>
-              <div class="screen-sub">public profile</div>
-              <div class="screen-bars">
-                <i></i><i></i><i></i><i></i>
-              </div>
-            </div>
-            <div class="deck-keys">
-              <i></i><i></i><i></i><i></i><i></i><i></i>
-              <i></i><i></i><i></i><i></i><i></i><i></i>
-              <i></i><i></i><i></i><i></i><i></i><i></i>
-            </div>
-            <div class="trackball"></div>
-          </div>
+          <svg class="deck-vector" viewBox="0 0 720 420" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="caseGrad" x1="120" x2="600" y1="90" y2="330" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#202b29"/>
+                <stop offset="0.52" stop-color="#111917"/>
+                <stop offset="1" stop-color="#070b0a"/>
+              </linearGradient>
+              <linearGradient id="screenGrad" x1="142" x2="358" y1="126" y2="284" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#18352b"/>
+                <stop offset="1" stop-color="#07120e"/>
+              </linearGradient>
+              <linearGradient id="plugGrad" x1="0" x2="1">
+                <stop offset="0" stop-color="#eef7ea"/>
+                <stop offset="1" stop-color="#a9bab4"/>
+              </linearGradient>
+              <radialGradient id="trackballGrad" cx="35%" cy="32%" r="72%">
+                <stop offset="0" stop-color="#f7ffe8"/>
+                <stop offset="0.42" stop-color="#7d9189"/>
+                <stop offset="1" stop-color="#0d1110"/>
+              </radialGradient>
+              <pattern id="screenGrid" width="16" height="16" patternUnits="userSpaceOnUse">
+                <path d="M16 0H0V16" fill="none" stroke="#52ff9a" stroke-opacity=".16" stroke-width="1"/>
+              </pattern>
+              <filter id="greenGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="5" result="blur"/>
+                <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.32 0 0 0 0 1 0 0 0 0 0.6 0 0 0 .75 0"/>
+                <feMerge>
+                  <feMergeNode/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+
+            <rect class="vector-horizon" x="28" y="32" width="664" height="342" rx="16"/>
+            <path class="vector-grid-line" d="M74 330H646M90 286H632M112 244H610M148 204H574M188 168H534"/>
+            <path class="vector-grid-line faint" d="M102 342l130-256M214 352l60-278M340 358V70M468 352L408 74M582 342L450 86"/>
+
+            <path class="cable-vector" d="M-8 214C46 212 82 211 120 214" />
+            <rect class="plug-body" x="76" y="184" width="86" height="60" rx="10"/>
+            <rect class="plug-tip" x="152" y="197" width="28" height="34" rx="5"/>
+            <path class="plug-lines" d="M96 203h35M96 224h32"/>
+
+            <g class="data-stream">
+              <circle cx="205" cy="214" r="4"/>
+              <circle cx="230" cy="214" r="4"/>
+              <circle cx="255" cy="214" r="4"/>
+            </g>
+
+            <g class="deck-body">
+              <path class="deck-shadow" d="M152 88h414c44 0 80 36 80 80v80c0 44-36 80-80 80H152c-44 0-80-36-80-80v-80c0-44 36-80 80-80Z"/>
+              <rect class="deck-case" x="92" y="78" width="532" height="246" rx="40"/>
+              <rect class="deck-bezel" x="112" y="100" width="236" height="176" rx="16"/>
+              <rect class="deck-screen-panel" x="128" y="116" width="204" height="144" rx="10"/>
+              <rect x="128" y="116" width="204" height="144" rx="10" fill="url(#screenGrid)"/>
+              <path class="screen-chart" d="M146 218c26-48 48-42 66-24s35 16 56-20 34-32 48-12"/>
+              <path class="screen-orbit" d="M246 154a46 46 0 1 1 15 68"/>
+              <circle class="screen-dot" cx="284" cy="188" r="7"/>
+              <text class="screen-title" x="146" y="146">LONGFAST</text>
+              <text class="screen-small" x="146" y="244">PUBLIC PROFILE</text>
+
+              <rect class="center-rail" x="364" y="98" width="54" height="182" rx="8"/>
+              <path class="rail-trace" d="M382 116v42l20 20v74M398 116v26l-12 14v34"/>
+              <circle class="trackball-vector" cx="392" cy="218" r="28"/>
+
+              <g class="key-grid">
+                <rect x="446" y="108" width="28" height="22" rx="6"/>
+                <rect x="484" y="108" width="28" height="22" rx="6"/>
+                <rect x="522" y="108" width="28" height="22" rx="6"/>
+                <rect x="560" y="108" width="28" height="22" rx="6"/>
+                <rect x="446" y="142" width="28" height="22" rx="6"/>
+                <rect x="484" y="142" width="28" height="22" rx="6"/>
+                <rect x="522" y="142" width="28" height="22" rx="6"/>
+                <rect x="560" y="142" width="28" height="22" rx="6"/>
+                <rect x="446" y="176" width="28" height="22" rx="6"/>
+                <rect x="484" y="176" width="28" height="22" rx="6"/>
+                <rect x="522" y="176" width="28" height="22" rx="6"/>
+                <rect x="560" y="176" width="28" height="22" rx="6"/>
+                <rect x="446" y="210" width="28" height="22" rx="6"/>
+                <rect x="484" y="210" width="28" height="22" rx="6"/>
+                <rect x="522" y="210" width="28" height="22" rx="6"/>
+                <rect x="560" y="210" width="28" height="22" rx="6"/>
+                <rect x="446" y="244" width="28" height="22" rx="6"/>
+                <rect x="484" y="244" width="66" height="22" rx="6"/>
+                <rect x="560" y="244" width="28" height="22" rx="6"/>
+              </g>
+
+              <g class="status-stack">
+                <circle cx="592" cy="120" r="5"/>
+                <circle cx="592" cy="142" r="5"/>
+                <circle cx="592" cy="164" r="5"/>
+              </g>
+            </g>
+
+            <g class="signal-field" filter="url(#greenGlow)">
+              <path d="M542 70a118 118 0 0 1 92 92"/>
+              <path d="M552 102a76 76 0 0 1 50 50"/>
+              <path d="M562 134a34 34 0 0 1 18 18"/>
+            </g>
+          </svg>
         </div>
         <pre id="ticker">waiting for deck...</pre>
       </div>
