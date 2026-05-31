@@ -4,6 +4,10 @@
 
 Initial public beta flasher release.
 
+- 2026-05-31 refresh: rebuilt bundled firmware from `20260531-150230-t-deck-tft`.
+- Fixed T-Deck I2S ringtone playback so full RTTTL-style tone sequences play instead of stopping after the first note.
+- Added USB SD-card mass storage for the T-Deck SD card with USB product name `TDECK SD CARD`.
+- Added a Tools tab `Prepare / Reset SD` action with a two-press warning, Z-Deck folder setup, README creation, and FAT volume label `TDECKSDCARD` where supported.
 - Added public GitHub Pages Web Serial flasher.
 - Bundled non-secret T-Deck `t-deck-tft` firmware artifacts.
 - Added Z-Deck Classic / Z-Deck beta release labeling.

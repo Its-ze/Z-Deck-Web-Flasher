@@ -1,6 +1,6 @@
 {
     "name":  "zdeck-public-stack",
-    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, GPS/compass refresh fixes, map/cache status, clearer message delivery labels, hop counters where packet route data exposes them, SD message journal support, screen correction tools, and a public on-device health panel.",
+    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, GPS/compass refresh fixes, map/cache status, clearer message delivery labels, hop counters where packet route data exposes them, SD message journal support, USB SD-card mass storage, SD prepare/reset tools, screen correction tools, and a public on-device health panel.",
     "release":  {
                     "label":  "Z-Deck 0.2.0-public",
                     "firmwareVersion":  "2.8.0.zdeck2",
@@ -16,7 +16,7 @@
                          "platformEnvironment":  "t-deck-tft",
                          "hardwareModel":  "T_DECK",
                          "flashSize":  "16MB",
-                         "sdCard":  "Supported for maps and local message journal; not required to boot."
+                         "sdCard":  "Supported for maps, local message journal, ringtone storage, logs, and USB mass storage; not required to boot."
                      },
     "source":  {
                    "repository":  "https://github.com/meshtastic/firmware.git",
@@ -25,8 +25,8 @@
                },
     "build":  {
                   "artifactFolder":  "firmware/zdeck-2.8.0-zdeck2-public",
-                  "latestBuiltFrom":  "20260531-122626-t-deck-tft",
-                  "status":  "WSL build completed successfully. Runtime serial API verification still requires the hardware booted in normal mode rather than ESP32-S3 bootloader mode."
+                  "latestBuiltFrom":  "20260531-150230-t-deck-tft",
+                  "status":  "WSL build completed successfully. Firmware contains the USB SD-card mass-storage callbacks, TDECK SD CARD USB product string, TDECKSDCARD volume-label writer, SD prepare/reset UI, and corrected I2S RTTTL ringtone playback."
               },
     "patchFiles":  [
                        "device-ui-brand-version.patch",
@@ -38,6 +38,7 @@
                        "device-ui-polish.patch",
                        "device-ui-delivery-status.patch",
                        "device-ui-zdeck-public-stack.patch",
+                       "device-ui-sd-tools.patch",
                        "zdeck-full-source.patch"
                    ],
     "publicSetup":  {

@@ -47,6 +47,9 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 - Chip: `ESP32-S3`
 - Layout: bootloader, partitions, boot_app0, OTA app slots, LittleFS
 - Message UI: received packets show measured hop count as `H#`; unknown route data shows `H?`; outbound limits use `TTL#`.
+- Audio: T-Deck I2S ringtone playback uses full tone sequences instead of stopping on the first note.
+- SD card: Tools includes a two-press `Prepare / Reset SD` action that formats the card, builds Z-Deck folders, writes a README, and labels supported FAT cards as `TDECKSDCARD`.
+- USB storage: when an SD card is mounted, the T-Deck exposes it to the computer as `TDECK SD CARD` USB mass storage.
 
 ## Documentation
 

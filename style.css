@@ -127,6 +127,11 @@ body::before {
   filter: drop-shadow(0 24px 34px rgba(0, 0, 0, 0.42));
 }
 
+.deck-vector-photo {
+  width: min(100%, 290px);
+  max-height: 490px;
+}
+
 .vector-horizon {
   fill: rgba(9, 17, 15, 0.82);
   stroke: rgba(79, 122, 112, 0.56);
@@ -183,10 +188,50 @@ body::before {
   transform: translate(0, 18px);
 }
 
+.portrait-shadow {
+  fill: rgba(0, 0, 0, 0.46);
+}
+
+.side-button {
+  fill: #0a0d0c;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 1;
+}
+
 .deck-case {
   fill: url("#caseGrad");
   stroke: #50635d;
   stroke-width: 3;
+}
+
+.portrait-case {
+  stroke: #101514;
+  stroke-width: 5;
+}
+
+.portrait-rim {
+  fill: none;
+  stroke: url("#rimGrad");
+  stroke-width: 4;
+}
+
+.top-speaker,
+.bottom-strip {
+  fill: #111817;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1;
+}
+
+.body-logo {
+  fill: rgba(244, 248, 239, 0.82);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.7px;
+}
+
+.body-logo.bottom {
+  font-size: 12px;
+  letter-spacing: 1.2px;
 }
 
 .deck-edge {
@@ -230,12 +275,23 @@ body::before {
   stroke-width: 2;
 }
 
+.portrait-screen-frame {
+  fill: #060908;
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 3;
+}
+
 .screen-glass,
 .deck-screen-panel {
   fill: url("#screenGrad");
   stroke: var(--green);
   stroke-width: 2.4;
   filter: url("#greenGlow");
+}
+
+.portrait-screen {
+  stroke: rgba(95, 215, 255, 0.68);
+  stroke-width: 2;
 }
 
 .screen-chart,
@@ -254,9 +310,24 @@ body::before {
   stroke-width: 1.5;
 }
 
+.screen-circuit {
+  fill: none;
+  stroke: rgba(95, 215, 255, 0.48);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .screen-dot,
 .status-stack circle {
   fill: var(--green);
+  filter: url("#greenGlow");
+}
+
+.screen-avatar {
+  fill: var(--amber);
+  stroke: var(--green);
+  stroke-width: 1.5;
   filter: url("#greenGlow");
 }
 
@@ -286,10 +357,47 @@ body::before {
   opacity: 0.86;
 }
 
+.screen-pill {
+  fill: rgba(95, 215, 255, 0.15);
+  stroke: rgba(95, 215, 255, 0.68);
+  stroke-width: 1;
+}
+
+.screen-pill.dim {
+  fill: rgba(82, 255, 154, 0.1);
+  stroke: rgba(82, 255, 154, 0.55);
+}
+
+.screen-label {
+  fill: var(--text);
+  font-family: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
 .nav-spine,
 .center-rail {
   fill: #0b1110;
   stroke: #40534d;
+  stroke-width: 2;
+}
+
+.bezel-shelf {
+  fill: #111716;
+  stroke: #3b4542;
+  stroke-width: 2;
+}
+
+.chevrons {
+  fill: rgba(232, 238, 231, 0.88);
+}
+
+.circuit-left,
+.circuit-right {
+  fill: none;
+  stroke: rgba(232, 238, 231, 0.48);
+  stroke-linecap: round;
   stroke-width: 2;
 }
 
@@ -320,6 +428,30 @@ body::before {
   fill: url("#keyGrad");
   stroke: #64716d;
   stroke-width: 1.3;
+}
+
+.portrait-keys rect {
+  stroke: #6f7b77;
+  stroke-width: 1.1;
+}
+
+.portrait-keys text {
+  fill: rgba(244, 248, 239, 0.86);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  letter-spacing: 0;
+  pointer-events: none;
+}
+
+.portrait-keys text:nth-of-type(21),
+.portrait-keys text:nth-of-type(30),
+.portrait-keys text:nth-of-type(31),
+.portrait-keys text:nth-of-type(32),
+.portrait-keys text:nth-of-type(33),
+.portrait-keys text:nth-of-type(34) {
+  font-size: 8px;
 }
 
 .status-stack circle:nth-child(2) {

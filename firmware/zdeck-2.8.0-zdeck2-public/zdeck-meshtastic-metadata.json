@@ -7,23 +7,23 @@
   "files": [
     {
       "name": "firmware-t-deck-tft-2.8.0.35b0590.elf",
-      "md5": "674d4b5c6d340c945c2b42afa660e631",
-      "bytes": 25965976
+      "md5": "43f6ef81f4d640015ad41229fb4e0dbe",
+      "bytes": 25977076
     },
     {
       "name": "firmware-t-deck-tft-2.8.0.35b0590.bin",
-      "md5": "ae9ccb95162cdc9fe9b504cebd68e8a0",
-      "bytes": 3651264,
+      "md5": "6529dd1dde27ae31501287fa2f3a355f",
+      "bytes": 3657040,
       "part_name": "app0"
     },
     {
       "name": "firmware-t-deck-tft-2.8.0.35b0590.factory.bin",
-      "md5": "af6edb4af7238d6eda97abc62b992fcc",
-      "bytes": 3716800
+      "md5": "ddd6222bec893d06291123c4a9c5efe7",
+      "bytes": 3722576
     },
     {
       "name": "littlefs-t-deck-tft-2.8.0.35b0590.bin",
-      "md5": "428561bddac8632cd966e8acada8906d",
+      "md5": "deeea514087bb28291e3e6abd39a29b3",
       "bytes": 3538944,
       "part_name": "spiffs"
     }

@@ -16,22 +16,22 @@
     },
     {
         "Name":  "zdeck-factory.bin",
-        "Length":  3716800,
-        "SHA256":  "5965cb42e128b89aaba40f3f92797ddf46dda18e0441b253127fb236708713df"
+        "Length":  3722576,
+        "SHA256":  "52af80f83f99f90b9b75394fc0050436e3acdd752a726bfffd28781a56c50c46"
     },
     {
         "Name":  "zdeck-firmware.bin",
-        "Length":  3651264,
-        "SHA256":  "9a38f8f675ea4dfaa655999a34b7aa4352752c33bd735838104cfaf05f393f3c"
+        "Length":  3657040,
+        "SHA256":  "370555805f1f0da5f133b12b06cc6d7448f9edcd2b97ba739c780e26a55c99a6"
     },
     {
         "Name":  "zdeck-littlefs.bin",
         "Length":  3538944,
-        "SHA256":  "9d9a8705901e64a07f844059016d6d290d1958740147763bc8c817ffeb43ebf7"
+        "SHA256":  "6baef140f0500855373a854356edb63a55d718bd80b8588dcfdccc323c93cbf8"
     },
     {
         "Name":  "zdeck-meshtastic-metadata.json",
-        "Length":  2082,
-        "SHA256":  "8ebee5119e26f8d995bd2032667e03353b32625ddd7fce9663d0c09cb54b101e"
+        "Length":  2081,
+        "SHA256":  "4c02c368e6fe0c2aa06f1a2333938e0dcd650591173f859f06a5a2669e75c784"
     }
 ]

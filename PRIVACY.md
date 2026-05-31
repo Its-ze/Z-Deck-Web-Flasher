@@ -13,3 +13,7 @@ Z-Deck adds a custom SD-card message journal. When the SD card is mounted, sent 
 Entries include message direction, sender, destination, channel number, time, and text.
 
 The journal is plaintext local history. Anyone with access to the SD card may be able to read it. Remove or encrypt the SD card if the message history is sensitive.
+
+## USB SD Access
+
+When the T-Deck is plugged into a computer and the SD card is mounted, Z-Deck can expose the card as USB mass storage named `TDECK SD CARD`. Treat this the same as removing the card: files, maps, logs, ringtone assets, and message history on the SD card may be visible to the connected computer.
