@@ -1,0 +1,52 @@
+name-template: "Z-Deck $RESOLVED_VERSION"
+tag-template: "zdeck-$RESOLVED_VERSION"
+template: |
+  ## Changes
+
+  $CHANGES
+
+categories:
+  - title: "Firmware and flasher"
+    labels:
+      - "firmware"
+      - "flasher"
+      - "feature"
+      - "enhancement"
+  - title: "Fixes"
+    labels:
+      - "bug"
+      - "fix"
+      - "security"
+  - title: "Documentation"
+    labels:
+      - "documentation"
+      - "docs"
+  - title: "Maintenance"
+    labels:
+      - "maintenance"
+      - "ci"
+      - "dependencies"
+
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+change-title-escapes: "\\<*_&"
+no-changes-template: "- No pull request changes found."
+exclude-labels:
+  - "skip-changelog"
+
+version-resolver:
+  major:
+    labels:
+      - "major"
+  minor:
+    labels:
+      - "minor"
+      - "feature"
+      - "enhancement"
+  patch:
+    labels:
+      - "patch"
+      - "bug"
+      - "fix"
+      - "maintenance"
+      - "ci"
+  default: patch

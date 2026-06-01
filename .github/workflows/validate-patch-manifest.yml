@@ -2,73 +2,95 @@ name: Validate Patch Manifest
 
 on:
   push:
-      paths:
-            - 'source/patches/**'
-              pull_request:
-                  paths:
-                        - 'source/patches/**'
-                          workflow_dispatch:
+    paths:
+      - "source/patches/**"
+      - ".github/workflows/validate-patch-manifest.yml"
+  pull_request:
+    paths:
+      - "source/patches/**"
+      - ".github/workflows/validate-patch-manifest.yml"
+  workflow_dispatch:
 
-                          jobs:
-                            validate:
-                                runs-on: ubuntu-latest
-                                    name: Validate patch-manifest.json
-                                        steps:
-                                              - name: Checkout repository
-                                                      uses: actions/checkout@v4
+permissions:
+  contents: read
 
-                                                            - name: Validate patch manifest
-                                                                    run: |
-                                                                              python3 - <<'EOF'
-                                                                                        import json, os, sys
+jobs:
+  validate:
+    name: Validate patch-manifest.json
+    runs-on: ubuntu-latest
 
-                                                                                                  manifest_path = "source/patches/patch-manifest.json"
-                                                                                                            patches_dir = "source/patches"
-                                                                                                            
-                                                                                                                      if not os.path.exists(manifest_path):
-                                                                                                                                  print(f"ERROR: {manifest_path} not found")
-                                                                                                                                              sys.exit(1)
-                                                                                                                                              
-                                                                                                                                                        with open(manifest_path) as f:
-                                                                                                                                                                    manifest = json.load(f)
-                                                                                                                                                                    
-                                                                                                                                                                              # Get all patch files on disk
-                                                                                                                                                                                        disk_patches = set(
-                                                                                                                                                                                                    f for f in os.listdir(patches_dir)
-                                                                                                                                                                                                                if f.endswith(".patch")
-                                                                                                                                                                                                                          )
-                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                    # Get all patch files listed in the manifest
-                                                                                                                                                                                                                                              if isinstance(manifest, list):
-                                                                                                                                                                                                                                                          manifest_patches = set(entry.get("file", entry) if isinstance(entry, dict) else entry for entry in manifest)
-                                                                                                                                                                                                                                                                    elif isinstance(manifest, dict):
-                                                                                                                                                                                                                                                                                manifest_patches = set(manifest.get("patches", manifest.keys()))
-                                                                                                                                                                                                                                                                                          else:
-                                                                                                                                                                                                                                                                                                      print("ERROR: Unexpected manifest format")
-                                                                                                                                                                                                                                                                                                                  sys.exit(1)
-                                                                                                                                                                                                                                                                                                                  
-                                                                                                                                                                                                                                                                                                                            # Normalize to just filenames
-                                                                                                                                                                                                                                                                                                                                      manifest_patches = set(os.path.basename(p) for p in manifest_patches)
-                                                                                                                                                                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                                                                                missing_from_disk = manifest_patches - disk_patches
-                                                                                                                                                                                                                                                                                                                                                          orphaned_on_disk = disk_patches - manifest_patches
-                                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                                                                    failed = False
-                                                                                                                                                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                                                                                                                                                              if missing_from_disk:
-                                                                                                                                                                                                                                                                                                                                                                                          print("MISSING from disk (listed in manifest but no file):")
-                                                                                                                                                                                                                                                                                                                                                                                                      for f in sorted(missing_from_disk):
-                                                                                                                                                                                                                                                                                                                                                                                                                    print(f"  - {f}")
-                                                                                                                                                                                                                                                                                                                                                                                                                                failed = True
-                                                                                                                                                                                                                                                                                                                                                                                                                                
-                                                                                                                                                                                                                                                                                                                                                                                                                                          if orphaned_on_disk:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                      print("ORPHANED on disk (file exists but not in manifest):")
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  for f in sorted(orphaned_on_disk):
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                print(f"  - {f}")
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            failed = True
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      if not failed:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  print(f"OK: All {len(manifest_patches)} patches accounted for.")
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            else:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        sys.exit(1)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  EOF
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate patch manifest
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import sys
+
+          manifest_path = pathlib.Path("source/patches/patch-manifest.json")
+          patches_dir = manifest_path.parent
+
+          if not manifest_path.exists():
+              print(f"ERROR: {manifest_path} not found")
+              sys.exit(1)
+
+          with manifest_path.open(encoding="utf-8-sig") as handle:
+              manifest = json.load(handle)
+
+          if not isinstance(manifest, dict):
+              print("ERROR: patch manifest must be a JSON object")
+              sys.exit(1)
+
+          patch_files = manifest.get("patchFiles")
+          if not isinstance(patch_files, list):
+              print("ERROR: patch manifest must contain a patchFiles list")
+              sys.exit(1)
+
+          manifest_patches = {
+              os.path.basename(item)
+              for item in patch_files
+              if isinstance(item, str) and item.endswith(".patch")
+          }
+          disk_patches = {
+              path.name
+              for path in patches_dir.iterdir()
+              if path.is_file() and path.suffix == ".patch"
+          }
+
+          malformed = [
+              item for item in patch_files
+              if not isinstance(item, str) or not item.endswith(".patch")
+          ]
+          missing_from_disk = manifest_patches - disk_patches
+          orphaned_on_disk = disk_patches - manifest_patches
+
+          failed = False
+
+          if malformed:
+              print("MALFORMED patchFiles entries:")
+              for item in malformed:
+                  print(f"  - {item!r}")
+              failed = True
+
+          if missing_from_disk:
+              print("MISSING from disk (listed in manifest but no file):")
+              for name in sorted(missing_from_disk):
+                  print(f"  - {name}")
+              failed = True
+
+          if orphaned_on_disk:
+              print("ORPHANED on disk (file exists but is not listed):")
+              for name in sorted(orphaned_on_disk):
+                  print(f"  - {name}")
+              failed = True
+
+          if failed:
+              sys.exit(1)
+
+          print(f"OK: all {len(manifest_patches)} patch files are accounted for.")
+          PY
