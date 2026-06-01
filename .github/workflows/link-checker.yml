@@ -1,0 +1,46 @@
+name: Broken Link Checker
+
+on:
+  push:
+      paths:
+            - '**.md'
+                  - 'index.html'
+                        - 'wiki/**'
+                          schedule:
+                              - cron: '0 6 * * 1'
+                                workflow_dispatch:
+
+                                jobs:
+                                  check-links:
+                                      runs-on: ubuntu-latest
+                                          name: Check for broken links
+                                              steps:
+                                                    - name: Checkout repository
+                                                            uses: actions/checkout@v4
+
+                                                                  - name: Link Checker
+                                                                          uses: lycheeverse/lychee-action@v2
+                                                                                  with:
+                                                                                            args: >
+                                                                                                        --verbose
+                                                                                                                    --no-progress
+                                                                                                                                --exclude 'localhost'
+                                                                                                                                            --exclude '127\.0\.0\.1'
+                                                                                                                                                        --exclude 'github\.com/Its-ze'
+                                                                                                                                                                    --exclude-mail
+                                                                                                                                                                                --timeout 30
+                                                                                                                                                                                            --retry-wait-time 5
+                                                                                                                                                                                                        --max-retries 2
+                                                                                                                                                                                                                    README.md
+                                                                                                                                                                                                                                CHANGELOG.md
+                                                                                                                                                                                                                                            COMPATIBILITY.md
+                                                                                                                                                                                                                                                        KNOWN_ISSUES.md
+                                                                                                                                                                                                                                                                    RECOVERY.md
+                                                                                                                                                                                                                                                                                PRIVACY.md
+                                                                                                                                                                                                                                                                                            SOURCE.md
+                                                                                                                                                                                                                                                                                                        SOURCES.md
+                                                                                                                                                                                                                                                                                                                    index.html
+                                                                                                                                                                                                                                                                                                                                wiki/
+                                                                                                                                                                                                                                                                                                                                          fail: true
+                                                                                                                                                                                                                                                                                                                                                  env:
+                                                                                                                                                                                                                                                                                                                                                            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
