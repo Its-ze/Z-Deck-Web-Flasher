@@ -1,5 +1,17 @@
 # Changelog
 
+## Z-Deck 0.2.6-public - 2026-06-01
+
+Boot progress and clean source rebuild fix for the public T-Deck build.
+
+- Rebuilt bundled firmware from `20260601-zdeck7-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck7` and pack label to `0.2.6-public`.
+- Fixed the boot progress bar so it renders as a compact foreground bar and does not overlap boot labels.
+- Switched boot progress updates to non-animated LVGL updates so early boot state changes are visible reliably.
+- Fixed the public source patch stack so clean rebuilds no longer depend on an unavailable `LittleFSService` map fallback include.
+- Kept the 0.2.5 public stack: US LongFast default, classic UI, serial recovery, disabled USB mass storage, SD tools/history/ringtones, popup controls, map/status/delivery improvements, and sound-off setup compatibility.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.5-public - 2026-06-01
 
 Region-default fix for the public T-Deck LongFast build.

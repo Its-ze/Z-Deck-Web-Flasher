@@ -63,7 +63,7 @@ index f1946770c..9fce45d91 100644
          "-DAPP_ENV=" + env.get("PIOENV"),
          "-DAPP_REPO=" + repo_owner,
          "-DBUILD_EPOCH=" + str(build_epoch),
-@@ -255,9 +288,148 @@ projenv.Append(
+@@ -255,9 +288,150 @@ projenv.Append(
      CCFLAGS=flags,
  )
  
@@ -149,6 +149,8 @@ index f1946770c..9fce45d91 100644
 +            ],
 +            "device-ui-sd-card-notices-ringtones.patch": [
 +                ("source/graphics/TFT/TFTView_320x240.cpp", "createSDSetupPrompt"),
++                ("source/graphics/TFT/TFTView_320x240.cpp", "lv_obj_align(bootProgressBar, LV_ALIGN_BOTTOM_MID, 0, -34)"),
++                ("source/graphics/TFT/TFTView_320x240.cpp", "lv_bar_set_value(bootProgressBar, bootProgressValue, LV_ANIM_OFF)"),
 +                ("source/graphics/TFT/TFTView_320x240.cpp", "updateUSBStatus"),
 +                ("source/graphics/common/SdCard.cpp", "loadRingtones"),
 +            ],
