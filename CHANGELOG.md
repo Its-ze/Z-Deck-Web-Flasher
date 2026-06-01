@@ -1,5 +1,15 @@
 ﻿# Changelog
 
+## Z-Deck 0.2.3-public - 2026-06-01
+
+Stability release for the public flasher.
+
+- Rebuilt bundled firmware from `20260601-072002-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck4` and pack label to `0.2.3-public`.
+- Disabled always-on USB SD mass storage in the public build because the CDC serial + MSC composite path could make Windows drop the device when opening the serial API.
+- Kept the SD-card prepare/reset tool and local SD journal support, but the public build now reports USB SD as disabled.
+- Preserved LongFast-only public defaults. No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.1-public - 2026-05-31
 
 Boot label hotfix public refresh.

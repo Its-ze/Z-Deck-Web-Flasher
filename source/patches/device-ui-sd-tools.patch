@@ -131,7 +131,7 @@ index 1e0d239..3d78262 100644
 +                    "WARNING: next press formats the SD card and rebuilds Z-Deck folders.\nBack up files first.\n%s",
 +                    zDeckUsbSdMassStorageStatus());
 +    } else {
-+        lv_snprintf(buf, sizeof(buf), "USB: TDECK SD CARD\nLabel after reset: TDECKSDCARD\n%s",
++        lv_snprintf(buf, sizeof(buf), "SD prep: TDECKSDCARD\nUSB drive: disabled in public build\n%s",
 +                    zDeckUsbSdMassStorageStatus());
 +    }
 +    lv_label_set_text(zDeckSdLabel, buf);
@@ -377,7 +377,7 @@ index 9cda81f..35fe10c 100644
 +}
 +#endif
 +
-+#if defined(ZDECK_USB_SD_MSC) && defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO) &&                    \
++#if defined(ZDECK_USB_SD_MSC_ENABLED) && ZDECK_USB_SD_MSC_ENABLED == 1 && defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO) &&                    \
 +    defined(ARDUINO_ARCH_ESP32) && CONFIG_TINYUSB_MSC_ENABLED
 +#include "USBMSC.h"
 +
@@ -504,7 +504,7 @@ index 9cda81f..35fe10c 100644
 +
 +const char *zDeckUsbSdMassStorageStatus(void)
 +{
-+    return "USB SD: unavailable";
++    return "USB SD: disabled";
 +}
 +
 +void zDeckUsbSdMassStorageRefresh(void) {}

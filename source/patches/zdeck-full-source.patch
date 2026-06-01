@@ -1,5 +1,5 @@
-﻿diff --git a/bin/platformio-custom.py b/bin/platformio-custom.py
-index b75c66624..a787cb5cf 100644
+diff --git a/bin/platformio-custom.py b/bin/platformio-custom.py
+index b75c666..caf6874 100644
 --- a/bin/platformio-custom.py
 +++ b/bin/platformio-custom.py
 @@ -7,6 +7,7 @@ import subprocess
@@ -19,7 +19,7 @@ index b75c66624..a787cb5cf 100644
      # Get partition table (generated in esp32_pre.py) if it exists
      if env.get("custom_mtjson_part"):
          # custom_mtjson_part is a JSON string, convert it back to a dict
-@@ -201,6 +204,22 @@ Import("projenv")
+@@ -201,6 +204,23 @@ Import("projenv")
  
  prefsLoc = projenv["PROJECT_DIR"] + "/version.properties"
  verObj = readProps(prefsLoc)
@@ -35,14 +35,15 @@ index b75c66624..a787cb5cf 100644
 +
 +custom_version_suffix = get_project_option_value("custom_meshtastic_version_suffix")
 +custom_build_name = get_project_option_value("custom_meshtastic_build_name")
-+custom_zdeck_pack_version = get_project_option_value("custom_zdeck_pack_version", "0.2.1-public")
++custom_zdeck_pack_version = get_project_option_value("custom_zdeck_pack_version", "0.2.3-public")
++custom_zdeck_usb_sd_msc_enabled = get_project_option_value("custom_zdeck_usb_sd_msc", "0").lower() in ("1", "true", "yes", "on")
 +if custom_version_suffix:
 +    verObj["long"] = "{}.{}".format(verObj["short"], custom_version_suffix)
 +
  print(f"Using meshtastic platformio-custom.py, firmware version {verObj['long']} on {env.get('PIOENV')}")
  
  # get repository owner if git is installed
-@@ -242,6 +261,9 @@ build_epoch = int(current_date.timestamp())
+@@ -242,6 +262,9 @@ build_epoch = int(current_date.timestamp())
  flags = [
          "-DAPP_VERSION=" + verObj["long"],
          "-DAPP_VERSION_SHORT=" + verObj["short"],
@@ -52,7 +53,7 @@ index b75c66624..a787cb5cf 100644
          "-DAPP_ENV=" + env.get("PIOENV"),
          "-DAPP_REPO=" + repo_owner,
          "-DBUILD_EPOCH=" + str(build_epoch),
-@@ -255,9 +277,132 @@ projenv.Append(
+@@ -255,9 +278,133 @@ projenv.Append(
      CCFLAGS=flags,
  )
  
@@ -175,19 +176,20 @@ index b75c66624..a787cb5cf 100644
  for lb in env.GetLibBuilders():
      if lb.name == "meshtastic-device-ui":
 -        lb.env.Append(CPPDEFINES=[("APP_VERSION", verObj["long"])])
-+        lb.env.Append(CPPDEFINES=[
++        device_ui_defines = [
 +            ("APP_VERSION", verObj["long"]),
 +            ("APP_BUILD_NAME", env.StringifyMacro(custom_build_name)),
 +            ("ZDECK_PACK_VERSION", env.StringifyMacro(custom_zdeck_pack_version)),
 +            ("ZDECK_PUBLIC_BUILD", "1"),
-+            ("ZDECK_USB_SD_MSC", "1"),
-+        ])
++            ("ZDECK_USB_SD_MSC_ENABLED", "1" if custom_zdeck_usb_sd_msc_enabled else "0"),
++        ]
++        lb.env.Append(CPPDEFINES=device_ui_defines)
 +        apply_itsz_device_ui_map_patch(Path(env.subst("$PROJECT_LIBDEPS_DIR")) / lb.name)
          break
  
  # Get the display resolution from macros
 diff --git a/src/GPSStatus.h b/src/GPSStatus.h
-index 25c7b1039..b808e4e86 100644
+index 25c7b10..b808e4e 100644
 --- a/src/GPSStatus.h
 +++ b/src/GPSStatus.h
 @@ -79,8 +79,16 @@ class GPSStatus : public Status
@@ -208,7 +210,7 @@ index 25c7b1039..b808e4e86 100644
  
      /// Return millis() when the last GPS fix occurred (0 = never)
 diff --git a/src/SerialConsole.cpp b/src/SerialConsole.cpp
-index 2a3f08cbc..2e099298b 100644
+index 2a3f08c..2e09929 100644
 --- a/src/SerialConsole.cpp
 +++ b/src/SerialConsole.cpp
 @@ -4,8 +4,11 @@
@@ -373,7 +375,7 @@ index 2a3f08cbc..2e099298b 100644
 \ No newline at end of file
 +}
 diff --git a/src/buzz/buzz.cpp b/src/buzz/buzz.cpp
-index 6692d996d..c8c0a5ac0 100644
+index 6692d99..c8c0a5a 100644
 --- a/src/buzz/buzz.cpp
 +++ b/src/buzz/buzz.cpp
 @@ -8,6 +8,8 @@
@@ -464,7 +466,7 @@ index 6692d996d..c8c0a5ac0 100644
 \ No newline at end of file
 +}
 diff --git a/src/configuration.h b/src/configuration.h
-index d263d9ae1..32d266175 100644
+index d263d9a..32d2661 100644
 --- a/src/configuration.h
 +++ b/src/configuration.h
 @@ -68,6 +68,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -479,7 +481,7 @@ index d263d9ae1..32d266175 100644
  // system.
  #ifndef HW_VERSION
 diff --git a/src/gps/GPS.cpp b/src/gps/GPS.cpp
-index e581eb0ef..5477b8c5e 100644
+index e581eb0..5477b8c 100644
 --- a/src/gps/GPS.cpp
 +++ b/src/gps/GPS.cpp
 @@ -1821,6 +1821,7 @@ bool GPS::lookForLocation()
@@ -499,7 +501,7 @@ index e581eb0ef..5477b8c5e 100644
  
      return true;
 diff --git a/src/graphics/Screen.cpp b/src/graphics/Screen.cpp
-index 044db3637..c74412129 100644
+index 044db36..c744121 100644
 --- a/src/graphics/Screen.cpp
 +++ b/src/graphics/Screen.cpp
 @@ -1001,12 +1001,14 @@ int32_t Screen::runOnce()
@@ -544,7 +546,7 @@ index 044db3637..c74412129 100644
          if (showingNormalScreen && nodeStatus->getLastNumTotal() != nodeStatus->getNumTotal()) {
              setFrames(FOCUS_PRESERVE); // Regen the list of screen frames (returning to same frame, if possible)
 diff --git a/src/graphics/TFTColorRegions.cpp b/src/graphics/TFTColorRegions.cpp
-index 877835ea6..4ab2f7183 100644
+index 877835e..4ab2f71 100644
 --- a/src/graphics/TFTColorRegions.cpp
 +++ b/src/graphics/TFTColorRegions.cpp
 @@ -50,12 +50,21 @@ static inline bool isBodyColorRole(TFTColorRole role)
@@ -622,7 +624,7 @@ index 877835ea6..4ab2f7183 100644
          true,               // visible
      },
 diff --git a/src/graphics/TFTPalette.h b/src/graphics/TFTPalette.h
-index 516a9f057..c7952cd2f 100644
+index 516a9f0..c7952cd 100644
 --- a/src/graphics/TFTPalette.h
 +++ b/src/graphics/TFTPalette.h
 @@ -58,12 +58,14 @@ constexpr uint16_t ClassicRed = rgb565(255, 64, 64);
@@ -645,7 +647,7 @@ index 516a9f057..c7952cd2f 100644
  
  } // namespace TFTPalette
 diff --git a/src/graphics/draw/DebugRenderer.cpp b/src/graphics/draw/DebugRenderer.cpp
-index 67136437a..0ce4a642a 100644
+index 6713643..0ce4a64 100644
 --- a/src/graphics/draw/DebugRenderer.cpp
 +++ b/src/graphics/draw/DebugRenderer.cpp
 @@ -701,6 +701,13 @@ void drawSystemScreen(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x
@@ -663,7 +665,7 @@ index 67136437a..0ce4a642a 100644
          char uptimeStr[32] = "";
          getUptimeStr(millis(), "Up: ", uptimeStr, sizeof(uptimeStr));
 diff --git a/src/graphics/draw/UIRenderer.cpp b/src/graphics/draw/UIRenderer.cpp
-index cfde10124..3ebdc085d 100644
+index cfde101..3ebdc08 100644
 --- a/src/graphics/draw/UIRenderer.cpp
 +++ b/src/graphics/draw/UIRenderer.cpp
 @@ -1498,7 +1498,8 @@ void UIRenderer::drawIconScreen(const char *upperMsg, OLEDDisplay *display, OLED
@@ -708,7 +710,7 @@ index cfde10124..3ebdc085d 100644
          double headingLon = 0.0;
          if (hasLiveGpsFix) {
 diff --git a/src/main.cpp b/src/main.cpp
-index 28842734c..9ec4eafdc 100644
+index 2884273..9ec4eaf 100644
 --- a/src/main.cpp
 +++ b/src/main.cpp
 @@ -222,7 +222,7 @@ std::pair<uint8_t, TwoWire *> nodeTelemetrySensorsMap[_meshtastic_TelemetrySenso
@@ -721,7 +723,7 @@ index 28842734c..9ec4eafdc 100644
  const char *getDeviceName()
  {
 diff --git a/src/mesh/NodeDB.cpp b/src/mesh/NodeDB.cpp
-index 8660aefae..b08472fbf 100644
+index 8660aef..b08472f 100644
 --- a/src/mesh/NodeDB.cpp
 +++ b/src/mesh/NodeDB.cpp
 @@ -1716,6 +1716,43 @@ void NodeDB::loadFromDisk()
@@ -769,7 +771,7 @@ index 8660aefae..b08472fbf 100644
      // Some clients/UI components display bandwidth/spread_factor directly from config even in preset mode.
      if (config.has_lora && config.lora.use_preset) {
 diff --git a/src/modules/AdminModule.cpp b/src/modules/AdminModule.cpp
-index ba1cfdb97..ecb1df953 100644
+index ba1cfdb..ecb1df9 100644
 --- a/src/modules/AdminModule.cpp
 +++ b/src/modules/AdminModule.cpp
 @@ -481,7 +481,7 @@ bool AdminModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshta
@@ -782,7 +784,7 @@ index ba1cfdb97..ecb1df953 100644
  #endif
          break;
 diff --git a/src/platform/esp32/main-esp32.cpp b/src/platform/esp32/main-esp32.cpp
-index dbc573c95..a4b6900ca 100644
+index dbc573c..a4b6900 100644
 --- a/src/platform/esp32/main-esp32.cpp
 +++ b/src/platform/esp32/main-esp32.cpp
 @@ -17,7 +17,10 @@
@@ -828,26 +830,28 @@ index dbc573c95..a4b6900ca 100644
  {
      /*
 diff --git a/variants/esp32s3/t-deck/platformio.ini b/variants/esp32s3/t-deck/platformio.ini
-index a7701549f..64d58b03b 100644
+index a770154..23cb1bf 100644
 --- a/variants/esp32s3/t-deck/platformio.ini
 +++ b/variants/esp32s3/t-deck/platformio.ini
-@@ -25,6 +25,8 @@ build_src_filter =
+@@ -25,6 +25,9 @@ build_src_filter =
  build_flags = ${esp32s3_base.build_flags} 
    -D T_DECK 
    -D BOARD_HAS_PSRAM
++  -D ARDUINO_USB_MSC_ON_BOOT=0
 +  -D ITSZ_FORCE_USB_SERIAL_API=1
 +  -D ITSZ_SERIAL_RECOVERY=1
    -I variants/esp32s3/t-deck
  
  lib_deps = ${esp32s3_base.lib_deps}
-@@ -38,9 +40,17 @@ lib_deps = ${esp32s3_base.lib_deps}
+@@ -38,9 +41,18 @@ lib_deps = ${esp32s3_base.lib_deps}
  [env:t-deck-tft]
  extends = env:t-deck
  board_level = pr
 +custom_meshtastic_display_name = Z-Deck T-Deck
-+custom_meshtastic_version_suffix = zdeck2
++custom_meshtastic_version_suffix = zdeck4
 +custom_meshtastic_build_name = Z-Deck Pack
-+custom_zdeck_pack_version = 0.2.1-public
++custom_zdeck_pack_version = 0.2.3-public
++custom_zdeck_usb_sd_msc = 0
  
  build_flags =
    ${env:t-deck.build_flags}
@@ -858,16 +862,8 @@ index a7701549f..64d58b03b 100644
    -D CONFIG_DISABLE_HAL_LOCKS=1 ; "feels" to be a bit more stable without locks
    -D INPUTDRIVER_I2C_KBD_TYPE=0x55
    -D INPUTDRIVER_ENCODER_TYPE=3
-@@ -54,6 +64,7 @@ build_flags =
-   -D HAS_SCREEN=1
-   -D HAS_TFT=1
-   -D USE_I2S_BUZZER
-+  -D ZDECK_USB_SD_MSC=1
-   -D RAM_SIZE=5120
- 	-D LV_LVGL_H_INCLUDE_SIMPLE
- 	-D LV_CONF_INCLUDE_SIMPLE
 diff --git a/variants/esp32s3/t-deck/variant.h b/variants/esp32s3/t-deck/variant.h
-index eb1bbdfef..42b1f7635 100644
+index eb1bbdf..42b1f76 100644
 --- a/variants/esp32s3/t-deck/variant.h
 +++ b/variants/esp32s3/t-deck/variant.h
 @@ -37,7 +37,11 @@
@@ -882,6 +878,327 @@ index eb1bbdfef..42b1f7635 100644
  #define GPS_RX_PIN 44
  #define GPS_TX_PIN 43
  
+diff --git a/itsz/device-ui-brand-version.patch b/itsz/device-ui-brand-version.patch
+new file mode 100644
+index 000000000..1a305f07b
+--- /dev/null
++++ b/itsz/device-ui-brand-version.patch
+@@ -0,0 +1,45 @@
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -113,5 +113,26 @@
++ extern const char *firmware_version;
++ 
+++#ifndef APP_BUILD_NAME
+++#define APP_BUILD_NAME ""
+++#endif
+++
+++#ifndef ZDECK_PACK_VERSION
+++#define ZDECK_PACK_VERSION "dev"
+++#endif
+++
+++static const char *itszBootFirmwareLabel()
+++{
+++    static char label[40];
+++    if (label[0] == '\0') {
+++        const char *buildName = APP_BUILD_NAME;
+++        if (buildName != nullptr && buildName[0] != '\0')
+++            snprintf(label, sizeof(label), "Z-Deck %s", ZDECK_PACK_VERSION);
+++        else
+++            snprintf(label, sizeof(label), "%s", firmware_version);
+++    }
+++    return label;
+++}
+++
++ TFTView_320x240 *TFTView_320x240::gui = nullptr;
++ lv_obj_t *TFTView_320x240::currentPanel = nullptr;
++ lv_obj_t *TFTView_320x240::spinnerButton = nullptr;
++@@ -232,10 +249,13 @@
++     // if boot logo is too big remove the label and center the image
++     lv_obj_update_layout(objects.boot_logo);
++     if (lv_obj_get_height(objects.boot_logo) > lv_display_get_vertical_resolution(displaydriver->getDisplay()) / 2) {
++         lv_obj_set_pos(objects.boot_logo, 0, 0);
++         lv_obj_add_flag(objects.firmware_label, LV_OBJ_FLAG_HIDDEN);
++     } else {
++-        lv_label_set_text(objects.firmware_label, firmware_version);
+++        lv_obj_set_width(objects.firmware_label, lv_pct(86));
+++        lv_obj_set_style_text_align(objects.firmware_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+++        lv_label_set_long_mode(objects.firmware_label, LV_LABEL_LONG_DOT);
+++        lv_label_set_text(objects.firmware_label, itszBootFirmwareLabel());
++     }
++ 
++     time(&lastrun60);
+diff --git a/itsz/device-ui-delivery-status.patch b/itsz/device-ui-delivery-status.patch
+new file mode 100644
+index 000000000..145d302d1
+--- /dev/null
++++ b/itsz/device-ui-delivery-status.patch
+@@ -0,0 +1,264 @@
++diff --git a/include/graphics/common/MeshtasticView.h b/include/graphics/common/MeshtasticView.h
++index 70a4709..bff9504 100644
++--- a/include/graphics/common/MeshtasticView.h
+++++ b/include/graphics/common/MeshtasticView.h
++@@ -135,7 +135,10 @@ class MeshtasticView : public DeviceGUI
++     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) {}
++     virtual void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) {}
++     virtual void packetReceived(const meshtastic_MeshPacket &p);
++-    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) {}
+++    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false,
+++                            int8_t hopsUsed = -1)
+++    {
+++    }
++     virtual void restoreMessage(const LogMessage &msg) {}
++
++     virtual void notifyRestoreMessages(int32_t percentage) {}
++diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
++index 71847fe..d8c87f0 100644
++--- a/include/graphics/view/TFT/TFTView_320x240.h
+++++ b/include/graphics/view/TFT/TFTView_320x240.h
++@@ -82,7 +82,8 @@ class TFTView_320x240 : public MeshtasticView
++     void blankScreen(bool enable) override;
++     void screenSaving(bool enabled) override;
++     bool isScreenLocked(void) override;
++-    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true) override;
+++    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true,
+++                    int8_t hopsUsed = -1) override;
++     void restoreMessage(const LogMessage &msg) override;
++     void removeNode(uint32_t nodeNum) override;
++
++@@ -159,9 +160,10 @@ class TFTView_320x240 : public MeshtasticView
++     // own chat message
++     virtual void handleAddMessage(char *msg);
++     // add own message to current chat
++-    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status);
+++    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status,
+++                            uint8_t hopLimit = 0, bool ackExpected = false, bool isChannel = false);
++     // add new message to container
++-    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
+++    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg, int8_t hopsUsed = -1);
++     // create empty message container for node or group channel
++     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
++     // filter or highlight node
++@@ -169,7 +171,7 @@ class TFTView_320x240 : public MeshtasticView
++     // display message alert popup
++     virtual void messageAlert(const char *alert, bool show);
++     // mark sent message as received
++-    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err);
+++    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err, int8_t hopsUsed = -1);
++     // set node image based on role
++     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img);
++     // apply filter and count number of filtered nodes
++diff --git a/source/graphics/common/ViewController.cpp b/source/graphics/common/ViewController.cpp
++index 8918efa..3c06202 100644
++--- a/source/graphics/common/ViewController.cpp
+++++ b/source/graphics/common/ViewController.cpp
++@@ -1040,8 +1040,12 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
++             ILOG_WARN("ignoring message with invalid channel %d", (int)p.channel);
++             break;
++         }
++-        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
+++        int8_t hopsUsed = -1;
+++        if (p.hop_start > 0 && p.hop_limit <= p.hop_start) {
+++            hopsUsed = p.hop_start - p.hop_limit;
+++        }
+++        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time, false, hopsUsed);
++         log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
++                                 (const uint8_t *)p.decoded.payload.bytes));
++         itszAppendSdMessageJournal("received", p.from, p.to, p.channel, time, p.decoded.payload.size,
++                                    (const uint8_t *)p.decoded.payload.bytes);
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++index 4370ac8..fc5cc78 100644
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -138,7 +138,7 @@ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingReq
++     case LogMessage::eDeleted:
++         return "DELETED";
++     default:
++-        return pendingRequest ? "TX QUEUED" : "TX SENT";
+++        return pendingRequest ? "WAIT ACK" : "TX SENT";
++     }
++ }
++
++@@ -166,6 +166,13 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
++     lv_obj_set_style_text_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
++ }
+++
+++int8_t itszPacketHops(const meshtastic_MeshPacket &p)
+++{
+++    if (p.hop_start > 0 && p.hop_limit <= p.hop_start)
+++        return p.hop_start - p.hop_limit;
+++    return -1;
+++}
++ } // namespace
++
++ TFTView_320x240 *TFTView_320x240::instance(void)
++@@ -5015,14 +5022,15 @@ void TFTView_320x240::handleAddMessage(char *msg)
++             msg[i] = '\n';
++
++     controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
++-    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
+++    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone, hopLimit, channelOrNode >= c_max_channels,
+++               channelOrNode < c_max_channels);
++ }
++
++ /**
++  * display message that has just been written and sent out
++  */
++ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
++-                                 LogMessage::MsgStatus status)
+++                                 LogMessage::MsgStatus status, uint8_t hopLimit, bool ackExpected, bool isChannel)
++ {
++     lv_obj_t *hiddenPanel = lv_obj_create(container);
++     lv_obj_set_width(hiddenPanel, lv_pct(100));
++@@ -5069,11 +5077,24 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
++     lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    statusLabel->user_data = (void *)(uintptr_t)hopLimit;
++     char statusBuf[52];
++     if (requestId) {
++-        lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
++-                    (unsigned int)(requestId & 0xffff));
+++        if (isChannel && hopLimit > 0) {
+++            lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST TTL%u NO ACK #%04x", (unsigned int)hopLimit,
+++                        (unsigned int)(requestId & 0xffff));
+++        } else if (ackExpected && hopLimit > 0) {
+++            lv_snprintf(statusBuf, sizeof(statusBuf), "WAIT ACK TTL%u #%04x", (unsigned int)hopLimit,
+++                        (unsigned int)(requestId & 0xffff));
+++        } else if (hopLimit > 0) {
+++            lv_snprintf(statusBuf, sizeof(statusBuf), "%s TTL%u #%04x",
+++                        itszOutgoingStatusText(status, status == LogMessage::eNone), (unsigned int)hopLimit,
+++                        (unsigned int)(requestId & 0xffff));
+++        } else {
+++            lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
+++                        (unsigned int)(requestId & 0xffff));
+++        }
++     } else {
++         lv_snprintf(statusBuf, sizeof(statusBuf), "%s", itszOutgoingStatusText(status, false));
++     }
++@@ -5800,7 +5825,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
++             if (req.type == ResponseHandler::TraceRouteRequest) {
++                 handleTraceRouteResponse(routing);
++             } else if (req.type == ResponseHandler::TextMessageRequest) {
++-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false);
+++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false, itszPacketHops(p));
++             } else if (req.type == ResponseHandler::PositionRequest) {
++                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
++             }
++@@ -5811,7 +5836,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
++             if (req.type == ResponseHandler::TraceRouteRequest) {
++                 handleTraceRouteResponse(routing);
++             } else if (req.type == ResponseHandler::TextMessageRequest) {
++-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true, itszPacketHops(p));
++             }
++         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
++             if (req.type == ResponseHandler::PositionRequest) {
++@@ -5821,7 +5846,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
++                    routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY) {
++             if (req.type == ResponseHandler::TextMessageRequest) {
++-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
+++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true, itszPacketHops(p));
++                 // we probably have a wrong key; mark it as bad and don't use in future
++                 if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
++                     ILOG_DEBUG("public key mismatch");
++                     nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
++@@ -6272,7 +6297,7 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
++  * @param id
++  * @param ack
++  */
++-void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
+++void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err, int8_t hopsUsed)
++ {
++     lv_obj_t *msgContainer;
++     const bool isChannel = channelOrNode < c_max_channels;
++@@ -6295,20 +6320,34 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
++         if (requestId == id) {
++             // now give the textlabel border another color
++             lv_obj_t *textLabel = panel->spec_attr->children[0];
+++            lv_obj_t *statusLabel = panel->spec_attr->child_cnt > 1 ? panel->spec_attr->children[1] : nullptr;
+++            uint8_t hopLimit = statusLabel ? (uint8_t)(uintptr_t)statusLabel->user_data : 0;
++             lv_obj_set_style_border_color(textLabel,
++-                                          err   ? colorRed
+++                                          isChannel ? colorMesh
+++                                          : err   ? colorRed
++                                           : ack ? colorBlueGreen
++                                                 : colorYellow,
++                                           LV_PART_MAIN | LV_STATE_DEFAULT);
++-            itszSetOutgoingStatus(panel,
++-                                  err       ? "TX FAIL"
++-                                  : isChannel ? "TX SENT (NO READ)"
++-                                  : ack       ? "TX ACK"
++-                                              : "TX HEARD",
++-                                  err       ? colorRed
++-                                  : isChannel ? colorMesh
++-                                  : ack       ? colorBlueGreen
++-                                              : colorYellow);
+++            char statusBuf[52];
+++            if (isChannel) {
+++                if (hopLimit > 0)
+++                    lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST TTL%u NO ACK", (unsigned int)hopLimit);
+++                else
+++                    lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST NO ACK");
+++            } else if (hopsUsed >= 0) {
+++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H%d", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD",
+++                            (int)hopsUsed);
+++            } else if (hopLimit > 0) {
+++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H? TTL%u", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD",
+++                            (unsigned int)hopLimit);
+++            } else {
+++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H?", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD");
+++            }
+++            itszSetOutgoingStatus(panel, statusBuf,
+++                                  isChannel ? colorMesh
+++                                  : err     ? colorRed
+++                                  : ack     ? colorBlueGreen
+++                                            : colorYellow);
++
++             // store message
++             break;
++@@ -6983,7 +7023,8 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
++  * @param time in/out: message time (maybe overwritten when 0)
++  * @param restore if restoring then skip banners and highlight
++  */
++-void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore)
+++void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore,
+++                                 int8_t hopsUsed)
++ {
++     ILOG_DEBUG("newMessage: from:0x%08x, to:0x%08x, ch:%d, time:%d", from, to, ch, msgTime);
++     int pos = 0;
++@@ -7012,7 +7053,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
++     sprintf(&buf[pos], "%s", msg);
++
++     // place message into container
++-    newMessage(from, container, ch, buf);
+++    newMessage(from, container, ch, buf, hopsUsed);
++
++     if (!restore) {
++         // display msg popup if not already viewing the messages
++@@ -7044,7 +7085,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
++  * @param ch
++  * @param msg
++  */
++-void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg)
+++void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg, int8_t hopsUsed)
++ {
++     lv_obj_t *hiddenPanel = lv_obj_create(container);
++     lv_obj_set_width(hiddenPanel, lv_pct(100));
++@@ -7081,7 +7122,11 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
++     lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
+++    if (hopsUsed >= 0) {
+++        lv_label_set_text_fmt(statusLabel, "RX CH %u H%d", (unsigned int)ch, (int)hopsUsed);
+++    } else {
+++        lv_label_set_text_fmt(statusLabel, "RX CH %u H?", (unsigned int)ch);
+++    }
++
++     if (state == MeshtasticView::eRunning) {
++         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
 diff --git a/itsz/device-ui-map.patch b/itsz/device-ui-map.patch
 new file mode 100644
 index 000000000..db3285659
@@ -1836,6 +2153,236 @@ index 000000000..f1743da55
 +-#endif
 +\ No newline at end of file
 ++#endif
+diff --git a/itsz/device-ui-polish.patch b/itsz/device-ui-polish.patch
+new file mode 100644
+index 000000000..9792b9bb8
+--- /dev/null
++++ b/itsz/device-ui-polish.patch
+@@ -0,0 +1,224 @@
++diff --git a/generated/ui_240x320/screens.c b/generated/ui_240x320/screens.c
++index 44bfb5b..abe7221 100644
++--- a/generated/ui_240x320/screens.c
+++++ b/generated/ui_240x320/screens.c
++@@ -661,7 +661,7 @@ void create_screen_main_screen() {
++                             objects.home_signal_label = obj;
++                             lv_obj_set_pos(obj, 105, 50);
++                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
++-                            lv_label_set_text(obj, _("mesh listening"));
+++                            lv_label_set_text(obj, _("LoRa listening"));
++                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
++                             lv_obj_set_style_text_line_space(obj, -4, LV_PART_MAIN | LV_STATE_DEFAULT);
++                             {
++diff --git a/generated/ui_320x240/screens.c b/generated/ui_320x240/screens.c
++index 90c2d6a..e1c5d6c 100644
++--- a/generated/ui_320x240/screens.c
+++++ b/generated/ui_320x240/screens.c
++@@ -535,7 +535,7 @@ void create_screen_main_screen() {
++                             objects.home_signal_label = obj;
++                             lv_obj_set_pos(obj, 105, 50);
++                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
++-                            lv_label_set_text(obj, _("mesh listening"));
+++                            lv_label_set_text(obj, _("LoRa listening"));
++                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
++                             lv_obj_set_style_text_line_space(obj, -4, LV_PART_MAIN | LV_STATE_DEFAULT);
++                             {
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++index 08eca0c..316564f 100644
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -127,17 +127,17 @@ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingReq
++ {
++     switch (status) {
++     case LogMessage::eHeard:
++-        return "heard by mesh";
+++        return "TX HEARD";
++     case LogMessage::eNoResponse:
++-        return "no response";
+++        return "TX NO RESP";
++     case LogMessage::eAcked:
++-        return "acknowledged";
+++        return "TX ACK";
++     case LogMessage::eFailed:
++-        return "failed";
+++        return "TX FAIL";
++     case LogMessage::eDeleted:
++-        return "deleted";
+++        return "DELETED";
++     default:
++-        return pendingRequest ? "queued" : "sent";
+++        return pendingRequest ? "TX QUEUED" : "TX SENT";
++     }
++ }
++ 
++@@ -164,6 +164,7 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
++     lv_obj_t *statusLabel = panel->spec_attr->children[1];
++     lv_label_set_text(statusLabel, text);
++     lv_obj_set_style_text_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
++ }
++ } // namespace
++ 
++@@ -2476,21 +2477,22 @@ void TFTView_320x240::setupDynamicMapMenu(void)
++     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
++ 
++     mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
++-    lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
++-    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
++-    lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
+++    lv_obj_set_size(mapStatusOverlayLabel, 214, 54);
+++    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_CENTER);
+++    lv_obj_set_pos(mapStatusOverlayLabel, -14, 0);
++     lv_obj_set_style_bg_color(mapStatusOverlayLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_bg_opa(mapStatusOverlayLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_border_color(mapStatusOverlayLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_opa(mapStatusOverlayLabel, 230, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_color(mapStatusOverlayLabel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_width(mapStatusOverlayLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_radius(mapStatusOverlayLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_pad_left(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_pad_right(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_pad_top(mapStatusOverlayLabel, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_left(mapStatusOverlayLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_right(mapStatusOverlayLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_top(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_text_font(mapStatusOverlayLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_text_color(mapStatusOverlayLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_label_set_long_mode(mapStatusOverlayLabel, LV_LABEL_LONG_WRAP);
++-    lv_label_set_text(mapStatusOverlayLabel, "Map status loading...");
+++    lv_label_set_text(mapStatusOverlayLabel, "MAP STATUS\nwaiting for GPS/tiles");
++ 
++     updateDynamicMapMenu();
++ }
++@@ -2567,12 +2569,36 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
++         lv_snprintf(gps, sizeof(gps), "GPS off");
++     }
++ 
++-    const char *tiles = wifiConnected ? "online tiles" : cardDetected ? "SD tiles" : "no tiles";
++-    const char *locs = objectsOnMap > 0 ? "nodes plotted" : nodeCount > 0 ? "nodes lack GPS" : "no node locations";
+++    const bool mapUseful = gpsReady && objectsOnMap > 0;
+++    const char *tiles = wifiConnected ? "WiFi tiles" : cardDetected ? "SD tiles" : "no tiles";
+++    const char *locs = objectsOnMap > 0 ? "nodes located" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
+++
+++    if (mapUseful) {
+++        lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
+++        lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
+++        lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
+++        lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++        lv_obj_set_style_border_color(mapStatusOverlayLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+++        lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+++        lv_obj_set_style_text_color(mapStatusOverlayLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    } else {
+++        lv_obj_set_size(mapStatusOverlayLabel, 214, 72);
+++        lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_CENTER);
+++        lv_obj_set_pos(mapStatusOverlayLabel, -14, 0);
+++        lv_obj_set_style_border_width(mapStatusOverlayLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+++        lv_obj_set_style_border_color(mapStatusOverlayLabel, gpsReady ? colorBlueGreen : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+++        lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+++        lv_obj_set_style_text_color(mapStatusOverlayLabel, gpsReady ? colorLightGray : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    }
++ 
++     char buf[128];
++-    lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
++-                locs);
+++    if (mapUseful) {
+++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
+++                    locs);
+++    } else {
+++        lv_snprintf(buf, sizeof(buf), "MAP WAITING\n%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap,
+++                    (unsigned int)nodeCount, locs);
+++    }
++     lv_label_set_text(mapStatusOverlayLabel, buf);
++     lv_obj_move_foreground(mapStatusOverlayLabel);
++ }
++@@ -3168,7 +3194,7 @@ void TFTView_320x240::loadMap(void)
++ 
++ void TFTView_320x240::updateLocationMap(uint32_t num)
++ {
++-    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d located"), num, nodeCount);
+++    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d GPS"), num, nodeCount);
++     updateMapStatusOverlay(num);
++ }
++ 
++@@ -5032,11 +5058,20 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
++     add_style_chat_message_style(textLabel);
++ 
++     lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
++-    lv_obj_set_width(statusLabel, 200);
+++    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
++     lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
++     lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_text_font(statusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_text_color(statusLabel, itszOutgoingStatusColor(status), LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_color(statusLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_opa(statusLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_color(statusLabel, itszOutgoingStatusColor(status), LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_width(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_radius(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++     char statusBuf[52];
++     if (requestId) {
++         lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
++@@ -6261,10 +6296,10 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
++                                                 : colorYellow,
++                                           LV_PART_MAIN | LV_STATE_DEFAULT);
++             itszSetOutgoingStatus(panel,
++-                                  err       ? "failed / no response"
++-                                  : isChannel ? "sent on channel"
++-                                  : ack       ? "acknowledged"
++-                                              : "heard by mesh",
+++                                  err       ? "TX FAIL"
+++                                  : isChannel ? "TX SENT (NO READ)"
+++                                  : ack       ? "TX ACK"
+++                                              : "TX HEARD",
++                                   err       ? colorRed
++                                   : isChannel ? colorMesh
++                                   : ack       ? colorBlueGreen
++@@ -7033,11 +7068,20 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
++     add_style_new_message_style(msgLabel);
++ 
++     lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
++-    lv_obj_set_width(statusLabel, 160);
+++    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
++     lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
++     lv_obj_set_style_text_font(statusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_text_color(statusLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_label_set_text_fmt(statusLabel, "received ch %u", (unsigned int)ch);
+++    lv_obj_set_style_text_color(statusLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_color(statusLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_opa(statusLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_color(statusLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_width(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_radius(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
++ 
++     if (state == MeshtasticView::eRunning) {
++         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
++@@ -7953,13 +7997,13 @@ void TFTView_320x240::task_handler(void)
++                     lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
++                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
++                     if (lastHeard == 0) {
++-                        lv_label_set_text(objects.home_signal_label, _("mesh listening\nno packets yet"));
++-                        lv_label_set_text(objects.home_signal_pct_label, _("LoRa idle"));
+++                        lv_label_set_text(objects.home_signal_label, _("LoRa listening\nno mesh packets"));
+++                        lv_label_set_text(objects.home_signal_pct_label, _("RX idle"));
++                     } else {
++                         char buf[48];
++-                        lv_snprintf(buf, sizeof(buf), _("mesh idle\n>%dm"), (int)(secs_until_offline / 60));
+++                        lv_snprintf(buf, sizeof(buf), _("LoRa idle\nlast >%dm"), (int)(secs_until_offline / 60));
++                         lv_label_set_text(objects.home_signal_label, buf);
++-                        lv_label_set_text(objects.home_signal_pct_label, _("LoRa ok"));
+++                        lv_label_set_text(objects.home_signal_pct_label, _("mesh quiet"));
++                     }
++                 }
++             }
 diff --git a/itsz/device-ui-screen-correction.patch b/itsz/device-ui-screen-correction.patch
 new file mode 100644
 index 000000000..724fb9433
@@ -2245,6 +2792,527 @@ index 000000000..6b9e3414b
 +         break;
 +     }
 +     case meshtastic_PortNum_POSITION_APP: {
+diff --git a/itsz/device-ui-sd-tools.patch b/itsz/device-ui-sd-tools.patch
+new file mode 100644
+index 000000000..255f42faf
+--- /dev/null
++++ b/itsz/device-ui-sd-tools.patch
+@@ -0,0 +1,515 @@
++diff --git a/include/graphics/common/SdCard.h b/include/graphics/common/SdCard.h
++index 17214db..128ece0 100644
++--- a/include/graphics/common/SdCard.h
+++++ b/include/graphics/common/SdCard.h
++@@ -122,4 +122,9 @@ class NoSdCard : public ISdCard
++     virtual ~NoSdCard(void) {}
++ };
++ 
++-extern ISdCard *sdCard;
++\ No newline at end of file
+++extern ISdCard *sdCard;
+++
+++bool zDeckUsbSdMassStorageReady(void);
+++const char *zDeckUsbSdMassStorageStatus(void);
+++void zDeckUsbSdMassStorageRefresh(void);
+++bool zDeckWriteSdVolumeLabel(const char *label);
++diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
++index 8dba04b..37f2b62 100644
++--- a/include/graphics/view/TFT/TFTView_320x240.h
+++++ b/include/graphics/view/TFT/TFTView_320x240.h
++@@ -201,6 +201,9 @@ class TFTView_320x240 : public MeshtasticView
++     void rememberCurrentMapArea(void);
++     void setupZDeckHealthTool(void);
++     void updateZDeckHealthPanel(void);
+++    void setupZDeckSDTool(void);
+++    void updateZDeckSDPanel(const char *status = nullptr);
+++    bool prepareZDeckSDCard(void);
++     void setupScreenCorrectionTool(void);
++     void startScreenCorrection(void);
++     void stopScreenCorrection(void);
++@@ -397,6 +400,7 @@ class TFTView_320x240 : public MeshtasticView
++     static void ui_event_mapInternetButton(lv_event_t *e);
++     static void ui_event_mapCacheButton(lv_event_t *e);
++     static void ui_event_zdeckHealthButton(lv_event_t *e);
+++    static void ui_event_zdeckSdButton(lv_event_t *e);
++     static void ui_event_screenCorrectionButton(lv_event_t *e);
++ 
++     // animations
++@@ -460,6 +464,11 @@ class TFTView_320x240 : public MeshtasticView
++     lv_obj_t *zDeckHealthButtonLabel = nullptr;
++     lv_obj_t *zDeckHealthPanel = nullptr;                   // public Z-Deck status summary
++     lv_obj_t *zDeckHealthLabel = nullptr;
+++    lv_obj_t *zDeckSdButton = nullptr;                       // SD prepare/reset button
+++    lv_obj_t *zDeckSdButtonLabel = nullptr;
+++    lv_obj_t *zDeckSdPanel = nullptr;                        // SD warning/status panel
+++    lv_obj_t *zDeckSdLabel = nullptr;
+++    bool zDeckSdResetArmed = false;
++     lv_obj_t *screenCorrectionButton = nullptr;             // screen burn-in/correction tool button
++     lv_obj_t *screenCorrectionButtonLabel = nullptr;
++     lv_obj_t *screenCorrectionOverlay = nullptr;            // full-screen correction overlay
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++index 1e0d239..3d78262 100644
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -962,6 +962,7 @@ void TFTView_320x240::ui_events_init(void)
++     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
++     setupDynamicMapMenu();
++     setupZDeckHealthTool();
+++    setupZDeckSDTool();
++     setupScreenCorrectionTool();
++ 
++     // tools buttons
++@@ -2801,10 +2802,12 @@ void TFTView_320x240::updateZDeckHealthPanel(void)
++                 "Primary: %s | channels %u\n"
++                 "GPS: %s RX%u/TX%u sats %u\n"
++                 "SD: %s | WiFi %s | nodes %u\n"
+++                "%s\n"
++                 "Add channels: Settings > Channel",
++                 ZDECK_PACK_VERSION, firmware_version, longFastDefault ? "LongFast only" : "custom channels", primary,
++                 (unsigned int)enabledChannels, gps, (unsigned int)db.config.position.rx_gpio,
++-                (unsigned int)db.config.position.tx_gpio, (unsigned int)gpsSatellites, sd, wifi, (unsigned int)nodeCount);
+++                (unsigned int)db.config.position.tx_gpio, (unsigned int)gpsSatellites, sd, wifi, (unsigned int)nodeCount,
+++                zDeckUsbSdMassStorageStatus());
++     lv_label_set_text(zDeckHealthLabel, buf);
++ }
++ 
++@@ -2818,6 +2821,141 @@ void TFTView_320x240::ui_event_zdeckHealthButton(lv_event_t *e)
++     THIS->messageAlert("Z-Deck health refreshed", true);
++ }
++ 
+++void TFTView_320x240::setupZDeckSDTool(void)
+++{
+++    if (zDeckSdButton || !objects.tab_page_tools)
+++        return;
+++
+++    zDeckSdButton = lv_btn_create(objects.tab_page_tools);
+++    lv_obj_set_size(zDeckSdButton, LV_PCT(95), 30);
+++    add_style_settings_button_style(zDeckSdButton);
+++    lv_obj_set_style_align(zDeckSdButton, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_shadow_width(zDeckSdButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_color(zDeckSdButton, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_width(zDeckSdButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_add_event_cb(zDeckSdButton, ui_event_zdeckSdButton, LV_EVENT_CLICKED, NULL);
+++
+++    zDeckSdButtonLabel = lv_label_create(zDeckSdButton);
+++    lv_obj_set_size(zDeckSdButtonLabel, LV_PCT(100), LV_SIZE_CONTENT);
+++    lv_label_set_long_mode(zDeckSdButtonLabel, LV_LABEL_LONG_DOT);
+++    lv_label_set_text(zDeckSdButtonLabel, "Prepare / Reset SD");
+++    lv_obj_set_style_align(zDeckSdButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+++
+++    zDeckSdPanel = lv_obj_create(objects.tab_page_tools);
+++    lv_obj_set_size(zDeckSdPanel, LV_PCT(95), 86);
+++    lv_obj_clear_flag(zDeckSdPanel, LV_OBJ_FLAG_SCROLLABLE);
+++    lv_obj_set_style_bg_color(zDeckSdPanel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_opa(zDeckSdPanel, 190, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_color(zDeckSdPanel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_border_width(zDeckSdPanel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_radius(zDeckSdPanel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_pad_all(zDeckSdPanel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+++
+++    zDeckSdLabel = lv_label_create(zDeckSdPanel);
+++    lv_obj_set_width(zDeckSdLabel, LV_PCT(100));
+++    lv_label_set_long_mode(zDeckSdLabel, LV_LABEL_LONG_WRAP);
+++    lv_obj_set_style_text_font(zDeckSdLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_text_color(zDeckSdLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+++
+++    updateZDeckSDPanel();
+++}
+++
+++void TFTView_320x240::updateZDeckSDPanel(const char *status)
+++{
+++    if (!zDeckSdLabel)
+++        return;
+++
+++    const char *sd = cardDetected ? "ready" : "missing";
+++    char buf[260];
+++    if (status && status[0]) {
+++        lv_snprintf(buf, sizeof(buf), "%s\nSD: %s\n%s", status, sd, zDeckUsbSdMassStorageStatus());
+++    } else if (zDeckSdResetArmed) {
+++        lv_snprintf(buf, sizeof(buf),
+++                    "WARNING: next press formats the SD card and rebuilds Z-Deck folders.\nBack up files first.\n%s",
+++                    zDeckUsbSdMassStorageStatus());
+++    } else {
+++        lv_snprintf(buf, sizeof(buf), "SD prep: TDECKSDCARD\nUSB drive: disabled in public build\n%s",
+++                    zDeckUsbSdMassStorageStatus());
+++    }
+++    lv_label_set_text(zDeckSdLabel, buf);
+++}
+++
+++bool TFTView_320x240::prepareZDeckSDCard(void)
+++{
+++    updateZDeckSDPanel("Formatting SD card...");
+++    updateSDCard();
+++
+++    if (!sdCard || sdCard->cardType() == ISdCard::eNone) {
+++        updateZDeckSDPanel("No SD card found.");
+++        return false;
+++    }
+++
+++    if (!sdCard->format()) {
+++        updateZDeckSDPanel("SD format failed.");
+++        return false;
+++    }
+++
+++    updateSDCard();
+++    if (!cardDetected) {
+++        updateZDeckSDPanel("Formatted, but remount failed.");
+++        return false;
+++    }
+++
+++    bool labelSet = false;
+++#if defined(HAS_SDCARD)
+++    labelSet = zDeckWriteSdVolumeLabel("TDECKSDCARD");
+++
+++    SDFs.mkdir("/zdeck");
+++    SDFs.mkdir("/zdeck/maps");
+++    SDFs.mkdir("/zdeck/maps/cache");
+++    SDFs.mkdir("/zdeck/history");
+++    SDFs.mkdir("/zdeck/ringtones");
+++    SDFs.mkdir("/zdeck/logs");
+++    SDFs.mkdir("/zdeck/exports");
+++    SDFs.mkdir("/itsz");
+++    SDFs.mkdir("/itsz/history");
+++
+++#if defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
+++    File readme = SDFs.open("/zdeck/README.TXT", FILE_WRITE);
+++    if (readme) {
+++        readme.print("T-Deck SD Card for Z-Deck firmware.\r\nMaps, message history, ringtones, logs, and exports live here.\r\n");
+++        readme.close();
+++    }
+++#else
+++    FsFile readme = SDFs.open("/zdeck/README.TXT", O_RDWR | O_CREAT | O_TRUNC);
+++    if (readme) {
+++        readme.print("T-Deck SD Card for Z-Deck firmware.\r\nMaps, message history, ringtones, logs, and exports live here.\r\n");
+++        readme.close();
+++    }
+++#endif
+++#endif
+++
+++    zDeckUsbSdMassStorageRefresh();
+++    updateZDeckHealthPanel();
+++    updateZDeckSDPanel(labelSet ? "SD card prepared. Label set." : "SD card prepared. Label not set.");
+++    return true;
+++}
+++
+++void TFTView_320x240::ui_event_zdeckSdButton(lv_event_t *e)
+++{
+++    lv_event_code_t event_code = lv_event_get_code(e);
+++    if (event_code != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
+++        return;
+++
+++    if (!THIS->zDeckSdResetArmed) {
+++        THIS->zDeckSdResetArmed = true;
+++        THIS->updateZDeckSDPanel();
+++        THIS->messageAlert("Press again to reset SD card", true);
+++        return;
+++    }
+++
+++    THIS->zDeckSdResetArmed = false;
+++    if (THIS->prepareZDeckSDCard())
+++        THIS->messageAlert("SD card ready for Z-Deck", true);
+++    else
+++        THIS->messageAlert("SD card reset failed", true);
+++}
+++
++ void TFTView_320x240::startScreenCorrection(void)
++ {
++     stopScreenCorrection();
++@@ -7962,6 +8100,7 @@ bool TFTView_320x240::updateSDCard(void)
++     ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
++     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
++         ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
+++        zDeckUsbSdMassStorageRefresh();
++         ISdCard::CardType cardType = sdCard->cardType();
++         ISdCard::FatType fatType = sdCard->fatType();
++         uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
++@@ -7989,6 +8128,7 @@ bool TFTView_320x240::updateSDCard(void)
++         err = sdCard->errorType();
++         delete sdCard;
++         sdCard = nullptr;
+++        zDeckUsbSdMassStorageRefresh();
++     }
++ 
++     if (!cardDetected || err != ISdCard::ErrorType::eNoError) {
++diff --git a/source/graphics/common/SdCard.cpp b/source/graphics/common/SdCard.cpp
++index 9cda81f..35fe10c 100644
++--- a/source/graphics/common/SdCard.cpp
+++++ b/source/graphics/common/SdCard.cpp
++@@ -1,5 +1,10 @@
++ #include "graphics/common/SdCard.h"
+++#include "SPILock.h"
++ #include "util/ILog.h"
+++#include "sdkconfig.h"
+++#include <algorithm>
+++#include <cstring>
+++#include <cstdio>
++ 
++ #ifndef SD_SPI_FREQUENCY
++ #define SD_SPI_FREQUENCY 50000000
++@@ -24,6 +29,265 @@ using File = FsFile;
++ 
++ ISdCard *sdCard = nullptr;
++ 
+++#if defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO)
+++namespace
+++{
+++uint16_t zDeckLe16(const uint8_t *p)
+++{
+++    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+++}
+++
+++uint32_t zDeckLe32(const uint8_t *p)
+++{
+++    return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
+++}
+++
+++bool zDeckLooksFatBootSector(const uint8_t *sector)
+++{
+++    return sector[510] == 0x55 && sector[511] == 0xAA && zDeckLe16(sector + 11) == 512 && sector[13] != 0 &&
+++           zDeckLe16(sector + 14) != 0 && sector[16] != 0;
+++}
+++
+++void zDeckMakeFatLabel(const char *label, uint8_t out[11])
+++{
+++    memset(out, ' ', 11);
+++    if (!label)
+++        return;
+++
+++    size_t pos = 0;
+++    for (size_t i = 0; label[i] && pos < 11; i++) {
+++        char c = label[i];
+++        if (c >= 'a' && c <= 'z')
+++            c = (char)(c - 'a' + 'A');
+++        if (c == '.' || c == '/' || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' ||
+++            c == '|')
+++            continue;
+++        out[pos++] = (uint8_t)c;
+++    }
+++}
+++
+++bool zDeckWriteRootVolumeLabel(uint32_t bootSector, const uint8_t boot[512], const uint8_t label[11])
+++{
+++    const uint16_t bytesPerSector = zDeckLe16(boot + 11);
+++    const uint8_t sectorsPerCluster = boot[13];
+++    const uint16_t reservedSectors = zDeckLe16(boot + 14);
+++    const uint8_t fatCount = boot[16];
+++    const uint16_t rootEntryCount = zDeckLe16(boot + 17);
+++    const uint16_t fat16Sectors = zDeckLe16(boot + 22);
+++    const uint32_t fatSectors = fat16Sectors ? fat16Sectors : zDeckLe32(boot + 36);
+++
+++    if (bytesPerSector != 512 || sectorsPerCluster == 0 || reservedSectors == 0 || fatCount == 0 || fatSectors == 0)
+++        return false;
+++
+++    const uint32_t rootDirSectors = ((uint32_t)rootEntryCount * 32U + bytesPerSector - 1U) / bytesPerSector;
+++    uint32_t rootSector = bootSector + reservedSectors + (uint32_t)fatCount * fatSectors;
+++    uint32_t sectorsToScan = rootDirSectors;
+++
+++    if (fat16Sectors == 0 && rootEntryCount == 0) {
+++        const uint32_t rootCluster = zDeckLe32(boot + 44);
+++        if (rootCluster < 2)
+++            return false;
+++        const uint32_t firstDataSector = rootSector + rootDirSectors;
+++        rootSector = firstDataSector + (rootCluster - 2U) * sectorsPerCluster;
+++        sectorsToScan = sectorsPerCluster;
+++    }
+++
+++    uint8_t sector[512];
+++    for (uint32_t i = 0; i < sectorsToScan; i++) {
+++        if (!SDFs.card()->readSector(rootSector + i, sector))
+++            return false;
+++
+++        for (size_t entry = 0; entry < 512; entry += 32) {
+++            const uint8_t first = sector[entry];
+++            const uint8_t attr = sector[entry + 11];
+++            if (first == 0x00 || first == 0xE5 || attr == 0x08) {
+++                memset(sector + entry, 0, 32);
+++                memcpy(sector + entry, label, 11);
+++                sector[entry + 11] = 0x08;
+++                return SDFs.card()->writeSector(rootSector + i, sector);
+++            }
+++        }
+++    }
+++
+++    return false;
+++}
+++} // namespace
+++
+++bool zDeckWriteSdVolumeLabel(const char *label)
+++{
+++    if (!SDFs.card())
+++        return false;
+++
+++    concurrency::LockGuard g(spiLock);
+++    uint8_t sector[512];
+++    if (!SDFs.card()->readSector(0, sector))
+++        return false;
+++
+++    uint32_t bootSector = 0;
+++    if (!zDeckLooksFatBootSector(sector)) {
+++        if (sector[510] != 0x55 || sector[511] != 0xAA || sector[0x1BE + 4] == 0)
+++            return false;
+++        bootSector = zDeckLe32(sector + 0x1BE + 8);
+++        if (bootSector == 0 || !SDFs.card()->readSector(bootSector, sector))
+++            return false;
+++    }
+++
+++    if (!zDeckLooksFatBootSector(sector))
+++        return false;
+++
+++    uint8_t fatLabel[11];
+++    zDeckMakeFatLabel(label, fatLabel);
+++
+++    const uint16_t fat16Sectors = zDeckLe16(sector + 22);
+++    const uint16_t rootEntryCount = zDeckLe16(sector + 17);
+++    const size_t labelOffset = (fat16Sectors == 0 && rootEntryCount == 0) ? 71 : 43;
+++    memcpy(sector + labelOffset, fatLabel, 11);
+++
+++    const bool bootOk = SDFs.card()->writeSector(bootSector, sector);
+++    const bool rootOk = zDeckWriteRootVolumeLabel(bootSector, sector, fatLabel);
+++    SDFs.card()->syncDevice();
+++    return bootOk && rootOk;
+++}
+++#else
+++bool zDeckWriteSdVolumeLabel(const char *)
+++{
+++    return false;
+++}
+++#endif
+++
+++#if defined(ZDECK_USB_SD_MSC_ENABLED) && ZDECK_USB_SD_MSC_ENABLED == 1 && defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO) &&                    \
+++    defined(ARDUINO_ARCH_ESP32) && CONFIG_TINYUSB_MSC_ENABLED
+++#include "USBMSC.h"
+++
+++namespace
+++{
+++USBMSC zDeckUsbMsc;
+++bool zDeckUsbMscStarted = false;
+++bool zDeckUsbMscReady = false;
+++char zDeckUsbMscStatus[96] = "USB SD: waiting for card";
+++
+++int32_t zDeckMscRead(uint32_t lba, uint32_t offset, void *buffer, uint32_t bufsize)
+++{
+++    if (!SDFs.card() || !buffer || offset >= 512)
+++        return -1;
+++
+++    concurrency::LockGuard g(spiLock);
+++    uint8_t sector[512];
+++    uint8_t *dst = static_cast<uint8_t *>(buffer);
+++    uint32_t copied = 0;
+++
+++    while (copied < bufsize) {
+++        if (!SDFs.card()->readSector(lba, sector))
+++            return copied ? (int32_t)copied : -1;
+++
+++        const uint32_t chunk = std::min<uint32_t>(512 - offset, bufsize - copied);
+++        memcpy(dst + copied, sector + offset, chunk);
+++        copied += chunk;
+++        lba++;
+++        offset = 0;
+++    }
+++
+++    return copied;
+++}
+++
+++int32_t zDeckMscWrite(uint32_t lba, uint32_t offset, uint8_t *buffer, uint32_t bufsize)
+++{
+++    if (!SDFs.card() || !buffer || offset >= 512)
+++        return -1;
+++
+++    concurrency::LockGuard g(spiLock);
+++    uint8_t sector[512];
+++    uint32_t written = 0;
+++
+++    while (written < bufsize) {
+++        const uint32_t chunk = std::min<uint32_t>(512 - offset, bufsize - written);
+++        if (chunk != 512 || offset != 0) {
+++            if (!SDFs.card()->readSector(lba, sector))
+++                return written ? (int32_t)written : -1;
+++            memcpy(sector + offset, buffer + written, chunk);
+++        } else {
+++            memcpy(sector, buffer + written, 512);
+++        }
+++
+++        if (!SDFs.card()->writeSector(lba, sector))
+++            return written ? (int32_t)written : -1;
+++
+++        written += chunk;
+++        lba++;
+++        offset = 0;
+++    }
+++
+++    SDFs.card()->syncDevice();
+++    return written;
+++}
+++
+++bool zDeckMscStartStop(uint8_t, bool start, bool loadEject)
+++{
+++    if (!start && loadEject) {
+++        zDeckUsbMsc.mediaPresent(false);
+++        zDeckUsbMscReady = false;
+++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: ejected by host");
+++    }
+++    return true;
+++}
+++} // namespace
+++
+++bool zDeckUsbSdMassStorageReady(void)
+++{
+++    return zDeckUsbMscReady;
+++}
+++
+++const char *zDeckUsbSdMassStorageStatus(void)
+++{
+++    return zDeckUsbMscStatus;
+++}
+++
+++void zDeckUsbSdMassStorageRefresh(void)
+++{
+++    if (!SDFs.card()) {
+++        zDeckUsbMsc.mediaPresent(false);
+++        zDeckUsbMscReady = false;
+++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: no card");
+++        return;
+++    }
+++
+++    const uint32_t sectors = SDFs.card()->sectorCount();
+++    if (sectors == 0) {
+++        zDeckUsbMsc.mediaPresent(false);
+++        zDeckUsbMscReady = false;
+++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: card size unknown");
+++        return;
+++    }
+++
+++    if (!zDeckUsbMscStarted) {
+++        zDeckUsbMsc.vendorID("ZDECK");
+++        zDeckUsbMsc.productID("TDECK SD CARD");
+++        zDeckUsbMsc.productRevision("1.0");
+++        zDeckUsbMsc.onStartStop(zDeckMscStartStop);
+++        zDeckUsbMsc.onRead(zDeckMscRead);
+++        zDeckUsbMsc.onWrite(zDeckMscWrite);
+++        zDeckUsbMscStarted = zDeckUsbMsc.begin(sectors, 512);
+++    }
+++
+++    zDeckUsbMsc.mediaPresent(zDeckUsbMscStarted);
+++    zDeckUsbMscReady = zDeckUsbMscStarted;
+++    snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: %s, %.1f GB", zDeckUsbMscReady ? "mounted" : "not started",
+++             sectors / 2097152.0f);
+++}
+++#else
+++bool zDeckUsbSdMassStorageReady(void)
+++{
+++    return false;
+++}
+++
+++const char *zDeckUsbSdMassStorageStatus(void)
+++{
+++    return "USB SD: disabled";
+++}
+++
+++void zDeckUsbSdMassStorageRefresh(void) {}
+++#endif
+++
++ #if defined(ARCH_PORTDUINO)
++ 
++ bool SDCard::init(void)
 diff --git a/itsz/device-ui-usability.patch b/itsz/device-ui-usability.patch
 new file mode 100644
 index 000000000..ac9e86f2b
@@ -2677,557 +3745,6 @@ index 000000000..ac9e86f2b
 +                 }
 +             }
 +         }
-diff --git a/itsz/device-ui-polish.patch b/itsz/device-ui-polish.patch
-new file mode 100644
-index 000000000..9792b9bb8
---- /dev/null
-+++ b/itsz/device-ui-polish.patch
-@@ -0,0 +1,224 @@
-+diff --git a/generated/ui_240x320/screens.c b/generated/ui_240x320/screens.c
-+index 44bfb5b..abe7221 100644
-+--- a/generated/ui_240x320/screens.c
-++++ b/generated/ui_240x320/screens.c
-+@@ -661,7 +661,7 @@ void create_screen_main_screen() {
-+                             objects.home_signal_label = obj;
-+                             lv_obj_set_pos(obj, 105, 50);
-+                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
-+-                            lv_label_set_text(obj, _("mesh listening"));
-++                            lv_label_set_text(obj, _("LoRa listening"));
-+                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-+                             lv_obj_set_style_text_line_space(obj, -4, LV_PART_MAIN | LV_STATE_DEFAULT);
-+                             {
-+diff --git a/generated/ui_320x240/screens.c b/generated/ui_320x240/screens.c
-+index 90c2d6a..e1c5d6c 100644
-+--- a/generated/ui_320x240/screens.c
-++++ b/generated/ui_320x240/screens.c
-+@@ -535,7 +535,7 @@ void create_screen_main_screen() {
-+                             objects.home_signal_label = obj;
-+                             lv_obj_set_pos(obj, 105, 50);
-+                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
-+-                            lv_label_set_text(obj, _("mesh listening"));
-++                            lv_label_set_text(obj, _("LoRa listening"));
-+                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-+                             lv_obj_set_style_text_line_space(obj, -4, LV_PART_MAIN | LV_STATE_DEFAULT);
-+                             {
-+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
-+index 08eca0c..316564f 100644
-+--- a/source/graphics/TFT/TFTView_320x240.cpp
-++++ b/source/graphics/TFT/TFTView_320x240.cpp
-+@@ -127,17 +127,17 @@ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingReq
-+ {
-+     switch (status) {
-+     case LogMessage::eHeard:
-+-        return "heard by mesh";
-++        return "TX HEARD";
-+     case LogMessage::eNoResponse:
-+-        return "no response";
-++        return "TX NO RESP";
-+     case LogMessage::eAcked:
-+-        return "acknowledged";
-++        return "TX ACK";
-+     case LogMessage::eFailed:
-+-        return "failed";
-++        return "TX FAIL";
-+     case LogMessage::eDeleted:
-+-        return "deleted";
-++        return "DELETED";
-+     default:
-+-        return pendingRequest ? "queued" : "sent";
-++        return pendingRequest ? "TX QUEUED" : "TX SENT";
-+     }
-+ }
-+ 
-+@@ -164,6 +164,7 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
-+     lv_obj_t *statusLabel = panel->spec_attr->children[1];
-+     lv_label_set_text(statusLabel, text);
-+     lv_obj_set_style_text_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
-+ }
-+ } // namespace
-+ 
-+@@ -2476,21 +2477,22 @@ void TFTView_320x240::setupDynamicMapMenu(void)
-+     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
-+ 
-+     mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
-+-    lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
-+-    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
-+-    lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
-++    lv_obj_set_size(mapStatusOverlayLabel, 214, 54);
-++    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_CENTER);
-++    lv_obj_set_pos(mapStatusOverlayLabel, -14, 0);
-+     lv_obj_set_style_bg_color(mapStatusOverlayLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_obj_set_style_bg_opa(mapStatusOverlayLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_obj_set_style_border_color(mapStatusOverlayLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_bg_opa(mapStatusOverlayLabel, 230, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_color(mapStatusOverlayLabel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_width(mapStatusOverlayLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_radius(mapStatusOverlayLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_obj_set_style_pad_left(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_obj_set_style_pad_right(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_obj_set_style_pad_top(mapStatusOverlayLabel, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_left(mapStatusOverlayLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_right(mapStatusOverlayLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_top(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_text_font(mapStatusOverlayLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_text_color(mapStatusOverlayLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_label_set_long_mode(mapStatusOverlayLabel, LV_LABEL_LONG_WRAP);
-+-    lv_label_set_text(mapStatusOverlayLabel, "Map status loading...");
-++    lv_label_set_text(mapStatusOverlayLabel, "MAP STATUS\nwaiting for GPS/tiles");
-+ 
-+     updateDynamicMapMenu();
-+ }
-+@@ -2567,12 +2569,36 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
-+         lv_snprintf(gps, sizeof(gps), "GPS off");
-+     }
-+ 
-+-    const char *tiles = wifiConnected ? "online tiles" : cardDetected ? "SD tiles" : "no tiles";
-+-    const char *locs = objectsOnMap > 0 ? "nodes plotted" : nodeCount > 0 ? "nodes lack GPS" : "no node locations";
-++    const bool mapUseful = gpsReady && objectsOnMap > 0;
-++    const char *tiles = wifiConnected ? "WiFi tiles" : cardDetected ? "SD tiles" : "no tiles";
-++    const char *locs = objectsOnMap > 0 ? "nodes located" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
-++
-++    if (mapUseful) {
-++        lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
-++        lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
-++        lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
-++        lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++        lv_obj_set_style_border_color(mapStatusOverlayLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
-++        lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
-++        lv_obj_set_style_text_color(mapStatusOverlayLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    } else {
-++        lv_obj_set_size(mapStatusOverlayLabel, 214, 72);
-++        lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_CENTER);
-++        lv_obj_set_pos(mapStatusOverlayLabel, -14, 0);
-++        lv_obj_set_style_border_width(mapStatusOverlayLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-++        lv_obj_set_style_border_color(mapStatusOverlayLabel, gpsReady ? colorBlueGreen : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
-++        lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-++        lv_obj_set_style_text_color(mapStatusOverlayLabel, gpsReady ? colorLightGray : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    }
-+ 
-+     char buf[128];
-+-    lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
-+-                locs);
-++    if (mapUseful) {
-++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
-++                    locs);
-++    } else {
-++        lv_snprintf(buf, sizeof(buf), "MAP WAITING\n%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap,
-++                    (unsigned int)nodeCount, locs);
-++    }
-+     lv_label_set_text(mapStatusOverlayLabel, buf);
-+     lv_obj_move_foreground(mapStatusOverlayLabel);
-+ }
-+@@ -3168,7 +3194,7 @@ void TFTView_320x240::loadMap(void)
-+ 
-+ void TFTView_320x240::updateLocationMap(uint32_t num)
-+ {
-+-    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d located"), num, nodeCount);
-++    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d GPS"), num, nodeCount);
-+     updateMapStatusOverlay(num);
-+ }
-+ 
-+@@ -5032,11 +5058,20 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
-+     add_style_chat_message_style(textLabel);
-+ 
-+     lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
-+-    lv_obj_set_width(statusLabel, 200);
-++    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
-+     lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
-+     lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_text_font(statusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_text_color(statusLabel, itszOutgoingStatusColor(status), LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_bg_color(statusLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_bg_opa(statusLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_color(statusLabel, itszOutgoingStatusColor(status), LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_width(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_radius(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     char statusBuf[52];
-+     if (requestId) {
-+         lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
-+@@ -6261,10 +6296,10 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
-+                                                 : colorYellow,
-+                                           LV_PART_MAIN | LV_STATE_DEFAULT);
-+             itszSetOutgoingStatus(panel,
-+-                                  err       ? "failed / no response"
-+-                                  : isChannel ? "sent on channel"
-+-                                  : ack       ? "acknowledged"
-+-                                              : "heard by mesh",
-++                                  err       ? "TX FAIL"
-++                                  : isChannel ? "TX SENT (NO READ)"
-++                                  : ack       ? "TX ACK"
-++                                              : "TX HEARD",
-+                                   err       ? colorRed
-+                                   : isChannel ? colorMesh
-+                                   : ack       ? colorBlueGreen
-+@@ -7033,11 +7068,20 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
-+     add_style_new_message_style(msgLabel);
-+ 
-+     lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
-+-    lv_obj_set_width(statusLabel, 160);
-++    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
-+     lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
-+     lv_obj_set_style_text_font(statusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_obj_set_style_text_color(statusLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_label_set_text_fmt(statusLabel, "received ch %u", (unsigned int)ch);
-++    lv_obj_set_style_text_color(statusLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_bg_color(statusLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_bg_opa(statusLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_color(statusLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_width(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_radius(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
-+ 
-+     if (state == MeshtasticView::eRunning) {
-+         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
-+@@ -7953,13 +7997,13 @@ void TFTView_320x240::task_handler(void)
-+                     lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
-+                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
-+                     if (lastHeard == 0) {
-+-                        lv_label_set_text(objects.home_signal_label, _("mesh listening\nno packets yet"));
-+-                        lv_label_set_text(objects.home_signal_pct_label, _("LoRa idle"));
-++                        lv_label_set_text(objects.home_signal_label, _("LoRa listening\nno mesh packets"));
-++                        lv_label_set_text(objects.home_signal_pct_label, _("RX idle"));
-+                     } else {
-+                         char buf[48];
-+-                        lv_snprintf(buf, sizeof(buf), _("mesh idle\n>%dm"), (int)(secs_until_offline / 60));
-++                        lv_snprintf(buf, sizeof(buf), _("LoRa idle\nlast >%dm"), (int)(secs_until_offline / 60));
-+                         lv_label_set_text(objects.home_signal_label, buf);
-+-                        lv_label_set_text(objects.home_signal_pct_label, _("LoRa ok"));
-++                        lv_label_set_text(objects.home_signal_pct_label, _("mesh quiet"));
-+                     }
-+                 }
-+             }
-diff --git a/itsz/device-ui-delivery-status.patch b/itsz/device-ui-delivery-status.patch
-new file mode 100644
-index 000000000..145d302d1
---- /dev/null
-+++ b/itsz/device-ui-delivery-status.patch
-@@ -0,0 +1,264 @@
-+diff --git a/include/graphics/common/MeshtasticView.h b/include/graphics/common/MeshtasticView.h
-+index 70a4709..bff9504 100644
-+--- a/include/graphics/common/MeshtasticView.h
-++++ b/include/graphics/common/MeshtasticView.h
-+@@ -135,7 +135,10 @@ class MeshtasticView : public DeviceGUI
-+     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) {}
-+     virtual void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) {}
-+     virtual void packetReceived(const meshtastic_MeshPacket &p);
-+-    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) {}
-++    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false,
-++                            int8_t hopsUsed = -1)
-++    {
-++    }
-+     virtual void restoreMessage(const LogMessage &msg) {}
-+
-+     virtual void notifyRestoreMessages(int32_t percentage) {}
-+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
-+index 71847fe..d8c87f0 100644
-+--- a/include/graphics/view/TFT/TFTView_320x240.h
-++++ b/include/graphics/view/TFT/TFTView_320x240.h
-+@@ -82,7 +82,8 @@ class TFTView_320x240 : public MeshtasticView
-+     void blankScreen(bool enable) override;
-+     void screenSaving(bool enabled) override;
-+     bool isScreenLocked(void) override;
-+-    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true) override;
-++    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true,
-++                    int8_t hopsUsed = -1) override;
-+     void restoreMessage(const LogMessage &msg) override;
-+     void removeNode(uint32_t nodeNum) override;
-+
-+@@ -159,9 +160,10 @@ class TFTView_320x240 : public MeshtasticView
-+     // own chat message
-+     virtual void handleAddMessage(char *msg);
-+     // add own message to current chat
-+-    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status);
-++    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status,
-++                            uint8_t hopLimit = 0, bool ackExpected = false, bool isChannel = false);
-+     // add new message to container
-+-    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
-++    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg, int8_t hopsUsed = -1);
-+     // create empty message container for node or group channel
-+     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
-+     // filter or highlight node
-+@@ -169,7 +171,7 @@ class TFTView_320x240 : public MeshtasticView
-+     // display message alert popup
-+     virtual void messageAlert(const char *alert, bool show);
-+     // mark sent message as received
-+-    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err);
-++    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err, int8_t hopsUsed = -1);
-+     // set node image based on role
-+     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img);
-+     // apply filter and count number of filtered nodes
-+diff --git a/source/graphics/common/ViewController.cpp b/source/graphics/common/ViewController.cpp
-+index 8918efa..3c06202 100644
-+--- a/source/graphics/common/ViewController.cpp
-++++ b/source/graphics/common/ViewController.cpp
-+@@ -1040,8 +1040,12 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
-+             ILOG_WARN("ignoring message with invalid channel %d", (int)p.channel);
-+             break;
-+         }
-+-        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
-++        int8_t hopsUsed = -1;
-++        if (p.hop_start > 0 && p.hop_limit <= p.hop_start) {
-++            hopsUsed = p.hop_start - p.hop_limit;
-++        }
-++        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time, false, hopsUsed);
-+         log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
-+                                 (const uint8_t *)p.decoded.payload.bytes));
-+         itszAppendSdMessageJournal("received", p.from, p.to, p.channel, time, p.decoded.payload.size,
-+                                    (const uint8_t *)p.decoded.payload.bytes);
-+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
-+index 4370ac8..fc5cc78 100644
-+--- a/source/graphics/TFT/TFTView_320x240.cpp
-++++ b/source/graphics/TFT/TFTView_320x240.cpp
-+@@ -138,7 +138,7 @@ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingReq
-+     case LogMessage::eDeleted:
-+         return "DELETED";
-+     default:
-+-        return pendingRequest ? "TX QUEUED" : "TX SENT";
-++        return pendingRequest ? "WAIT ACK" : "TX SENT";
-+     }
-+ }
-+
-+@@ -166,6 +166,13 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
-+     lv_obj_set_style_text_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
-+ }
-++
-++int8_t itszPacketHops(const meshtastic_MeshPacket &p)
-++{
-++    if (p.hop_start > 0 && p.hop_limit <= p.hop_start)
-++        return p.hop_start - p.hop_limit;
-++    return -1;
-++}
-+ } // namespace
-+
-+ TFTView_320x240 *TFTView_320x240::instance(void)
-+@@ -5015,14 +5022,15 @@ void TFTView_320x240::handleAddMessage(char *msg)
-+             msg[i] = '\n';
-+
-+     controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
-+-    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
-++    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone, hopLimit, channelOrNode >= c_max_channels,
-++               channelOrNode < c_max_channels);
-+ }
-+
-+ /**
-+  * display message that has just been written and sent out
-+  */
-+ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
-+-                                 LogMessage::MsgStatus status)
-++                                 LogMessage::MsgStatus status, uint8_t hopLimit, bool ackExpected, bool isChannel)
-+ {
-+     lv_obj_t *hiddenPanel = lv_obj_create(container);
-+     lv_obj_set_width(hiddenPanel, lv_pct(100));
-+@@ -5069,11 +5077,24 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
-+     lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    statusLabel->user_data = (void *)(uintptr_t)hopLimit;
-+     char statusBuf[52];
-+     if (requestId) {
-+-        lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
-+-                    (unsigned int)(requestId & 0xffff));
-++        if (isChannel && hopLimit > 0) {
-++            lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST TTL%u NO ACK #%04x", (unsigned int)hopLimit,
-++                        (unsigned int)(requestId & 0xffff));
-++        } else if (ackExpected && hopLimit > 0) {
-++            lv_snprintf(statusBuf, sizeof(statusBuf), "WAIT ACK TTL%u #%04x", (unsigned int)hopLimit,
-++                        (unsigned int)(requestId & 0xffff));
-++        } else if (hopLimit > 0) {
-++            lv_snprintf(statusBuf, sizeof(statusBuf), "%s TTL%u #%04x",
-++                        itszOutgoingStatusText(status, status == LogMessage::eNone), (unsigned int)hopLimit,
-++                        (unsigned int)(requestId & 0xffff));
-++        } else {
-++            lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
-++                        (unsigned int)(requestId & 0xffff));
-++        }
-+     } else {
-+         lv_snprintf(statusBuf, sizeof(statusBuf), "%s", itszOutgoingStatusText(status, false));
-+     }
-+@@ -5800,7 +5825,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
-+             if (req.type == ResponseHandler::TraceRouteRequest) {
-+                 handleTraceRouteResponse(routing);
-+             } else if (req.type == ResponseHandler::TextMessageRequest) {
-+-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false);
-++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false, itszPacketHops(p));
-+             } else if (req.type == ResponseHandler::PositionRequest) {
-+                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
-+             }
-+@@ -5811,7 +5836,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
-+             if (req.type == ResponseHandler::TraceRouteRequest) {
-+                 handleTraceRouteResponse(routing);
-+             } else if (req.type == ResponseHandler::TextMessageRequest) {
-+-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
-++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true, itszPacketHops(p));
-+             }
-+         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
-+             if (req.type == ResponseHandler::PositionRequest) {
-+@@ -5821,7 +5846,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
-+                    routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY) {
-+             if (req.type == ResponseHandler::TextMessageRequest) {
-+-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
-++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true, itszPacketHops(p));
-+                 // we probably have a wrong key; mark it as bad and don't use in future
-+                 if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
-+                     ILOG_DEBUG("public key mismatch");
-+                     nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
-+@@ -6272,7 +6297,7 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
-+  * @param id
-+  * @param ack
-+  */
-+-void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
-++void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err, int8_t hopsUsed)
-+ {
-+     lv_obj_t *msgContainer;
-+     const bool isChannel = channelOrNode < c_max_channels;
-+@@ -6295,20 +6320,34 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
-+         if (requestId == id) {
-+             // now give the textlabel border another color
-+             lv_obj_t *textLabel = panel->spec_attr->children[0];
-++            lv_obj_t *statusLabel = panel->spec_attr->child_cnt > 1 ? panel->spec_attr->children[1] : nullptr;
-++            uint8_t hopLimit = statusLabel ? (uint8_t)(uintptr_t)statusLabel->user_data : 0;
-+             lv_obj_set_style_border_color(textLabel,
-+-                                          err   ? colorRed
-++                                          isChannel ? colorMesh
-++                                          : err   ? colorRed
-+                                           : ack ? colorBlueGreen
-+                                                 : colorYellow,
-+                                           LV_PART_MAIN | LV_STATE_DEFAULT);
-+-            itszSetOutgoingStatus(panel,
-+-                                  err       ? "TX FAIL"
-+-                                  : isChannel ? "TX SENT (NO READ)"
-+-                                  : ack       ? "TX ACK"
-+-                                              : "TX HEARD",
-+-                                  err       ? colorRed
-+-                                  : isChannel ? colorMesh
-+-                                  : ack       ? colorBlueGreen
-+-                                              : colorYellow);
-++            char statusBuf[52];
-++            if (isChannel) {
-++                if (hopLimit > 0)
-++                    lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST TTL%u NO ACK", (unsigned int)hopLimit);
-++                else
-++                    lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST NO ACK");
-++            } else if (hopsUsed >= 0) {
-++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H%d", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD",
-++                            (int)hopsUsed);
-++            } else if (hopLimit > 0) {
-++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H? TTL%u", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD",
-++                            (unsigned int)hopLimit);
-++            } else {
-++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H?", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD");
-++            }
-++            itszSetOutgoingStatus(panel, statusBuf,
-++                                  isChannel ? colorMesh
-++                                  : err     ? colorRed
-++                                  : ack     ? colorBlueGreen
-++                                            : colorYellow);
-+
-+             // store message
-+             break;
-+@@ -6983,7 +7023,8 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
-+  * @param time in/out: message time (maybe overwritten when 0)
-+  * @param restore if restoring then skip banners and highlight
-+  */
-+-void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore)
-++void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore,
-++                                 int8_t hopsUsed)
-+ {
-+     ILOG_DEBUG("newMessage: from:0x%08x, to:0x%08x, ch:%d, time:%d", from, to, ch, msgTime);
-+     int pos = 0;
-+@@ -7012,7 +7053,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
-+     sprintf(&buf[pos], "%s", msg);
-+
-+     // place message into container
-+-    newMessage(from, container, ch, buf);
-++    newMessage(from, container, ch, buf, hopsUsed);
-+
-+     if (!restore) {
-+         // display msg popup if not already viewing the messages
-+@@ -7044,7 +7085,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
-+  * @param ch
-+  * @param msg
-+  */
-+-void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg)
-++void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg, int8_t hopsUsed)
-+ {
-+     lv_obj_t *hiddenPanel = lv_obj_create(container);
-+     lv_obj_set_width(hiddenPanel, lv_pct(100));
-+@@ -7081,7 +7122,11 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
-+     lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-+     lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-+-    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
-++    if (hopsUsed >= 0) {
-++        lv_label_set_text_fmt(statusLabel, "RX CH %u H%d", (unsigned int)ch, (int)hopsUsed);
-++    } else {
-++        lv_label_set_text_fmt(statusLabel, "RX CH %u H?", (unsigned int)ch);
-++    }
-+
-+     if (state == MeshtasticView::eRunning) {
-+         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
-diff --git a/itsz/device-ui-brand-version.patch b/itsz/device-ui-brand-version.patch
-new file mode 100644
-index 000000000..1a305f07b
---- /dev/null
-+++ b/itsz/device-ui-brand-version.patch
-@@ -0,0 +1,45 @@
-+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
-+--- a/source/graphics/TFT/TFTView_320x240.cpp
-++++ b/source/graphics/TFT/TFTView_320x240.cpp
-+@@ -113,5 +113,26 @@
-+ extern const char *firmware_version;
-+ 
-++#ifndef APP_BUILD_NAME
-++#define APP_BUILD_NAME ""
-++#endif
-++
-++#ifndef ZDECK_PACK_VERSION
-++#define ZDECK_PACK_VERSION "dev"
-++#endif
-++
-++static const char *itszBootFirmwareLabel()
-++{
-++    static char label[40];
-++    if (label[0] == '\0') {
-++        const char *buildName = APP_BUILD_NAME;
-++        if (buildName != nullptr && buildName[0] != '\0')
-++            snprintf(label, sizeof(label), "Z-Deck %s", ZDECK_PACK_VERSION);
-++        else
-++            snprintf(label, sizeof(label), "%s", firmware_version);
-++    }
-++    return label;
-++}
-++
-+ TFTView_320x240 *TFTView_320x240::gui = nullptr;
-+ lv_obj_t *TFTView_320x240::currentPanel = nullptr;
-+ lv_obj_t *TFTView_320x240::spinnerButton = nullptr;
-+@@ -232,10 +249,13 @@
-+     // if boot logo is too big remove the label and center the image
-+     lv_obj_update_layout(objects.boot_logo);
-+     if (lv_obj_get_height(objects.boot_logo) > lv_display_get_vertical_resolution(displaydriver->getDisplay()) / 2) {
-+         lv_obj_set_pos(objects.boot_logo, 0, 0);
-+         lv_obj_add_flag(objects.firmware_label, LV_OBJ_FLAG_HIDDEN);
-+     } else {
-+-        lv_label_set_text(objects.firmware_label, firmware_version);
-++        lv_obj_set_width(objects.firmware_label, lv_pct(86));
-++        lv_obj_set_style_text_align(objects.firmware_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-++        lv_label_set_long_mode(objects.firmware_label, LV_LABEL_LONG_DOT);
-++        lv_label_set_text(objects.firmware_label, itszBootFirmwareLabel());
-+     }
-+ 
-+     time(&lastrun60);
 diff --git a/itsz/device-ui-zdeck-public-stack.patch b/itsz/device-ui-zdeck-public-stack.patch
 new file mode 100644
 index 000000000..903498767
@@ -3382,525 +3899,3 @@ index 000000000..903498767
 +             }
 +             if (curtime - lastrun60 >= 60) { // call every 60s
 +                 lastrun60 = curtime;
-diff --git a/itsz/device-ui-sd-tools.patch b/itsz/device-ui-sd-tools.patch
-new file mode 100644
-index 000000000..067ec65ba
---- /dev/null
-+++ b/itsz/device-ui-sd-tools.patch
-@@ -0,0 +1,515 @@
-+diff --git a/include/graphics/common/SdCard.h b/include/graphics/common/SdCard.h
-+index 17214db..128ece0 100644
-+--- a/include/graphics/common/SdCard.h
-++++ b/include/graphics/common/SdCard.h
-+@@ -122,4 +122,9 @@ class NoSdCard : public ISdCard
-+     virtual ~NoSdCard(void) {}
-+ };
-+ 
-+-extern ISdCard *sdCard;
-+\ No newline at end of file
-++extern ISdCard *sdCard;
-++
-++bool zDeckUsbSdMassStorageReady(void);
-++const char *zDeckUsbSdMassStorageStatus(void);
-++void zDeckUsbSdMassStorageRefresh(void);
-++bool zDeckWriteSdVolumeLabel(const char *label);
-+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
-+index 8dba04b..37f2b62 100644
-+--- a/include/graphics/view/TFT/TFTView_320x240.h
-++++ b/include/graphics/view/TFT/TFTView_320x240.h
-+@@ -201,6 +201,9 @@ class TFTView_320x240 : public MeshtasticView
-+     void rememberCurrentMapArea(void);
-+     void setupZDeckHealthTool(void);
-+     void updateZDeckHealthPanel(void);
-++    void setupZDeckSDTool(void);
-++    void updateZDeckSDPanel(const char *status = nullptr);
-++    bool prepareZDeckSDCard(void);
-+     void setupScreenCorrectionTool(void);
-+     void startScreenCorrection(void);
-+     void stopScreenCorrection(void);
-+@@ -397,6 +400,7 @@ class TFTView_320x240 : public MeshtasticView
-+     static void ui_event_mapInternetButton(lv_event_t *e);
-+     static void ui_event_mapCacheButton(lv_event_t *e);
-+     static void ui_event_zdeckHealthButton(lv_event_t *e);
-++    static void ui_event_zdeckSdButton(lv_event_t *e);
-+     static void ui_event_screenCorrectionButton(lv_event_t *e);
-+ 
-+     // animations
-+@@ -460,6 +464,11 @@ class TFTView_320x240 : public MeshtasticView
-+     lv_obj_t *zDeckHealthButtonLabel = nullptr;
-+     lv_obj_t *zDeckHealthPanel = nullptr;                   // public Z-Deck status summary
-+     lv_obj_t *zDeckHealthLabel = nullptr;
-++    lv_obj_t *zDeckSdButton = nullptr;                       // SD prepare/reset button
-++    lv_obj_t *zDeckSdButtonLabel = nullptr;
-++    lv_obj_t *zDeckSdPanel = nullptr;                        // SD warning/status panel
-++    lv_obj_t *zDeckSdLabel = nullptr;
-++    bool zDeckSdResetArmed = false;
-+     lv_obj_t *screenCorrectionButton = nullptr;             // screen burn-in/correction tool button
-+     lv_obj_t *screenCorrectionButtonLabel = nullptr;
-+     lv_obj_t *screenCorrectionOverlay = nullptr;            // full-screen correction overlay
-+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
-+index 1e0d239..3d78262 100644
-+--- a/source/graphics/TFT/TFTView_320x240.cpp
-++++ b/source/graphics/TFT/TFTView_320x240.cpp
-+@@ -962,6 +962,7 @@ void TFTView_320x240::ui_events_init(void)
-+     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
-+     setupDynamicMapMenu();
-+     setupZDeckHealthTool();
-++    setupZDeckSDTool();
-+     setupScreenCorrectionTool();
-+ 
-+     // tools buttons
-+@@ -2801,10 +2802,12 @@ void TFTView_320x240::updateZDeckHealthPanel(void)
-+                 "Primary: %s | channels %u\n"
-+                 "GPS: %s RX%u/TX%u sats %u\n"
-+                 "SD: %s | WiFi %s | nodes %u\n"
-++                "%s\n"
-+                 "Add channels: Settings > Channel",
-+                 ZDECK_PACK_VERSION, firmware_version, longFastDefault ? "LongFast only" : "custom channels", primary,
-+                 (unsigned int)enabledChannels, gps, (unsigned int)db.config.position.rx_gpio,
-+-                (unsigned int)db.config.position.tx_gpio, (unsigned int)gpsSatellites, sd, wifi, (unsigned int)nodeCount);
-++                (unsigned int)db.config.position.tx_gpio, (unsigned int)gpsSatellites, sd, wifi, (unsigned int)nodeCount,
-++                zDeckUsbSdMassStorageStatus());
-+     lv_label_set_text(zDeckHealthLabel, buf);
-+ }
-+ 
-+@@ -2818,6 +2821,141 @@ void TFTView_320x240::ui_event_zdeckHealthButton(lv_event_t *e)
-+     THIS->messageAlert("Z-Deck health refreshed", true);
-+ }
-+ 
-++void TFTView_320x240::setupZDeckSDTool(void)
-++{
-++    if (zDeckSdButton || !objects.tab_page_tools)
-++        return;
-++
-++    zDeckSdButton = lv_btn_create(objects.tab_page_tools);
-++    lv_obj_set_size(zDeckSdButton, LV_PCT(95), 30);
-++    add_style_settings_button_style(zDeckSdButton);
-++    lv_obj_set_style_align(zDeckSdButton, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_shadow_width(zDeckSdButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_color(zDeckSdButton, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_width(zDeckSdButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_add_event_cb(zDeckSdButton, ui_event_zdeckSdButton, LV_EVENT_CLICKED, NULL);
-++
-++    zDeckSdButtonLabel = lv_label_create(zDeckSdButton);
-++    lv_obj_set_size(zDeckSdButtonLabel, LV_PCT(100), LV_SIZE_CONTENT);
-++    lv_label_set_long_mode(zDeckSdButtonLabel, LV_LABEL_LONG_DOT);
-++    lv_label_set_text(zDeckSdButtonLabel, "Prepare / Reset SD");
-++    lv_obj_set_style_align(zDeckSdButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-++
-++    zDeckSdPanel = lv_obj_create(objects.tab_page_tools);
-++    lv_obj_set_size(zDeckSdPanel, LV_PCT(95), 86);
-++    lv_obj_clear_flag(zDeckSdPanel, LV_OBJ_FLAG_SCROLLABLE);
-++    lv_obj_set_style_bg_color(zDeckSdPanel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_bg_opa(zDeckSdPanel, 190, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_color(zDeckSdPanel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_border_width(zDeckSdPanel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_radius(zDeckSdPanel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_pad_all(zDeckSdPanel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
-++
-++    zDeckSdLabel = lv_label_create(zDeckSdPanel);
-++    lv_obj_set_width(zDeckSdLabel, LV_PCT(100));
-++    lv_label_set_long_mode(zDeckSdLabel, LV_LABEL_LONG_WRAP);
-++    lv_obj_set_style_text_font(zDeckSdLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
-++    lv_obj_set_style_text_color(zDeckSdLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
-++
-++    updateZDeckSDPanel();
-++}
-++
-++void TFTView_320x240::updateZDeckSDPanel(const char *status)
-++{
-++    if (!zDeckSdLabel)
-++        return;
-++
-++    const char *sd = cardDetected ? "ready" : "missing";
-++    char buf[260];
-++    if (status && status[0]) {
-++        lv_snprintf(buf, sizeof(buf), "%s\nSD: %s\n%s", status, sd, zDeckUsbSdMassStorageStatus());
-++    } else if (zDeckSdResetArmed) {
-++        lv_snprintf(buf, sizeof(buf),
-++                    "WARNING: next press formats the SD card and rebuilds Z-Deck folders.\nBack up files first.\n%s",
-++                    zDeckUsbSdMassStorageStatus());
-++    } else {
-++        lv_snprintf(buf, sizeof(buf), "USB: TDECK SD CARD\nLabel after reset: TDECKSDCARD\n%s",
-++                    zDeckUsbSdMassStorageStatus());
-++    }
-++    lv_label_set_text(zDeckSdLabel, buf);
-++}
-++
-++bool TFTView_320x240::prepareZDeckSDCard(void)
-++{
-++    updateZDeckSDPanel("Formatting SD card...");
-++    updateSDCard();
-++
-++    if (!sdCard || sdCard->cardType() == ISdCard::eNone) {
-++        updateZDeckSDPanel("No SD card found.");
-++        return false;
-++    }
-++
-++    if (!sdCard->format()) {
-++        updateZDeckSDPanel("SD format failed.");
-++        return false;
-++    }
-++
-++    updateSDCard();
-++    if (!cardDetected) {
-++        updateZDeckSDPanel("Formatted, but remount failed.");
-++        return false;
-++    }
-++
-++    bool labelSet = false;
-++#if defined(HAS_SDCARD)
-++    labelSet = zDeckWriteSdVolumeLabel("TDECKSDCARD");
-++
-++    SDFs.mkdir("/zdeck");
-++    SDFs.mkdir("/zdeck/maps");
-++    SDFs.mkdir("/zdeck/maps/cache");
-++    SDFs.mkdir("/zdeck/history");
-++    SDFs.mkdir("/zdeck/ringtones");
-++    SDFs.mkdir("/zdeck/logs");
-++    SDFs.mkdir("/zdeck/exports");
-++    SDFs.mkdir("/itsz");
-++    SDFs.mkdir("/itsz/history");
-++
-++#if defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
-++    File readme = SDFs.open("/zdeck/README.TXT", FILE_WRITE);
-++    if (readme) {
-++        readme.print("T-Deck SD Card for Z-Deck firmware.\r\nMaps, message history, ringtones, logs, and exports live here.\r\n");
-++        readme.close();
-++    }
-++#else
-++    FsFile readme = SDFs.open("/zdeck/README.TXT", O_RDWR | O_CREAT | O_TRUNC);
-++    if (readme) {
-++        readme.print("T-Deck SD Card for Z-Deck firmware.\r\nMaps, message history, ringtones, logs, and exports live here.\r\n");
-++        readme.close();
-++    }
-++#endif
-++#endif
-++
-++    zDeckUsbSdMassStorageRefresh();
-++    updateZDeckHealthPanel();
-++    updateZDeckSDPanel(labelSet ? "SD card prepared. Label set." : "SD card prepared. Label not set.");
-++    return true;
-++}
-++
-++void TFTView_320x240::ui_event_zdeckSdButton(lv_event_t *e)
-++{
-++    lv_event_code_t event_code = lv_event_get_code(e);
-++    if (event_code != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
-++        return;
-++
-++    if (!THIS->zDeckSdResetArmed) {
-++        THIS->zDeckSdResetArmed = true;
-++        THIS->updateZDeckSDPanel();
-++        THIS->messageAlert("Press again to reset SD card", true);
-++        return;
-++    }
-++
-++    THIS->zDeckSdResetArmed = false;
-++    if (THIS->prepareZDeckSDCard())
-++        THIS->messageAlert("SD card ready for Z-Deck", true);
-++    else
-++        THIS->messageAlert("SD card reset failed", true);
-++}
-++
-+ void TFTView_320x240::startScreenCorrection(void)
-+ {
-+     stopScreenCorrection();
-+@@ -7962,6 +8100,7 @@ bool TFTView_320x240::updateSDCard(void)
-+     ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
-+     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
-+         ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
-++        zDeckUsbSdMassStorageRefresh();
-+         ISdCard::CardType cardType = sdCard->cardType();
-+         ISdCard::FatType fatType = sdCard->fatType();
-+         uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
-+@@ -7989,6 +8128,7 @@ bool TFTView_320x240::updateSDCard(void)
-+         err = sdCard->errorType();
-+         delete sdCard;
-+         sdCard = nullptr;
-++        zDeckUsbSdMassStorageRefresh();
-+     }
-+ 
-+     if (!cardDetected || err != ISdCard::ErrorType::eNoError) {
-+diff --git a/source/graphics/common/SdCard.cpp b/source/graphics/common/SdCard.cpp
-+index 9cda81f..35fe10c 100644
-+--- a/source/graphics/common/SdCard.cpp
-++++ b/source/graphics/common/SdCard.cpp
-+@@ -1,5 +1,10 @@
-+ #include "graphics/common/SdCard.h"
-++#include "SPILock.h"
-+ #include "util/ILog.h"
-++#include "sdkconfig.h"
-++#include <algorithm>
-++#include <cstring>
-++#include <cstdio>
-+ 
-+ #ifndef SD_SPI_FREQUENCY
-+ #define SD_SPI_FREQUENCY 50000000
-+@@ -24,6 +29,265 @@ using File = FsFile;
-+ 
-+ ISdCard *sdCard = nullptr;
-+ 
-++#if defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO)
-++namespace
-++{
-++uint16_t zDeckLe16(const uint8_t *p)
-++{
-++    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
-++}
-++
-++uint32_t zDeckLe32(const uint8_t *p)
-++{
-++    return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
-++}
-++
-++bool zDeckLooksFatBootSector(const uint8_t *sector)
-++{
-++    return sector[510] == 0x55 && sector[511] == 0xAA && zDeckLe16(sector + 11) == 512 && sector[13] != 0 &&
-++           zDeckLe16(sector + 14) != 0 && sector[16] != 0;
-++}
-++
-++void zDeckMakeFatLabel(const char *label, uint8_t out[11])
-++{
-++    memset(out, ' ', 11);
-++    if (!label)
-++        return;
-++
-++    size_t pos = 0;
-++    for (size_t i = 0; label[i] && pos < 11; i++) {
-++        char c = label[i];
-++        if (c >= 'a' && c <= 'z')
-++            c = (char)(c - 'a' + 'A');
-++        if (c == '.' || c == '/' || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' ||
-++            c == '|')
-++            continue;
-++        out[pos++] = (uint8_t)c;
-++    }
-++}
-++
-++bool zDeckWriteRootVolumeLabel(uint32_t bootSector, const uint8_t boot[512], const uint8_t label[11])
-++{
-++    const uint16_t bytesPerSector = zDeckLe16(boot + 11);
-++    const uint8_t sectorsPerCluster = boot[13];
-++    const uint16_t reservedSectors = zDeckLe16(boot + 14);
-++    const uint8_t fatCount = boot[16];
-++    const uint16_t rootEntryCount = zDeckLe16(boot + 17);
-++    const uint16_t fat16Sectors = zDeckLe16(boot + 22);
-++    const uint32_t fatSectors = fat16Sectors ? fat16Sectors : zDeckLe32(boot + 36);
-++
-++    if (bytesPerSector != 512 || sectorsPerCluster == 0 || reservedSectors == 0 || fatCount == 0 || fatSectors == 0)
-++        return false;
-++
-++    const uint32_t rootDirSectors = ((uint32_t)rootEntryCount * 32U + bytesPerSector - 1U) / bytesPerSector;
-++    uint32_t rootSector = bootSector + reservedSectors + (uint32_t)fatCount * fatSectors;
-++    uint32_t sectorsToScan = rootDirSectors;
-++
-++    if (fat16Sectors == 0 && rootEntryCount == 0) {
-++        const uint32_t rootCluster = zDeckLe32(boot + 44);
-++        if (rootCluster < 2)
-++            return false;
-++        const uint32_t firstDataSector = rootSector + rootDirSectors;
-++        rootSector = firstDataSector + (rootCluster - 2U) * sectorsPerCluster;
-++        sectorsToScan = sectorsPerCluster;
-++    }
-++
-++    uint8_t sector[512];
-++    for (uint32_t i = 0; i < sectorsToScan; i++) {
-++        if (!SDFs.card()->readSector(rootSector + i, sector))
-++            return false;
-++
-++        for (size_t entry = 0; entry < 512; entry += 32) {
-++            const uint8_t first = sector[entry];
-++            const uint8_t attr = sector[entry + 11];
-++            if (first == 0x00 || first == 0xE5 || attr == 0x08) {
-++                memset(sector + entry, 0, 32);
-++                memcpy(sector + entry, label, 11);
-++                sector[entry + 11] = 0x08;
-++                return SDFs.card()->writeSector(rootSector + i, sector);
-++            }
-++        }
-++    }
-++
-++    return false;
-++}
-++} // namespace
-++
-++bool zDeckWriteSdVolumeLabel(const char *label)
-++{
-++    if (!SDFs.card())
-++        return false;
-++
-++    concurrency::LockGuard g(spiLock);
-++    uint8_t sector[512];
-++    if (!SDFs.card()->readSector(0, sector))
-++        return false;
-++
-++    uint32_t bootSector = 0;
-++    if (!zDeckLooksFatBootSector(sector)) {
-++        if (sector[510] != 0x55 || sector[511] != 0xAA || sector[0x1BE + 4] == 0)
-++            return false;
-++        bootSector = zDeckLe32(sector + 0x1BE + 8);
-++        if (bootSector == 0 || !SDFs.card()->readSector(bootSector, sector))
-++            return false;
-++    }
-++
-++    if (!zDeckLooksFatBootSector(sector))
-++        return false;
-++
-++    uint8_t fatLabel[11];
-++    zDeckMakeFatLabel(label, fatLabel);
-++
-++    const uint16_t fat16Sectors = zDeckLe16(sector + 22);
-++    const uint16_t rootEntryCount = zDeckLe16(sector + 17);
-++    const size_t labelOffset = (fat16Sectors == 0 && rootEntryCount == 0) ? 71 : 43;
-++    memcpy(sector + labelOffset, fatLabel, 11);
-++
-++    const bool bootOk = SDFs.card()->writeSector(bootSector, sector);
-++    const bool rootOk = zDeckWriteRootVolumeLabel(bootSector, sector, fatLabel);
-++    SDFs.card()->syncDevice();
-++    return bootOk && rootOk;
-++}
-++#else
-++bool zDeckWriteSdVolumeLabel(const char *)
-++{
-++    return false;
-++}
-++#endif
-++
-++#if defined(ZDECK_USB_SD_MSC) && defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO) &&                    \
-++    defined(ARDUINO_ARCH_ESP32) && CONFIG_TINYUSB_MSC_ENABLED
-++#include "USBMSC.h"
-++
-++namespace
-++{
-++USBMSC zDeckUsbMsc;
-++bool zDeckUsbMscStarted = false;
-++bool zDeckUsbMscReady = false;
-++char zDeckUsbMscStatus[96] = "USB SD: waiting for card";
-++
-++int32_t zDeckMscRead(uint32_t lba, uint32_t offset, void *buffer, uint32_t bufsize)
-++{
-++    if (!SDFs.card() || !buffer || offset >= 512)
-++        return -1;
-++
-++    concurrency::LockGuard g(spiLock);
-++    uint8_t sector[512];
-++    uint8_t *dst = static_cast<uint8_t *>(buffer);
-++    uint32_t copied = 0;
-++
-++    while (copied < bufsize) {
-++        if (!SDFs.card()->readSector(lba, sector))
-++            return copied ? (int32_t)copied : -1;
-++
-++        const uint32_t chunk = std::min<uint32_t>(512 - offset, bufsize - copied);
-++        memcpy(dst + copied, sector + offset, chunk);
-++        copied += chunk;
-++        lba++;
-++        offset = 0;
-++    }
-++
-++    return copied;
-++}
-++
-++int32_t zDeckMscWrite(uint32_t lba, uint32_t offset, uint8_t *buffer, uint32_t bufsize)
-++{
-++    if (!SDFs.card() || !buffer || offset >= 512)
-++        return -1;
-++
-++    concurrency::LockGuard g(spiLock);
-++    uint8_t sector[512];
-++    uint32_t written = 0;
-++
-++    while (written < bufsize) {
-++        const uint32_t chunk = std::min<uint32_t>(512 - offset, bufsize - written);
-++        if (chunk != 512 || offset != 0) {
-++            if (!SDFs.card()->readSector(lba, sector))
-++                return written ? (int32_t)written : -1;
-++            memcpy(sector + offset, buffer + written, chunk);
-++        } else {
-++            memcpy(sector, buffer + written, 512);
-++        }
-++
-++        if (!SDFs.card()->writeSector(lba, sector))
-++            return written ? (int32_t)written : -1;
-++
-++        written += chunk;
-++        lba++;
-++        offset = 0;
-++    }
-++
-++    SDFs.card()->syncDevice();
-++    return written;
-++}
-++
-++bool zDeckMscStartStop(uint8_t, bool start, bool loadEject)
-++{
-++    if (!start && loadEject) {
-++        zDeckUsbMsc.mediaPresent(false);
-++        zDeckUsbMscReady = false;
-++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: ejected by host");
-++    }
-++    return true;
-++}
-++} // namespace
-++
-++bool zDeckUsbSdMassStorageReady(void)
-++{
-++    return zDeckUsbMscReady;
-++}
-++
-++const char *zDeckUsbSdMassStorageStatus(void)
-++{
-++    return zDeckUsbMscStatus;
-++}
-++
-++void zDeckUsbSdMassStorageRefresh(void)
-++{
-++    if (!SDFs.card()) {
-++        zDeckUsbMsc.mediaPresent(false);
-++        zDeckUsbMscReady = false;
-++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: no card");
-++        return;
-++    }
-++
-++    const uint32_t sectors = SDFs.card()->sectorCount();
-++    if (sectors == 0) {
-++        zDeckUsbMsc.mediaPresent(false);
-++        zDeckUsbMscReady = false;
-++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: card size unknown");
-++        return;
-++    }
-++
-++    if (!zDeckUsbMscStarted) {
-++        zDeckUsbMsc.vendorID("ZDECK");
-++        zDeckUsbMsc.productID("TDECK SD CARD");
-++        zDeckUsbMsc.productRevision("1.0");
-++        zDeckUsbMsc.onStartStop(zDeckMscStartStop);
-++        zDeckUsbMsc.onRead(zDeckMscRead);
-++        zDeckUsbMsc.onWrite(zDeckMscWrite);
-++        zDeckUsbMscStarted = zDeckUsbMsc.begin(sectors, 512);
-++    }
-++
-++    zDeckUsbMsc.mediaPresent(zDeckUsbMscStarted);
-++    zDeckUsbMscReady = zDeckUsbMscStarted;
-++    snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: %s, %.1f GB", zDeckUsbMscReady ? "mounted" : "not started",
-++             sectors / 2097152.0f);
-++}
-++#else
-++bool zDeckUsbSdMassStorageReady(void)
-++{
-++    return false;
-++}
-++
-++const char *zDeckUsbSdMassStorageStatus(void)
-++{
-++    return "USB SD: unavailable";
-++}
-++
-++void zDeckUsbSdMassStorageRefresh(void) {}
-++#endif
-++
-+ #if defined(ARCH_PORTDUINO)
-+ 
-+ bool SDCard::init(void)
-

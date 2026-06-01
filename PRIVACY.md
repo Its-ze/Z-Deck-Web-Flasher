@@ -16,4 +16,4 @@ The journal is plaintext local history. Anyone with access to the SD card may be
 
 ## USB SD Access
 
-When the T-Deck is plugged into a computer and the SD card is mounted, Z-Deck can expose the card as USB mass storage named `TDECK SD CARD`. Treat this the same as removing the card: files, maps, logs, ringtone assets, and message history on the SD card may be visible to the connected computer.
+In `0.2.3-public`, Z-Deck does not expose the SD card as USB mass storage by default. Treat the SD card as plaintext local storage: files, maps, logs, ringtone assets, and message history may be visible if the card is removed or mounted by another build.

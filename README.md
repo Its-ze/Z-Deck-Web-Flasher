@@ -1,6 +1,6 @@
 ﻿# Z-Deck Web Flasher
 
-Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.1 PUBLIC**.
+Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.3 PUBLIC**.
 
 This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped public build. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
 
@@ -41,15 +41,15 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 
 ## Included Build
 
-- Release label: `Z-Deck 0.2.1-public`
-- Firmware base version: `2.8.0.zdeck2`
+- Release label: `Z-Deck 0.2.3-public`
+- Firmware base version: `2.8.0.zdeck4`
 - Target: `t-deck-tft`
 - Chip: `ESP32-S3`
 - Layout: bootloader, partitions, boot_app0, OTA app slots, LittleFS
 - Message UI: received packets show measured hop count as `H#`; unknown route data shows `H?`; outbound limits use `TTL#`.
 - Audio: T-Deck I2S ringtone playback uses full tone sequences instead of stopping on the first note.
 - SD card: Tools includes a two-press `Prepare / Reset SD` action that formats the card, builds Z-Deck folders, writes a README, and labels supported FAT cards as `TDECKSDCARD`.
-- USB storage: when an SD card is mounted, the T-Deck exposes it to the computer as `TDECK SD CARD` USB mass storage.
+- USB storage: disabled by default in `0.2.3-public` so Web Serial and Meshtastic API sessions stay stable; SD prep/journal features still use the card internally.
 
 ## Documentation
 

@@ -1,4 +1,4 @@
-﻿diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
 --- a/source/graphics/TFT/TFTView_320x240.cpp
 +++ b/source/graphics/TFT/TFTView_320x240.cpp
 @@ -113,5 +113,26 @@
@@ -43,4 +43,3 @@
      }
  
      time(&lastrun60);
-
