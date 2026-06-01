@@ -1,11 +1,11 @@
 {
   "name": "zdeck-public-stack",
-  "description": "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, GPS/compass refresh fixes, map/cache status, clearer message delivery labels, hop counters where packet route data exposes them, SD message journal support, SD prepare/reset tools, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, and a public on-device health panel.",
+  "description": "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced US LongFast region default for this public T-Deck build, GPS/compass refresh fixes, map/cache status, clearer message delivery labels, hop counters where packet route data exposes them, SD message journal support, SD prepare/reset tools, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, and a public on-device health panel.",
   "release": {
-    "label": "Z-Deck 0.2.4-public",
-    "firmwareVersion": "2.8.0.zdeck5",
-    "packVersion": "0.2.4-public",
-    "channelDefaults": "LongFast only",
+    "label": "Z-Deck 0.2.5-public",
+    "firmwareVersion": "2.8.0.zdeck6",
+    "packVersion": "0.2.5-public",
+    "channelDefaults": "LongFast only, US region default",
     "privateChannelsBundled": false,
     "privateKeysBundled": false,
     "adminKeysBundled": false
@@ -24,9 +24,9 @@
     "patchBase": "origin/2.8"
   },
   "build": {
-    "artifactFolder": "firmware/zdeck-2.8.0-zdeck5-public",
-    "latestBuiltFrom": "20260601-zdeck5-t-deck-tft",
-    "status": "Windows PlatformIO build completed successfully. This public build uses the normal zdeck5 / 0.2.4-public naming, keeps the prior Z-Deck public stack, disables always-on USB SD mass storage for serial stability, keeps SD prepare/reset tools, SD message journaling, SD ringtone discovery, popup controls, boot progress, hop/status message labels, corrected I2S RTTTL ringtone playback, and LongFast-only defaults."
+    "artifactFolder": "firmware/zdeck-2.8.0-zdeck6-public",
+    "latestBuiltFrom": "20260601-zdeck6-t-deck-tft",
+    "status": "Windows PlatformIO build completed successfully. This public build uses the normal zdeck6 / 0.2.5-public naming, keeps the prior Z-Deck public stack, and adds a compiled US LoRa region default so LongFast does not remain region UNSET after setup."
   },
   "patchFiles": [
     "device-ui-brand-version.patch",
@@ -42,7 +42,7 @@
     "device-ui-zdeck-public-stack.patch",
     "zdeck-full-source.patch"
   ],
-  "sourceArchive": "source/patches/2026-06-01-zdeck5-public",
+  "sourceArchive": "source/patches/2026-06-01-zdeck6-public",
   "publicSetup": {
     "ownerDefault": "Z-Deck",
     "shortNameDefault": "ZDK",

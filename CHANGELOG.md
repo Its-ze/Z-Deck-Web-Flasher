@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.5-public - 2026-06-01
+
+Region-default fix for the public T-Deck LongFast build.
+
+- Rebuilt bundled firmware from `20260601-zdeck6-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck6` and pack label to `0.2.5-public`.
+- Compiled the T-Deck public build with `USERPREFS_CONFIG_LORA_REGION=US` so setup cannot leave the radio in `UNSET` while using LongFast.
+- Kept the previous Z-Deck public stack: classic UI, LongFast defaults, serial recovery, disabled USB mass storage, SD tools/history/ringtones, popup controls, boot progress, map/status/delivery improvements, and sound-off setup compatibility.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.4-public - 2026-06-01
 
 Normal naming refresh for the public flasher package.
