@@ -1,15 +1,7 @@
-﻿diff --git after/meshtastic-device-ui/.piopm after/meshtastic-device-ui/.piopm
-new file mode 100644
-index 0000000..4c0b879
---- /dev/null
-+++ after/meshtastic-device-ui/.piopm
-@@ -0,0 +1 @@
-+{"type": "library", "name": "meshtastic-device-ui", "version": "1.0.0", "spec": {"owner": null, "id": null, "name": "device-ui", "requirements": null, "uri": "https://github.com/meshtastic/device-ui/archive/4bf593a82100b911ff816dddf7158ffdee2114cd.zip"}}
-\ No newline at end of file
-diff --git before/meshtastic-device-ui/include/graphics/common/SdCard.h after/meshtastic-device-ui/include/graphics/common/SdCard.h
-index 17214db..3943838 100644
---- before/meshtastic-device-ui/include/graphics/common/SdCard.h
-+++ after/meshtastic-device-ui/include/graphics/common/SdCard.h
+diff --git a/include/graphics/common/SdCard.h b/include/graphics/common/SdCard.h
+index 128ece0..75faf5f 100644
+--- a/include/graphics/common/SdCard.h
++++ b/include/graphics/common/SdCard.h
 @@ -15,6 +15,7 @@ extern SdFs SDFs;
  
  #include <set>
@@ -70,36 +62,10 @@ index 17214db..3943838 100644
      std::set<std::string> loadMapStyles(const char *folder) override
      {
          updated = true;
-@@ -122,4 +140,4 @@ class NoSdCard : public ISdCard
-     virtual ~NoSdCard(void) {}
- };
- 
--extern ISdCard *sdCard;
-\ No newline at end of file
-+extern ISdCard *sdCard;
-diff --git after/meshtastic-device-ui/include/graphics/map/LittleFSService.h after/meshtastic-device-ui/include/graphics/map/LittleFSService.h
-new file mode 100644
-index 0000000..901c62a
---- /dev/null
-+++ after/meshtastic-device-ui/include/graphics/map/LittleFSService.h
-@@ -0,0 +1,13 @@
-+#pragma once
-+
-+#include "graphics/map/TileService.h"
-+
-+class LittleFSService : public ITileService
-+{
-+  public:
-+    LittleFSService();
-+    bool load(const char *name, void *img) override;
-+    static bool hasStyle(const char *style);
-+    static const char *defaultUrl();
-+    virtual ~LittleFSService();
-+};
-diff --git before/meshtastic-device-ui/include/graphics/view/TFT/TFTView_320x240.h after/meshtastic-device-ui/include/graphics/view/TFT/TFTView_320x240.h
-index c278737..aee9442 100644
---- before/meshtastic-device-ui/include/graphics/view/TFT/TFTView_320x240.h
-+++ after/meshtastic-device-ui/include/graphics/view/TFT/TFTView_320x240.h
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 37f2b62..5d28cd2 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
 @@ -3,6 +3,8 @@
  #include "graphics/common/MeshtasticView.h"
  #include "meshtastic/clientonly.pb.h"
@@ -109,7 +75,7 @@ index c278737..aee9442 100644
  
  class MapPanel;
  
-@@ -186,6 +188,8 @@ class TFTView_320x240 : public MeshtasticView
+@@ -188,6 +190,8 @@ class TFTView_320x240 : public MeshtasticView
      virtual bool updateSDCard(void);
      // format SD card if invalid
      virtual void formatSDCard(void);
@@ -118,7 +84,7 @@ index c278737..aee9442 100644
      // update time display on home screen
      virtual void updateFreeMem(void);
      // update distance to other node
-@@ -211,6 +215,8 @@ class TFTView_320x240 : public MeshtasticView
+@@ -227,6 +231,8 @@ class TFTView_320x240 : public MeshtasticView
      TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
  
      void enterProgrammingMode(void);
@@ -127,7 +93,7 @@ index c278737..aee9442 100644
      void updateTheme(void);
      void ui_events_init(void);
      void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
-@@ -256,6 +262,17 @@ class TFTView_320x240 : public MeshtasticView
+@@ -272,6 +278,17 @@ class TFTView_320x240 : public MeshtasticView
      void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
      void setBellText(bool banner, bool sound);
      void setChannelName(const meshtastic_Channel &ch);
@@ -145,7 +111,7 @@ index c278737..aee9442 100644
      uint32_t timestamp(char *buf, uint32_t time, bool update);
      void updateLocationMap(uint32_t objects);
  
-@@ -327,6 +344,7 @@ class TFTView_320x240 : public MeshtasticView
+@@ -344,6 +361,7 @@ class TFTView_320x240 : public MeshtasticView
      static void ui_event_backup_button(lv_event_t *e);
      static void ui_event_reset_button(lv_event_t *e);
      static void ui_event_reboot_button(lv_event_t *e);
@@ -153,16 +119,16 @@ index c278737..aee9442 100644
      static void ui_event_device_reboot_button(lv_event_t *e);
      static void ui_event_device_progmode_button(lv_event_t *e);
      static void ui_event_device_shutdown_button(lv_event_t *e);
-@@ -380,6 +398,8 @@ class TFTView_320x240 : public MeshtasticView
-     static void ui_event_mapNodeButton(lv_event_t *e);
-     static void ui_event_chatNodeButton(lv_event_t *e);
-     static void ui_event_positionButton(lv_event_t *e);
+@@ -402,6 +420,8 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_zdeckHealthButton(lv_event_t *e);
+     static void ui_event_zdeckSdButton(lv_event_t *e);
+     static void ui_event_screenCorrectionButton(lv_event_t *e);
 +    static void ui_event_sd_setup_ignore(lv_event_t *e);
 +    static void ui_event_sd_setup_format(lv_event_t *e);
  
      // animations
      static void ui_anim_node_panel_cb(void *var, int32_t v);
-@@ -392,6 +412,10 @@ class TFTView_320x240 : public MeshtasticView
+@@ -414,6 +434,10 @@ class TFTView_320x240 : public MeshtasticView
      lv_obj_t *activeWidget = nullptr;
      lv_obj_t *activeTextInput = nullptr;
      lv_group_t *input_group = nullptr;
@@ -173,7 +139,7 @@ index c278737..aee9442 100644
  
      enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
  
-@@ -404,6 +428,12 @@ class TFTView_320x240 : public MeshtasticView
+@@ -426,6 +450,12 @@ class TFTView_320x240 : public MeshtasticView
      bool detectorRunning;                                 // meshDetector is active
      bool cardDetected;                                    // SD has been detected
      bool formatSD;                                        // offer to format SD card
@@ -186,7 +152,7 @@ index c278737..aee9442 100644
      uint16_t buttonSize;                                  // size of group/chat buttons in pixels
      uint16_t statisticTableRows;                          // number of rows in statistics table
      uint16_t packetCounter;                               // number of packets in packet log
-@@ -427,6 +457,9 @@ class TFTView_320x240 : public MeshtasticView
+@@ -450,6 +480,9 @@ class TFTView_320x240 : public MeshtasticView
      char old_val1_scratch[64], old_val2_scratch[64];      // temporary scratch buffers for settings strings
      std::array<lv_obj_t *, c_max_channels> ch_label;      // indexable label list for settings
      meshtastic_Channel *channel_scratch;                  // temporary scratch copy of channel db
@@ -195,18 +161,11 @@ index c278737..aee9442 100644
 +    int16_t selectedSdRingtone;                           // selected SD ringtone index, -1 when using built-in
      lv_obj_t *qr;                                         // qr code
      MapPanel *map = nullptr;                              // map
-     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
-@@ -444,4 +477,4 @@ class TFTView_320x240 : public MeshtasticView
-     };
- 
-     meshtastic_DeviceProfile_full db{}; // full copy of the node's configuration db (except nodeinfos) plus ui data
--};
-\ No newline at end of file
-+};
-diff --git before/meshtastic-device-ui/source/graphics/TFT/TFTView_160x80.cpp after/meshtastic-device-ui/source/graphics/TFT/TFTView_160x80.cpp
+     lv_obj_t *mapInternetStatusLabel = nullptr;           // dynamic map WiFi/cache status
+diff --git a/source/graphics/TFT/TFTView_160x80.cpp b/source/graphics/TFT/TFTView_160x80.cpp
 index 784eeb0..589e836 100644
---- before/meshtastic-device-ui/source/graphics/TFT/TFTView_160x80.cpp
-+++ after/meshtastic-device-ui/source/graphics/TFT/TFTView_160x80.cpp
+--- a/source/graphics/TFT/TFTView_160x80.cpp
++++ b/source/graphics/TFT/TFTView_160x80.cpp
 @@ -1,4 +1,4 @@
 -#if HAS_TFT // VIEW_160x80
 +#if HAS_TFT && defined(VIEW_160x80)
@@ -220,10 +179,10 @@ index 784eeb0..589e836 100644
 -#endif
 \ No newline at end of file
 +#endif
-diff --git before/meshtastic-device-ui/source/graphics/TFT/TFTView_240x240.cpp after/meshtastic-device-ui/source/graphics/TFT/TFTView_240x240.cpp
+diff --git a/source/graphics/TFT/TFTView_240x240.cpp b/source/graphics/TFT/TFTView_240x240.cpp
 index 762d806..51b15be 100644
---- before/meshtastic-device-ui/source/graphics/TFT/TFTView_240x240.cpp
-+++ after/meshtastic-device-ui/source/graphics/TFT/TFTView_240x240.cpp
+--- a/source/graphics/TFT/TFTView_240x240.cpp
++++ b/source/graphics/TFT/TFTView_240x240.cpp
 @@ -1,4 +1,4 @@
 -#if HAS_TFT // VIEW_240x240
 +#if HAS_TFT && defined(VIEW_240x240)
@@ -237,10 +196,10 @@ index 762d806..51b15be 100644
 -#endif
 \ No newline at end of file
 +#endif
-diff --git before/meshtastic-device-ui/source/graphics/TFT/TFTView_320x240.cpp after/meshtastic-device-ui/source/graphics/TFT/TFTView_320x240.cpp
-index 76e68ad..930ba12 100644
---- before/meshtastic-device-ui/source/graphics/TFT/TFTView_320x240.cpp
-+++ after/meshtastic-device-ui/source/graphics/TFT/TFTView_320x240.cpp
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index fba3b2b..0b95dd8 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
 @@ -2,12 +2,17 @@
  
  #include "graphics/view/TFT/TFTView_320x240.h"
@@ -322,21 +281,21 @@ index 76e68ad..930ba12 100644
  // children index of nodepanel lv objects (see addNode)
  enum NodePanelIdx {
      node_img_idx,
-@@ -140,8 +201,11 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
+@@ -215,9 +276,10 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
  TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
      : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
        processingFilter(false), packetLogEnabled(false), detectorRunning(false), cardDetected(false), formatSD(false),
--      packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
--      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), qr(nullptr),
+-      packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), gpsSatellites(0), myLatitude(0),
+-      myLongitude(0), topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false),
+-      chooseNodeTraceRoute(false), qr(nullptr),
 +      usbStatusKnown(false), lastUsbConnected(false), noticePopupsEnabled(true), sdSetupIgnored(false),
-+      suppressSDSetupPrompt(false),
-+      bootProgressValue(0), packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), myLatitude(0), myLongitude(0),
-+      topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false), chooseNodeTraceRoute(false),
-+      selectedSdRingtone(-1), qr(nullptr),
++      suppressSDSetupPrompt(false), bootProgressValue(0), packetCounter(0), actTime(0), uptime(0), lastHeard(0),
++      hasPosition(false), gpsSatellites(0), myLatitude(0), myLongitude(0), topNodeLL(nullptr), scans(0), selectedHops(0),
++      chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), selectedSdRingtone(-1), qr(nullptr),
        db{}
  {
      filter.active = false;
-@@ -168,8 +232,11 @@ void TFTView_320x240::init(IClientBase *client)
+@@ -244,8 +306,11 @@ void TFTView_320x240::init(IClientBase *client)
      ILOG_DEBUG("### Total size: %d bytes ###", total_size);
  
      MeshtasticView::init(client);
@@ -348,7 +307,7 @@ index 76e68ad..930ba12 100644
      FileLoader::init(&fileSystem);
      if (!FileLoader::loadBootImage(objects.boot_logo))
          lv_image_set_src(objects.boot_logo, &img_meshtastic_boot_logo_image);
-@@ -186,6 +253,7 @@ void TFTView_320x240::init(IClientBase *client)
+@@ -265,6 +330,7 @@ void TFTView_320x240::init(IClientBase *client)
      time(&lastrun10);
      time(&lastrun5);
      time(&lastrun1);
@@ -356,7 +315,7 @@ index 76e68ad..930ba12 100644
  
      lv_obj_add_event_cb(objects.boot_logo_button, ui_event_LogoButton, LV_EVENT_ALL, NULL);
      lv_obj_add_event_cb(objects.blank_screen_button, ui_event_BlankScreenButton, LV_EVENT_ALL, NULL);
-@@ -201,15 +269,15 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
+@@ -280,15 +346,15 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
      if (uiconfig.version == 1) {
          ILOG_INFO("setupUIConfig version %d", uiconfig.version);
          db.uiConfig = uiconfig;
@@ -375,7 +334,7 @@ index 76e68ad..930ba12 100644
          controller->storeUIConfig(db.uiConfig);
      }
  
-@@ -223,10 +291,13 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
+@@ -302,10 +368,13 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
      }
  
      state = MeshtasticView::eSetupUIConfig;
@@ -390,23 +349,7 @@ index 76e68ad..930ba12 100644
  
      // set language
      setLanguage(db.uiConfig.language);
-@@ -302,7 +373,14 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
- 
-     // function callback for the map panel node symbol
-     drawObjectCB = [this](uint32_t id, uint16_t x, uint16_t y, uint8_t zoom) {
--        auto img = nodeObjects[id];
-+        auto nodeIt = nodeObjects.find(id);
-+        if (nodeIt == nodeObjects.end() || !nodeIt->second) {
-+            return;
-+        }
-+        auto img = nodeIt->second;
-+        if (!img->spec_attr || img->spec_attr->child_cnt == 0) {
-+            return;
-+        }
-         if (!x && !y && !zoom) {
-             lv_obj_add_flag(img, LV_OBJ_FLAG_HIDDEN);
-             return;
-@@ -342,8 +420,38 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
+@@ -427,8 +496,38 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
   */
  void TFTView_320x240::updateBootMessage(const char *msg)
  {
@@ -446,7 +389,7 @@ index 76e68ad..930ba12 100644
  }
  
  /**
-@@ -354,8 +462,11 @@ void TFTView_320x240::init_screens(void)
+@@ -439,8 +538,11 @@ void TFTView_320x240::init_screens(void)
  {
      ILOG_DEBUG("init screens...");
      state = MeshtasticView::eInitScreens;
@@ -458,7 +401,7 @@ index 76e68ad..930ba12 100644
  
      activeMsgContainer = objects.messages_container;
      // setup the two channel label panels with arrays that allow indexing
-@@ -370,6 +481,7 @@ void TFTView_320x240::init_screens(void)
+@@ -455,6 +557,7 @@ void TFTView_320x240::init_screens(void)
      ui_events_init();
  
      // load main screen
@@ -466,7 +409,7 @@ index 76e68ad..930ba12 100644
      lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 300, 0, false);
  
      // re-configuration based on capabilities
-@@ -456,15 +568,8 @@ void TFTView_320x240::init_screens(void)
+@@ -541,15 +644,8 @@ void TFTView_320x240::init_screens(void)
   */
  void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
  {
@@ -484,7 +427,7 @@ index 76e68ad..930ba12 100644
  
      if (activePanel) {
          lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
-@@ -598,6 +703,25 @@ void TFTView_320x240::apply_hotfix(void)
+@@ -683,6 +779,25 @@ void TFTView_320x240::apply_hotfix(void)
      lv_textarea_set_placeholder_text(objects.nodes_filter_name_area, _("!Enter Filter ..."));
      lv_textarea_set_placeholder_text(objects.nodes_hl_name_area, _("Enter Filter ..."));
  
@@ -510,7 +453,7 @@ index 76e68ad..930ba12 100644
      auto applyStyle = [](lv_obj_t *tab_buttons) {
          for (int i = 0; i < lv_obj_get_child_count(tab_buttons); i++) {
              if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
-@@ -682,6 +806,7 @@ void TFTView_320x240::updateTheme(void)
+@@ -767,6 +882,7 @@ void TFTView_320x240::updateTheme(void)
      lv_obj_set_style_bg_img_recolor_opa(objects.messages_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
      lv_obj_set_style_bg_img_recolor_opa(objects.map_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
      lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -518,7 +461,7 @@ index 76e68ad..930ba12 100644
  
      for (int i = 0; i < c_max_channels; i++) {
          if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
-@@ -723,7 +848,7 @@ void TFTView_320x240::ui_events_init(void)
+@@ -808,7 +924,7 @@ void TFTView_320x240::ui_events_init(void)
      lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_LONG_PRESSED, NULL);
      lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
      lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
@@ -527,7 +470,7 @@ index 76e68ad..930ba12 100644
      lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
      lv_obj_add_event_cb(objects.home_qr_button, this->ui_event_QrButton, LV_EVENT_CLICKED, NULL);
      lv_obj_add_event_cb(objects.home_cancel_qr_button, this->ui_event_CancelQrButton, LV_EVENT_CLICKED, NULL);
-@@ -784,6 +909,7 @@ void TFTView_320x240::ui_events_init(void)
+@@ -869,6 +985,7 @@ void TFTView_320x240::ui_events_init(void)
      lv_obj_add_event_cb(objects.basic_settings_backup_restore_button, ui_event_backup_button, LV_EVENT_CLICKED, NULL);
      lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_CLICKED, NULL);
      lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
@@ -535,7 +478,7 @@ index 76e68ad..930ba12 100644
  
      lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
      lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_ALL, NULL);
-@@ -1506,14 +1632,35 @@ void TFTView_320x240::ui_event_SDCardButton(lv_event_t *e)
+@@ -1612,14 +1729,35 @@ void TFTView_320x240::ui_event_SDCardButton(lv_event_t *e)
              return;
          }
          THIS->updateSDCard();
@@ -573,7 +516,7 @@ index 76e68ad..930ba12 100644
  void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
  {
      lv_event_code_t event_code = lv_event_get_code(e);
-@@ -1678,7 +1825,9 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
+@@ -1784,7 +1922,9 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
  void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
  {
      lv_event_code_t event_code = lv_event_get_code(e);
@@ -584,7 +527,7 @@ index 76e68ad..930ba12 100644
          char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
          uint32_t len = strlen(txt);
          if (len) {
-@@ -1958,14 +2107,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
+@@ -2065,14 +2205,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
          } else {
              lv_obj_remove_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
          }
@@ -600,7 +543,7 @@ index 76e68ad..930ba12 100644
          lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
          lv_group_focus_obj(objects.settings_alert_buzzer_switch);
          THIS->disablePanel(objects.controller_panel);
-@@ -2017,6 +2159,23 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
+@@ -2124,6 +2257,23 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
      }
  }
  
@@ -624,7 +567,7 @@ index 76e68ad..930ba12 100644
  void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
  {
      lv_event_code_t event_code = lv_event_get_code(e);
-@@ -2295,24 +2454,36 @@ void TFTView_320x240::ui_event_backup_restore_radio_button(lv_event_t *e)
+@@ -2402,24 +2552,36 @@ void TFTView_320x240::ui_event_backup_restore_radio_button(lv_event_t *e)
  
  void TFTView_320x240::ui_event_zoomSlider(lv_event_t *e)
  {
@@ -661,7 +604,7 @@ index 76e68ad..930ba12 100644
      bool gpsLocked = lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED);
      THIS->map->setLocked(gpsLocked);
      THIS->db.uiConfig.map_data.follow_gps = gpsLocked;
-@@ -2334,6 +2505,9 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
+@@ -2441,6 +2603,9 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
  
  void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
  {
@@ -671,7 +614,7 @@ index 76e68ad..930ba12 100644
      lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
                                   sizeof(THIS->db.uiConfig.map_data.style));
      MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
-@@ -2354,6 +2528,9 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
+@@ -2462,6 +2627,9 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
  
  void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
  {
@@ -681,7 +624,7 @@ index 76e68ad..930ba12 100644
      uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
      TileProvider::selectTemplate(urlId);
      MapTileSettings::setSaveOK(false);
-@@ -2366,7 +2543,11 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
+@@ -3115,7 +3283,11 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
      // navigate to node in node list
      uint32_t nodeNum = (unsigned long)e->user_data;
      ILOG_DEBUG("map node %08x", nodeNum);
@@ -694,7 +637,7 @@ index 76e68ad..930ba12 100644
      THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
      lv_obj_scroll_to_view(panel, LV_ANIM_ON);
      if (panel != currentPanel)
-@@ -2522,17 +2703,23 @@ void TFTView_320x240::loadMap(void)
+@@ -3271,17 +3443,23 @@ void TFTView_320x240::loadMap(void)
  #elif defined(HAS_SD_MMC)
          auto tileService = new SDCardService();
          map = new MapPanel(objects.raw_map_panel, tileService);
@@ -721,90 +664,16 @@ index 76e68ad..930ba12 100644
  #endif
          map->setHomeLocationImage(objects.home_location_image);
          lv_obj_add_flag(objects.home_location_image, LV_OBJ_FLAG_CLICKABLE);
-@@ -2565,7 +2752,10 @@ void TFTView_320x240::loadMap(void)
-             sortedLat.reserve(nodeObjects.size());
-             sortedLon.reserve(nodeObjects.size());
-             for (auto it : nodeObjects) {
--                lv_obj_t *p = nodes[it.first];
-+                auto nodeIt = nodes.find(it.first);
-+                if (nodeIt == nodes.end() || !nodeIt->second)
-+                    continue;
-+                lv_obj_t *p = nodeIt->second;
-                 int32_t lat = (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                 int32_t lon = (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
-                 if (lat && lon) {
-@@ -2573,28 +2763,37 @@ void TFTView_320x240::loadMap(void)
-                     sortedLon.push_back(lon);
-                 }
-             }
--            std::sort(sortedLat.begin(), sortedLat.end());
--            std::sort(sortedLon.begin(), sortedLon.end());
--            int64_t latcenter = 0;
--            int64_t loncenter = 0;
--            int32_t count = 0;
--            // select just the closest 60% of nodes, ignore the rest
--            int pp = 100 / 20;
--            for (int i = sortedLat.size() / pp; i < pp * sortedLat.size() / pp; i++) {
--                latcenter += sortedLat[i];
--                loncenter += sortedLon[i];
--                count++;
-+            if (sortedLat.empty() || sortedLon.empty()) {
-+                map->setZoom(3);
-+            } else {
-+                std::sort(sortedLat.begin(), sortedLat.end());
-+                std::sort(sortedLon.begin(), sortedLon.end());
-+                int64_t latcenter = 0;
-+                int64_t loncenter = 0;
-+                int32_t count = 0;
-+                // select just the closest 60% of nodes, ignore the rest
-+                int pp = 100 / 20;
-+                for (int i = sortedLat.size() / pp; i < pp * sortedLat.size() / pp; i++) {
-+                    latcenter += sortedLat[i];
-+                    loncenter += sortedLon[i];
-+                    count++;
-+                }
-+                if (count > 0) {
-+                    latcenter /= count;
-+                    loncenter /= count;
-+                    map->setHomeLocation(latcenter * 1e-7, loncenter * 1e-7);
-+
-+                    // calculate optimal zoom factor to fit in all nodes of this range
-+                    lv_obj_update_layout(objects.raw_map_panel);
-+                    float rangeDeg = 1e-7 * (sortedLon[(pp - 1) * sortedLon.size() / pp] - sortedLon[sortedLon.size() / pp]);
-+                    float distanceKm = abs(rangeDeg * 111.32 * cos(1e-7 * sortedLat[sortedLat.size() / 2]));
-+                    if (distanceKm > 0.01f) {
-+                        uint32_t zoom =
-+                            sqrt(156.543034f / distanceKm * abs(cos(1e-7 * sortedLat[sortedLat.size() / 2])) * 256) + 1;
-+                        map->setZoom(zoom);
-+                    }
-+                }
-             }
--            latcenter /= count;
--            loncenter /= count;
--            map->setHomeLocation(latcenter * 1e-7, loncenter * 1e-7);
--
--            // calculate optimal zoom factor to fit in all nodes of this range
--            lv_obj_update_layout(objects.raw_map_panel);
--            float rangeDeg = 1e-7 * (sortedLon[(pp - 1) * sortedLon.size() / pp] - sortedLon[sortedLon.size() / pp]);
--            float distanceKm = abs(rangeDeg * 111.32 * cos(1e-7 * sortedLat[sortedLat.size() / 2]));
--            uint32_t zoom = sqrt(156.543034f / distanceKm * abs(cos(1e-7 * sortedLat[sortedLat.size() / 2])) * 256) + 1;
--            map->setZoom(zoom);
-         } else {
-             // use default location @theBigBentern
-             map->setZoom(3);
-@@ -2608,7 +2807,10 @@ void TFTView_320x240::loadMap(void)
-         // finally add all node images to the map
-         if (!nodeObjects.empty()) {
-             for (auto it : nodeObjects) {
--                lv_obj_t *p = nodes[it.first];
-+                auto nodeIt = nodes.find(it.first);
-+                if (nodeIt == nodes.end() || !nodeIt->second)
-+                    continue;
-+                lv_obj_t *p = nodeIt->second;
-                 float lat = 1e-7 * (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
-                 float lon = 1e-7 * (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
-                 map->add(it.first, lat, lon, drawObjectCB);
-@@ -2619,6 +2821,26 @@ void TFTView_320x240::loadMap(void)
+@@ -3353,7 +3531,7 @@ void TFTView_320x240::loadMap(void)
+                 const float lonKm =
+                     std::max(0.05f, float(sortedLon.back() - sortedLon.front()) * 1e-7f * 111.32f * latCos);
+                 const float distanceKm = std::max(latKm, lonKm);
+-                const float panelPixels = std::max(64, lv_obj_get_width(objects.raw_map_panel) - 64);
++                const float panelPixels = std::max<int32_t>(64, lv_obj_get_width(objects.raw_map_panel) - 64);
+                 const float targetMpp = distanceKm * 1000.0f / panelPixels;
+                 uint8_t zoom = 20;
+                 while (zoom > 1 && (156543.034f * latCos / float(1UL << zoom)) < targetMpp)
+@@ -3390,6 +3568,26 @@ void TFTView_320x240::loadMap(void)
          updateLocationMap(map->getObjectsOnMap());
      }
  
@@ -831,7 +700,7 @@ index 76e68ad..930ba12 100644
      if (sdCard) {
          if (!sdCard->isUpdated()) {
              map->setNoTileImage(&img_no_tile_image);
-@@ -2667,12 +2889,17 @@ void TFTView_320x240::loadMap(void)
+@@ -3438,12 +3636,17 @@ void TFTView_320x240::loadMap(void)
                  MapTileSettings::setSaveOK(savedStyleOK); // allow SD save only for identical style
                  MapTileSettings::setPrefix("/maps");
              } else {
@@ -850,28 +719,7 @@ index 76e68ad..930ba12 100644
      }
  
      lv_obj_clear_flag(objects.map_panel, LV_OBJ_FLAG_HIDDEN);
-@@ -2691,6 +2918,12 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
- {
-     auto it = nodeObjects.find(nodeNum);
-     if (it == nodeObjects.end()) {
-+        auto nodeIt = nodes.find(nodeNum);
-+        if (nodeIt == nodes.end() || !nodeIt->second) {
-+            return;
-+        }
-+        lv_obj_t *p = nodeIt->second;
-+
-         uint32_t bgColor, fgColor;
-         std::tie(bgColor, fgColor) = nodeColor(nodeNum);
-         lv_obj_t *img = lv_image_create(objects.raw_map_panel);
-@@ -2715,7 +2948,6 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
-         lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-         lv_obj_set_style_align(lbl, LV_ALIGN_BOTTOM_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
- 
--        lv_obj_t *p = nodes[nodeNum];
-         lv_label_set_text_fmt(lbl, "%s", lv_label_get_text(p->LV_OBJ_IDX(node_lbs_idx)));
- 
-         // position label callback
-@@ -3712,6 +3944,10 @@ void TFTView_320x240::setBrightness(uint32_t brightness)
+@@ -4493,6 +4696,10 @@ void TFTView_320x240::setBrightness(uint32_t brightness)
   */
  void TFTView_320x240::setTheme(uint32_t value)
  {
@@ -882,7 +730,7 @@ index 76e68ad..930ba12 100644
      char buf1[30], buf2[30];
      lv_dropdown_set_selected(objects.settings_theme_dropdown, value);
      lv_dropdown_get_selected_str(objects.settings_theme_dropdown, buf1, sizeof(buf1));
-@@ -4114,7 +4350,22 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
+@@ -4898,7 +5105,22 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
          }
          case eAlertBuzzer: {
              meshtastic_ModuleConfig_ExternalNotificationConfig &config = THIS->db.module_config.external_notification;
@@ -906,7 +754,7 @@ index 76e68ad..930ba12 100644
  
              bool silent = false;
              bool alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
-@@ -4135,7 +4386,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
+@@ -4919,7 +5141,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
                  silent = true;
              }
  
@@ -915,7 +763,7 @@ index 76e68ad..930ba12 100644
              THIS->db.uiConfig.ring_tone_id = tone;
              THIS->db.silent = silent;
              THIS->db.uiConfig.alert_enabled = !silent;
-@@ -5697,6 +5948,135 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
+@@ -6535,6 +6757,135 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
          lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
  }
  
@@ -1051,7 +899,7 @@ index 76e68ad..930ba12 100644
  /**
   * @brief mark the sent message as either heard or acknowledged or failed
   *
-@@ -6301,10 +6681,55 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
+@@ -7163,10 +7514,55 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
      lv_label_set_text(objects.basic_settings_alert_label, buf);
  }
  
@@ -1107,7 +955,7 @@ index 76e68ad..930ba12 100644
      for (int i = 0; i < numRingtones; i++) {
          if (strncmp(ringtone[i].rtttl, rtttl, 16) == 0) {
              rtIndex = i;
-@@ -6316,6 +6741,17 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
+@@ -7178,6 +7574,17 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
      if (db.uiConfig.ring_tone_id == 0)
          db.uiConfig.ring_tone_id = 1;
  
@@ -1125,7 +973,7 @@ index 76e68ad..930ba12 100644
      // update home panel bell text
      setBellText(db.uiConfig.alert_enabled, !db.silent);
      bool off = !db.uiConfig.alert_enabled && db.silent;
-@@ -7201,6 +7637,8 @@ void TFTView_320x240::updateTime(void)
+@@ -8087,6 +8494,8 @@ void TFTView_320x240::updateTime(void)
  bool TFTView_320x240::updateSDCard(void)
  {
      formatSD = false;
@@ -1134,7 +982,7 @@ index 76e68ad..930ba12 100644
      if (sdCard) {
          delete sdCard;
          sdCard = nullptr;
-@@ -7237,6 +7675,10 @@ bool TFTView_320x240::updateSDCard(void)
+@@ -8124,6 +8533,10 @@ bool TFTView_320x240::updateSDCard(void)
          Themes::recolorButton(objects.home_sd_card_button, true);
          Themes::recolorText(objects.home_sd_card_label, true);
          cardDetected = true;
@@ -1145,7 +993,7 @@ index 76e68ad..930ba12 100644
      } else {
          ILOG_DEBUG("SdFsCard init failed");
          err = sdCard->errorType();
-@@ -7271,11 +7713,25 @@ bool TFTView_320x240::updateSDCard(void)
+@@ -8159,11 +8572,25 @@ bool TFTView_320x240::updateSDCard(void)
          }
          Themes::recolorButton(objects.home_sd_card_button, false);
          Themes::recolorText(objects.home_sd_card_label, false);
@@ -1171,7 +1019,7 @@ index 76e68ad..930ba12 100644
      }
      lv_label_set_text(objects.home_sd_card_label, buf);
  #else
-@@ -7291,8 +7747,28 @@ bool TFTView_320x240::updateSDCard(void)
+@@ -8179,8 +8606,28 @@ bool TFTView_320x240::updateSDCard(void)
      return cardDetected;
  }
  
@@ -1200,7 +1048,7 @@ index 76e68ad..930ba12 100644
      if (sdCard) {
          delete sdCard;
          sdCard = nullptr;
-@@ -7308,12 +7784,33 @@ void TFTView_320x240::formatSDCard(void)
+@@ -8196,12 +8643,33 @@ void TFTView_320x240::formatSDCard(void)
          updateSDCard();
      } else {
          lv_label_set_text(objects.home_sd_card_label, "SD format failed");
@@ -1234,7 +1082,7 @@ index 76e68ad..930ba12 100644
  void TFTView_320x240::updateFreeMem(void)
  {
      // only update if HomePanel is active (since this is some critical code that did crash sporadically)
-@@ -7359,6 +7856,7 @@ void TFTView_320x240::task_handler(void)
+@@ -8247,6 +8715,7 @@ void TFTView_320x240::task_handler(void)
              lastrun1 = curtime;
              actTime++;
              updateTime();
@@ -1242,7 +1090,7 @@ index 76e68ad..930ba12 100644
  
              if (curtime - lastrun5 >= 5) { // call every 5s
                  lastrun5 = curtime;
-@@ -7382,6 +7880,9 @@ void TFTView_320x240::task_handler(void)
+@@ -8270,6 +8739,9 @@ void TFTView_320x240::task_handler(void)
              if (curtime - lastrun10 >= 10) { // call every 10s
                  lastrun10 = curtime;
                  updateFreeMem();
@@ -1252,10 +1100,10 @@ index 76e68ad..930ba12 100644
  
                  if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
                      controller->requestDeviceConnectionStatus();
-diff --git before/meshtastic-device-ui/source/graphics/TFT/Themes.cpp after/meshtastic-device-ui/source/graphics/TFT/Themes.cpp
+diff --git a/source/graphics/TFT/Themes.cpp b/source/graphics/TFT/Themes.cpp
 index b8a8f72..f0e00c7 100644
---- before/meshtastic-device-ui/source/graphics/TFT/Themes.cpp
-+++ after/meshtastic-device-ui/source/graphics/TFT/Themes.cpp
+--- a/source/graphics/TFT/Themes.cpp
++++ b/source/graphics/TFT/Themes.cpp
 @@ -5,6 +5,11 @@
  
  static enum Themes::Theme theme = Themes::eDark;
@@ -1311,22 +1159,21 @@ index b8a8f72..f0e00c7 100644
 -#endif // VIEW_320x240
 \ No newline at end of file
 +#endif // VIEW_320x240
-diff --git before/meshtastic-device-ui/source/graphics/common/SdCard.cpp after/meshtastic-device-ui/source/graphics/common/SdCard.cpp
-index fab1456..0494894 100644
---- before/meshtastic-device-ui/source/graphics/common/SdCard.cpp
-+++ after/meshtastic-device-ui/source/graphics/common/SdCard.cpp
-@@ -1,5 +1,8 @@
- #include "graphics/common/SdCard.h"
+diff --git a/source/graphics/common/SdCard.cpp b/source/graphics/common/SdCard.cpp
+index 429652b..cf1333a 100644
+--- a/source/graphics/common/SdCard.cpp
++++ b/source/graphics/common/SdCard.cpp
+@@ -3,6 +3,7 @@
  #include "util/ILog.h"
-+#include <algorithm>
+ #include "sdkconfig.h"
+ #include <algorithm>
 +#include <cctype>
-+#include <cstring>
+ #include <cstring>
+ #include <cstdio>
  
- #ifndef SD_SPI_FREQUENCY
- #define SD_SPI_FREQUENCY 50000000
-@@ -24,6 +27,65 @@ using File = FsFile;
- 
- ISdCard *sdCard = nullptr;
+@@ -155,6 +156,65 @@ bool zDeckWriteSdVolumeLabel(const char *)
+ }
+ #endif
  
 +static const char *storageFolders[] = {"/maps", "/ringtones", "/messages", "/backups", "/logs"};
 +
@@ -1387,10 +1234,10 @@ index fab1456..0494894 100644
 +    return {};
 +}
 +
- #if defined(ARCH_PORTDUINO)
- 
- bool SDCard::init(void)
-@@ -133,6 +195,63 @@ SDCard::~SDCard(void)
+ #if defined(ZDECK_USB_SD_MSC_ENABLED) && ZDECK_USB_SD_MSC_ENABLED == 1 && defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO) &&                    \
+     defined(ARDUINO_ARCH_ESP32) && CONFIG_TINYUSB_MSC_ENABLED
+ #include "USBMSC.h"
+@@ -397,6 +457,63 @@ SDCard::~SDCard(void)
  #endif
  
  #if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
@@ -1454,7 +1301,7 @@ index fab1456..0494894 100644
  std::set<std::string> SDCard::loadMapStyles(const char *folder)
  {
      std::set<std::string> styles;
-@@ -276,6 +395,65 @@ bool SdFsCard::format(void)
+@@ -546,6 +663,65 @@ bool SdFsCard::format(void)
      return SDFs.format();
  }
  
@@ -1520,203 +1367,33 @@ index fab1456..0494894 100644
  std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
  {
      std::set<std::string> styles;
-diff --git after/meshtastic-device-ui/source/graphics/map/LittleFSService.cpp after/meshtastic-device-ui/source/graphics/map/LittleFSService.cpp
-new file mode 100644
-index 0000000..331b640
---- /dev/null
-+++ after/meshtastic-device-ui/source/graphics/map/LittleFSService.cpp
-@@ -0,0 +1,93 @@
-+#include "graphics/map/LittleFSService.h"
-+#include "FSCommon.h"
-+#include "graphics/map/MapTileSettings.h"
-+#include "lvgl.h"
-+#include "util/ILog.h"
-+
-+#ifdef ARCH_ESP32
-+extern "C" {
-+bool decodeImgGrey(const void *data, size_t size, lv_img_dsc_t **img);
-+bool decodeImgColor(const void *data, size_t size, lv_img_dsc_t **img);
-+}
-+#endif
-+
-+LittleFSService::LittleFSService() : ITileService("LFS:") {}
-+
-+LittleFSService::~LittleFSService() {}
-+
-+const char *LittleFSService::defaultUrl()
-+{
-+    return "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
-+}
-+
-+bool LittleFSService::hasStyle(const char *style)
-+{
-+#ifdef FSCom
-+    char path[64];
-+    snprintf(path, sizeof(path), "/maps/%s", style);
-+    if (FSCom.exists(path)) {
-+        return true;
-+    }
-+    snprintf(path, sizeof(path), "/maps/%s/.url", style);
-+    return FSCom.exists(path);
-+#else
-+    return false;
-+#endif
-+}
-+
-+bool LittleFSService::load(const char *name, void *img)
-+{
-+#if defined(FSCom) && defined(ARCH_ESP32)
-+    File file = FSCom.open(name, FILE_O_READ);
-+    if (!file) {
-+        return false;
-+    }
-+
-+    const size_t len = file.size();
-+    if (len == 0 || len > 512 * 1024) {
-+        file.close();
-+        ILOG_WARN("LittleFS tile rejected: %s (%u bytes)", name, (unsigned int)len);
-+        return false;
-+    }
-+
-+    uint8_t *pngImage = (uint8_t *)lv_malloc(len);
-+    if (!pngImage) {
-+        file.close();
-+        ILOG_ERROR("lv_malloc failed for LittleFS tile %s (%u bytes)", name, (unsigned int)len);
-+        return false;
-+    }
-+
-+    const size_t bytesRead = file.read(pngImage, len);
-+    file.close();
-+    if (bytesRead != len) {
-+        lv_free(pngImage);
-+        ILOG_ERROR("LittleFS tile read error %s: %u != %u", name, (unsigned int)bytesRead, (unsigned int)len);
-+        return false;
-+    }
-+
-+    lv_img_dsc_t *img_dsc = nullptr;
-+    const bool decoded = MapTileSettings::color() ? decodeImgColor(pngImage, len, &img_dsc) : decodeImgGrey(pngImage, len, &img_dsc);
-+    lv_free(pngImage);
-+
-+    if (!decoded || !img_dsc) {
-+        ILOG_ERROR("Failed to decode LittleFS tile %s", name);
-+        return false;
-+    }
-+
-+    lv_obj_t *img_obj = (lv_obj_t *)img;
-+    lv_image_set_src(img_obj, img_dsc);
-+    if (lv_image_get_src(img_obj) != img_dsc) {
-+        ILOG_ERROR("lv_image_set_src failed for LittleFS tile %s", name);
-+        if (img_dsc->data && img_dsc->data_size > 0) {
-+            lv_free((void *)img_dsc->data);
-+        }
-+        lv_free(img_dsc);
-+        return false;
-+    }
-+
-+    ILOG_DEBUG("LittleFS tile loaded: %s", name);
-+    return true;
-+#else
-+    return false;
-+#endif
-+}
-diff --git before/meshtastic-device-ui/source/graphics/map/MapPanel.cpp after/meshtastic-device-ui/source/graphics/map/MapPanel.cpp
-index 1c5c973..fed9085 100644
---- before/meshtastic-device-ui/source/graphics/map/MapPanel.cpp
-+++ after/meshtastic-device-ui/source/graphics/map/MapPanel.cpp
-@@ -215,14 +215,26 @@ void MapPanel::center(void)
- {
-     updateDimensions();
-     int16_t size = MapTileSettings::getTileSize();
-+    if (size <= 0) {
-+        size = 256;
-+    }
-+    if (widthPixel <= 0) {
-+        widthPixel = 320;
-+    }
-+    if (heightPixel <= 0) {
-+        heightPixel = 240;
-+    }
-+
-     int16_t xpos = widthPixel / 2 - scrolled.xPos;
-     int16_t ypos = heightPixel / 2 - scrolled.yPos;
-     xOffset = xpos % size - size;
-     yOffset = ypos % size - size;
-     tilesX = (widthPixel - xOffset + size - 2) / size;
-     tilesY = (heightPixel - yOffset + size - 2) / size;
--    xStart = scrolled.xTile - (xpos / size + 1);
--    yStart = scrolled.yTile - (ypos / size + 1);
-+    int32_t startX = static_cast<int32_t>(scrolled.xTile) - (xpos / size + 1);
-+    int32_t startY = static_cast<int32_t>(scrolled.yTile) - (ypos / size + 1);
-+    xStart = startX > 0 ? startX : 0;
-+    yStart = startY > 0 ? startY : 0;
-     needsRedraw = true;
- }
- 
-@@ -492,9 +504,11 @@ void MapPanel::add(uint32_t id, float lat, float lon, DrawCallback drawCB)
- void MapPanel::update(uint32_t id, float lat, float lon)
- {
-     auto it = mapObjects.find(id);
--    if (it != mapObjects.end()) {
--        it->second->point = GeoPoint(lat, lon, MapTileSettings::getZoomLevel());
-+    if (it == mapObjects.end()) {
-+        return;
-     }
-+
-+    it->second->point = GeoPoint(lat, lon, MapTileSettings::getZoomLevel());
-     drawObject(*it->second);
- }
- 
-@@ -573,4 +587,4 @@ void MapPanel::printTiles(void)
+diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
+index 435f4f9..35c638f 100644
+--- a/source/graphics/map/MapPanel.cpp
++++ b/source/graphics/map/MapPanel.cpp
+@@ -603,4 +603,4 @@ void MapPanel::printTiles(void)
      }
      ILOG_DEBUG("tiles: %d\n%s", tiles.size(), ss.str().c_str());
  }
 -#endif
 \ No newline at end of file
 +#endif
-diff --git before/meshtastic-device-ui/source/graphics/map/SDCardService.cpp after/meshtastic-device-ui/source/graphics/map/SDCardService.cpp
-index fa3451a..b52354e 100644
---- before/meshtastic-device-ui/source/graphics/map/SDCardService.cpp
-+++ after/meshtastic-device-ui/source/graphics/map/SDCardService.cpp
-@@ -45,6 +45,11 @@ SDCardService::~SDCardService()
- 
- bool SDCardService::load(const char *name, void *img)
- {
-+    if (!SD.exists(name)) {
-+        ILOG_DEBUG("Tile %s not found on SD", name);
-+        return false;
-+    }
-+
-     char buf[128] = DRIVE_LETTER ":";
-     strcat(&buf[2], name);
-     ILOG_DEBUG("SDCardService::load(): %s", buf);
-diff --git before/meshtastic-device-ui/source/graphics/map/SdFatService.cpp after/meshtastic-device-ui/source/graphics/map/SdFatService.cpp
-index 4a7d1ca..e1b2dd4 100644
---- before/meshtastic-device-ui/source/graphics/map/SdFatService.cpp
-+++ after/meshtastic-device-ui/source/graphics/map/SdFatService.cpp
-@@ -37,6 +37,11 @@ SdFatService::~SdFatService()
- 
- bool SdFatService::load(const char *name, void *img)
- {
-+    if (!SDFs.exists(name)) {
-+        ILOG_DEBUG("Tile %s not found on SD", name);
-+        return false;
-+    }
-+
-     char buf[128] = DRIVE_LETTER ":";
-     strcat(&buf[2], name);
-     // ILOG_DEBUG("SdFatService::load(): %s", buf);
-@@ -146,4 +151,4 @@ lv_fs_res_t SdFatService::fs_dir_close(lv_fs_drv_t *drv, void *rddir_p)
+diff --git a/source/graphics/map/SdFatService.cpp b/source/graphics/map/SdFatService.cpp
+index c116add..5f27439 100644
+--- a/source/graphics/map/SdFatService.cpp
++++ b/source/graphics/map/SdFatService.cpp
+@@ -146,4 +146,4 @@ lv_fs_res_t SdFatService::fs_dir_close(lv_fs_drv_t *drv, void *rddir_p)
      return LV_FS_RES_NOT_IMP; // TODO
  }
  
 -#endif
 \ No newline at end of file
 +#endif
-diff --git before/meshtastic-device-ui/source/graphics/map/URLService.cpp after/meshtastic-device-ui/source/graphics/map/URLService.cpp
-index 0ca96af..482afc1 100644
---- before/meshtastic-device-ui/source/graphics/map/URLService.cpp
-+++ after/meshtastic-device-ui/source/graphics/map/URLService.cpp
-@@ -5,6 +5,7 @@
+diff --git a/source/graphics/map/URLService.cpp b/source/graphics/map/URLService.cpp
+index fd2597d..f72abde 100644
+--- a/source/graphics/map/URLService.cpp
++++ b/source/graphics/map/URLService.cpp
+@@ -6,6 +6,7 @@
  #include "util/ILog.h"
  
  #ifdef ARDUINO_ARCH_ESP32
@@ -1724,30 +1401,3 @@ index 0ca96af..482afc1 100644
  
  // from ConvertPNG.c
  extern "C" {
-@@ -18,6 +19,11 @@ URLService::~URLService() {}
- 
- bool URLService::load(const char *name, void *img)
- {
-+    if (WiFi.status() != WL_CONNECTED) {
-+        ILOG_WARN("Map tile online fallback skipped: Wi-Fi is not connected");
-+        return false;
-+    }
-+
-     struct HttpEndGuard {
-         decltype(http) &client;
-         ~HttpEndGuard() { client.end(); }
-@@ -31,6 +37,7 @@ bool URLService::load(const char *name, void *img)
-     // transform filename to provider url
-     std::string url = TileProvider::url(name);
-     http.begin(url.c_str());
-+    http.setTimeout(2500);
-     int httpCode = http.GET();
-     if (httpCode != HTTP_CODE_OK) {
-         ILOG_ERROR("ERROR GET %s : %d", url.c_str(), httpCode);
-@@ -86,4 +93,4 @@ bool URLService::load(const char *name, void *img)
-     return true;
- }
- 
--#endif
-\ No newline at end of file
-+#endif

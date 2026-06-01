@@ -1,0 +1,9 @@
+*.bin binary
+*.elf binary
+*.map text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.patch text eol=lf

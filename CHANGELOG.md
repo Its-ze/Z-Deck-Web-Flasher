@@ -1,11 +1,14 @@
-﻿# Changelog
+# Changelog
 
-## Optional SD Popups Build - 2026-06-01
+## Z-Deck 0.2.4-public - 2026-06-01
 
-- Added optional public build artifacts in `firmware/zdeck-2.8.0-sdpopups-20260601/`.
-- Added matching optional Web Serial manifest: `manifest-sdpopups-20260601.json`.
-- Added source patch backup in `source/patches/2026-06-01-tdeck-sd-popups/`.
-- Default public flasher manifest remains on `Z-Deck 0.2.3-public`.
+Normal naming refresh for the public flasher package.
+
+- Rebuilt bundled firmware from `20260601-zdeck5-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck5` and pack label to `0.2.4-public`.
+- Restored the previous Z-Deck public stack: classic UI, LongFast-only defaults, serial recovery, disabled USB mass storage, SD tools, map/status/delivery improvements, SD history, and I2S ringtone playback fixes.
+- Added USB/SD notice popup controls, SD setup prompt with ignore/format choices, boot progress bar, SD ringtone folder support, and SD-backed message history.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
 
 ## Z-Deck 0.2.3-public - 2026-06-01
 
@@ -51,4 +54,3 @@ Firmware customization highlights:
 - Tools screen-correction sequence.
 - Forced physical USB serial API access for recovery.
 - SD-card message journal at `/itsz/history/messages.jsonl`.
-
