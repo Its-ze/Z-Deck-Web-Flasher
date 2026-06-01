@@ -1,0 +1,62 @@
+name: Verify Firmware Checksums
+
+on:
+  push:
+      paths:
+            - 'firmware/**'
+                  - 'SHA256SUMS.json'
+                    pull_request:
+                        paths:
+                              - 'firmware/**'
+                                    - 'SHA256SUMS.json'
+                                      workflow_dispatch:
+
+                                      jobs:
+                                        verify:
+                                            runs-on: ubuntu-latest
+                                                name: Verify SHA256 checksums
+                                                    steps:
+                                                          - name: Checkout repository
+                                                                  uses: actions/checkout@v4
+
+                                                                        - name: Verify checksums against SHA256SUMS.json
+                                                                                run: |
+                                                                                          echo "Reading SHA256SUMS.json..."
+                                                                                                    FAILED=0
+                                                                                                              COUNT=0
+                                                                                                              
+                                                                                                                        # Parse each entry in SHA256SUMS.json and verify
+                                                                                                                                  while IFS= read -r line; do
+                                                                                                                                              # Extract filename and expected hash from JSON
+                                                                                                                                                          FILE=$(echo "$line" | python3 -c "import sys,json; d=json.loads(sys.stdin.read()); [print(k) for k in d]" 2>/dev/null) || true
+                                                                                                                                                                    done < /dev/null
+                                                                                                                                                                    
+                                                                                                                                                                              python3 - <<'EOF'
+                                                                                                                                                                                        import json, hashlib, sys, os
+                                                                                                                                                                                        
+                                                                                                                                                                                                  with open("SHA256SUMS.json") as f:
+                                                                                                                                                                                                              checksums = json.load(f)
+                                                                                                                                                                                                              
+                                                                                                                                                                                                                        failed = 0
+                                                                                                                                                                                                                                  passed = 0
+                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                            for filename, expected_hash in checksums.items():
+                                                                                                                                                                                                                                                        if not os.path.exists(filename):
+                                                                                                                                                                                                                                                                      print(f"MISSING: {filename}")
+                                                                                                                                                                                                                                                                                    failed += 1
+                                                                                                                                                                                                                                                                                                  continue
+                                                                                                                                                                                                                                                                                                              with open(filename, "rb") as f:
+                                                                                                                                                                                                                                                                                                                            actual_hash = hashlib.sha256(f.read()).hexdigest()
+                                                                                                                                                                                                                                                                                                                                        if actual_hash.lower() == expected_hash.lower():
+                                                                                                                                                                                                                                                                                                                                                      print(f"OK:      {filename}")
+                                                                                                                                                                                                                                                                                                                                                                    passed += 1
+                                                                                                                                                                                                                                                                                                                                                                                else:
+                                                                                                                                                                                                                                                                                                                                                                                              print(f"FAIL:    {filename}")
+                                                                                                                                                                                                                                                                                                                                                                                                            print(f"  expected: {expected_hash}")
+                                                                                                                                                                                                                                                                                                                                                                                                                          print(f"  actual:   {actual_hash}")
+                                                                                                                                                                                                                                                                                                                                                                                                                                        failed += 1
+                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  print(f"\n{passed} passed, {failed} failed")
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            if failed > 0:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        sys.exit(1)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  EOF
