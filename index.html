@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Z-Deck Firmware Pack Public</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260531-tdeck-vector">
+  <link rel="stylesheet" href="style.css?v=20260531-low-poly">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
 </head>
 <body>
@@ -18,7 +18,40 @@
           <em>0.2.1 PUBLIC</em>
         </div>
         <div class="usb-scene" aria-hidden="true">
-          <svg class="deck-vector deck-vector-photo" viewBox="0 0 360 620" xmlns="http://www.w3.org/2000/svg">
+          <svg class="deck-vector deck-vector-lowpoly" viewBox="0 0 360 520" xmlns="http://www.w3.org/2000/svg">
+            <polygon class="lp-shadow" points="75,492 285,492 320,510 40,510"/>
+            <g class="lp-device">
+              <polygon class="lp-case" points="86,18 274,18 318,58 318,455 284,498 76,498 42,455 42,58"/>
+              <polygon class="lp-rim" points="93,33 267,33 301,66 301,447 275,482 85,482 59,447 59,66"/>
+              <polygon class="lp-facet a" points="42,58 86,18 93,33 59,66"/>
+              <polygon class="lp-facet b" points="274,18 318,58 301,66 267,33"/>
+              <polygon class="lp-facet c" points="59,447 85,482 76,498 42,455"/>
+              <polygon class="lp-facet d" points="301,447 284,498 275,482"/>
+              <rect class="lp-speaker" x="139" y="44" width="82" height="5"/>
+              <text class="lp-logo top" x="180" y="70">LILYGO</text>
+
+              <polygon class="lp-screen-frame" points="73,91 287,91 298,102 298,214 287,226 73,226 62,214 62,102"/>
+              <rect class="lp-screen" x="78" y="108" width="204" height="94"/>
+              <text class="lp-screen-title" x="91" y="133">Z-DECK</text>
+              <text class="lp-screen-small" x="91" y="154">LONGFAST PUBLIC</text>
+              <polyline class="lp-screen-line" points="91,178 130,160 164,173 204,145 253,166"/>
+
+              <polygon class="lp-rail" points="65,252 295,252 309,267 295,302 65,302 51,267"/>
+              <polygon class="lp-chevrons left" points="78,266 111,266 95,282 111,296 78,296 94,282"/>
+              <polygon class="lp-chevrons left2" points="118,266 151,266 135,282 151,296 118,296 134,282"/>
+              <polygon class="lp-chevrons right" points="282,266 249,266 265,282 249,296 282,296 266,282"/>
+              <polygon class="lp-chevrons right2" points="242,266 209,266 225,282 209,296 242,296 226,282"/>
+              <circle class="lp-track-ring" cx="180" cy="282" r="24"/>
+              <circle class="lp-track" cx="180" cy="282" r="15"/>
+
+              <polygon class="lp-key-row" points="72,334 288,334 297,357 63,357"/>
+              <polygon class="lp-key-row two" points="82,372 278,372 286,395 74,395"/>
+              <polygon class="lp-key-row three" points="97,410 263,410 270,433 90,433"/>
+              <rect class="lp-space" x="119" y="448" width="122" height="22"/>
+              <text class="lp-logo bottom" x="180" y="489">LILYGO</text>
+            </g>
+          </svg>
+          <svg class="deck-vector deck-vector-photo legacy-vector" viewBox="0 0 360 620" xmlns="http://www.w3.org/2000/svg" hidden>
             <defs>
               <linearGradient id="caseGrad" x1="46" x2="316" y1="18" y2="610" gradientUnits="userSpaceOnUse">
                 <stop offset="0" stop-color="#2d3433"/>
@@ -71,18 +104,20 @@
 
               <rect class="screen-frame portrait-screen-frame" x="42" y="78" width="276" height="170" rx="9"/>
               <rect class="screen-glass portrait-screen" x="53" y="88" width="254" height="150" rx="4"/>
-              <rect class="screen-grid-fill" x="53" y="88" width="254" height="150" rx="4" fill="url(#screenGrid)"/>
-              <path class="screen-circuit" d="M60 224 104 170l35 27 40-66 38 48 78-73M66 105h226M66 123h84M160 123h68M239 123h49M72 215h58M141 215h82M236 215h52"/>
-              <circle class="screen-avatar" cx="72" cy="108" r="10"/>
-              <text class="screen-title" x="88" y="111">Z-DECK ONLINE</text>
-              <text class="screen-small" x="68" y="145">LongFast</text>
-              <text class="screen-small" x="68" y="163">USB SD READY</text>
-              <text class="screen-small" x="68" y="181">12 SATS</text>
-              <rect class="screen-pill" x="178" y="136" width="104" height="22" rx="5"/>
-              <rect class="screen-pill dim" x="178" y="166" width="104" height="22" rx="5"/>
-              <text class="screen-label" x="190" y="151">MESH RX</text>
-              <text class="screen-label" x="190" y="181">MAP CACHE</text>
-              <path class="screen-chart" d="M67 202c22-17 37-13 51-3s28 4 44-16 38-27 62-1 37 21 61 2"/>
+              <rect class="screen-grid-fill" x="53" y="88" width="254" height="150" rx="4"/>
+              <rect class="screen-status-bar" x="62" y="98" width="236" height="18" rx="2"/>
+              <text class="screen-title" x="70" y="112">Z-DECK FLASHER</text>
+              <text class="screen-small" x="260" y="112">0.2.1</text>
+              <rect class="screen-card" x="67" y="127" width="226" height="40" rx="3"/>
+              <text class="screen-card-title" x="78" y="143">LONGFAST PUBLIC</text>
+              <text class="screen-small" x="78" y="158">ESP32-S3  |  T-DECK-TFT</text>
+              <rect class="screen-button" x="67" y="181" width="63" height="23" rx="3"/>
+              <rect class="screen-button" x="143" y="181" width="63" height="23" rx="3"/>
+              <rect class="screen-button" x="220" y="181" width="63" height="23" rx="3"/>
+              <text class="screen-label" x="82" y="196">FLASH</text>
+              <text class="screen-label" x="158" y="196">MAPS</text>
+              <text class="screen-label" x="232" y="196">TOOLS</text>
+              <path class="screen-grid-lines" d="M67 219h216M67 226h216M67 233h216M104 214v22M180 214v22M256 214v22"/>
 
               <rect class="bezel-shelf" x="36" y="257" width="288" height="66" rx="6"/>
               <path class="chevrons left" d="M66 279h31l-17 18 17 18H66l17-18Zm33 0h31l-17 18 17 18H99l17-18Zm33 0h31l-17 18 17 18h-31l17-18Z"/>

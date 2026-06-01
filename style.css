@@ -114,22 +114,151 @@ body::before {
   place-items: center;
   padding: 18px;
   background:
-    radial-gradient(circle at 70% 22%, rgba(95, 215, 255, 0.11), transparent 26%),
     linear-gradient(transparent 93%, rgba(82, 255, 154, 0.1) 93%),
     linear-gradient(90deg, rgba(82, 255, 154, 0.045) 1px, transparent 1px);
-  background-size: auto, 100% 8px, 48px 100%;
+  background-size: 100% 8px, 48px 100%;
 }
 
 .deck-vector {
   width: min(100%, 650px);
   height: auto;
   display: block;
-  filter: drop-shadow(0 24px 34px rgba(0, 0, 0, 0.42));
+  filter: drop-shadow(0 16px 0 rgba(0, 0, 0, 0.22));
 }
 
 .deck-vector-photo {
   width: min(100%, 290px);
   max-height: 490px;
+}
+
+.legacy-vector {
+  display: none;
+}
+
+.deck-vector-lowpoly {
+  width: min(100%, 260px);
+  max-height: 460px;
+  filter: drop-shadow(0 18px 0 rgba(0, 0, 0, 0.28));
+  shape-rendering: geometricPrecision;
+}
+
+.lp-shadow {
+  fill: rgba(0, 0, 0, 0.28);
+}
+
+.lp-case {
+  fill: #090d0c;
+  stroke: #d7dfd9;
+  stroke-width: 2.5;
+}
+
+.lp-rim {
+  fill: #121918;
+  stroke: #6f7c76;
+  stroke-width: 2;
+}
+
+.lp-facet {
+  fill: #1f2b28;
+}
+
+.lp-facet.b,
+.lp-facet.c {
+  fill: #050807;
+}
+
+.lp-facet.d {
+  fill: #26342f;
+}
+
+.lp-speaker,
+.lp-space {
+  fill: #050706;
+  stroke: #52615a;
+  stroke-width: 1;
+}
+
+.lp-logo {
+  fill: #dbe7df;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-anchor: middle;
+}
+
+.lp-logo.bottom {
+  font-size: 11px;
+}
+
+.lp-screen-frame {
+  fill: #040706;
+  stroke: #8b9992;
+  stroke-width: 2;
+}
+
+.lp-screen {
+  fill: #07110e;
+  stroke: var(--green);
+  stroke-width: 1.8;
+}
+
+.lp-screen-title,
+.lp-screen-small {
+  fill: var(--green);
+  font-family: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.lp-screen-title {
+  font-size: 20px;
+}
+
+.lp-screen-small {
+  font-size: 9px;
+}
+
+.lp-screen-line {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.lp-rail {
+  fill: #0b100f;
+  stroke: #9aa39e;
+  stroke-width: 2;
+}
+
+.lp-chevrons {
+  fill: #e7eee8;
+}
+
+.lp-track-ring {
+  fill: #060807;
+  stroke: #e3ebe5;
+  stroke-width: 3;
+}
+
+.lp-track {
+  fill: #bcc8c1;
+  stroke: #111817;
+  stroke-width: 2;
+}
+
+.lp-key-row {
+  fill: #151b1a;
+  stroke: #77837d;
+  stroke-width: 1.4;
+}
+
+.lp-key-row.two {
+  fill: #111716;
+}
+
+.lp-key-row.three {
+  fill: #0e1312;
 }
 
 .vector-horizon {
@@ -189,7 +318,7 @@ body::before {
 }
 
 .portrait-shadow {
-  fill: rgba(0, 0, 0, 0.46);
+  fill: rgba(0, 0, 0, 0.32);
 }
 
 .side-button {
@@ -199,26 +328,26 @@ body::before {
 }
 
 .deck-case {
-  fill: url("#caseGrad");
-  stroke: #50635d;
-  stroke-width: 3;
+  fill: #0d1110;
+  stroke: #6b7873;
+  stroke-width: 2;
 }
 
 .portrait-case {
-  stroke: #101514;
-  stroke-width: 5;
+  stroke: #020403;
+  stroke-width: 4;
 }
 
 .portrait-rim {
   fill: none;
-  stroke: url("#rimGrad");
-  stroke-width: 4;
+  stroke: #9aa49f;
+  stroke-width: 2.5;
 }
 
 .top-speaker,
 .bottom-strip {
-  fill: #111817;
-  stroke: rgba(255, 255, 255, 0.22);
+  fill: #070a09;
+  stroke: #58635f;
   stroke-width: 1;
 }
 
@@ -270,28 +399,34 @@ body::before {
 }
 
 .screen-frame {
-  fill: #070d0b;
-  stroke: #3c504b;
+  fill: #030605;
+  stroke: #75817b;
   stroke-width: 2;
 }
 
 .portrait-screen-frame {
-  fill: #060908;
-  stroke: rgba(255, 255, 255, 0.18);
+  fill: #060807;
+  stroke: #161f1c;
   stroke-width: 3;
 }
 
 .screen-glass,
 .deck-screen-panel {
-  fill: url("#screenGrad");
+  fill: #09110f;
   stroke: var(--green);
   stroke-width: 2.4;
-  filter: url("#greenGlow");
+  filter: none;
 }
 
 .portrait-screen {
-  stroke: rgba(95, 215, 255, 0.68);
-  stroke-width: 2;
+  stroke: #95a39b;
+  stroke-width: 1.5;
+}
+
+.screen-grid-fill {
+  fill: rgba(82, 255, 154, 0.035);
+  stroke: rgba(82, 255, 154, 0.24);
+  stroke-width: 1;
 }
 
 .screen-chart,
@@ -318,6 +453,31 @@ body::before {
   stroke-linejoin: round;
 }
 
+.screen-status-bar {
+  fill: #16211e;
+  stroke: rgba(82, 255, 154, 0.42);
+  stroke-width: 1;
+}
+
+.screen-card {
+  fill: #101917;
+  stroke: rgba(82, 255, 154, 0.58);
+  stroke-width: 1.2;
+}
+
+.screen-button {
+  fill: #1a2723;
+  stroke: rgba(82, 255, 154, 0.66);
+  stroke-width: 1.2;
+}
+
+.screen-grid-lines {
+  fill: none;
+  stroke: rgba(82, 255, 154, 0.25);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
 .screen-dot,
 .status-stack circle {
   fill: var(--green);
@@ -328,7 +488,7 @@ body::before {
   fill: var(--amber);
   stroke: var(--green);
   stroke-width: 1.5;
-  filter: url("#greenGlow");
+  filter: none;
 }
 
 .screen-bar {
@@ -349,7 +509,15 @@ body::before {
 }
 
 .screen-title {
-  font-size: 18px;
+  font-size: 14px;
+}
+
+.screen-card-title {
+  fill: var(--green);
+  font-family: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .screen-small {
@@ -371,7 +539,7 @@ body::before {
 .screen-label {
   fill: var(--text);
   font-family: "IBM Plex Mono", Consolas, "Courier New", monospace;
-  font-size: 8px;
+  font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -384,13 +552,13 @@ body::before {
 }
 
 .bezel-shelf {
-  fill: #111716;
-  stroke: #3b4542;
+  fill: #0a0e0d;
+  stroke: #747f7a;
   stroke-width: 2;
 }
 
 .chevrons {
-  fill: rgba(232, 238, 231, 0.88);
+  fill: #d8ded8;
 }
 
 .circuit-left,
@@ -409,15 +577,15 @@ body::before {
 }
 
 .trackball-vector {
-  fill: url("#trackballGrad");
-  stroke: #cfdad3;
-  stroke-width: 3;
+  fill: #c7d0ca;
+  stroke: #111817;
+  stroke-width: 2;
 }
 
 .trackball-ring {
-  fill: rgba(8, 12, 11, 0.9);
-  stroke: rgba(217, 232, 224, 0.68);
-  stroke-width: 3;
+  fill: #060807;
+  stroke: #d0d8d2;
+  stroke-width: 2;
 }
 
 .trackball-glint {
@@ -425,9 +593,9 @@ body::before {
 }
 
 .key-grid rect {
-  fill: url("#keyGrad");
-  stroke: #64716d;
-  stroke-width: 1.3;
+  fill: #161b1a;
+  stroke: #737d79;
+  stroke-width: 1.1;
 }
 
 .portrait-keys rect {
