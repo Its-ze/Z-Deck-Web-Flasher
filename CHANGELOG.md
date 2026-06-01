@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## Optional SD Popups Build - 2026-06-01
+
+- Added optional public build artifacts in `firmware/zdeck-2.8.0-sdpopups-20260601/`.
+- Added matching optional Web Serial manifest: `manifest-sdpopups-20260601.json`.
+- Added source patch backup in `source/patches/2026-06-01-tdeck-sd-popups/`.
+- Default public flasher manifest remains on `Z-Deck 0.2.3-public`.
+
 ## Z-Deck 0.2.3-public - 2026-06-01
 
 Stability release for the public flasher.
