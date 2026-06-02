@@ -1,0 +1,1380 @@
+diff --git a/include/graphics/common/SdCard.h b/include/graphics/common/SdCard.h
+index 128ece0..75faf5f 100644
+--- a/include/graphics/common/SdCard.h
++++ b/include/graphics/common/SdCard.h
+@@ -15,6 +15,7 @@ extern SdFs SDFs;
+ 
+ #include <set>
+ #include <string>
++#include <vector>
+ 
+ /**
+  * SdCard adapter to define a common interface for SD and SdFs
+@@ -41,6 +42,11 @@ class ISdCard
+ 
+     enum ErrorType { eNoError, eSlotEmpty, eCardError, eFormatError, eNoMbrError, eUnknownError };
+ 
++    struct RingtoneFile {
++        std::string name;
++        std::string rtttl;
++    };
++
+     virtual bool init(void) = 0;
+     virtual CardType cardType(void) = 0;
+     virtual FatType fatType(void) = 0;
+@@ -52,6 +58,9 @@ class ISdCard
+     virtual bool format(void) = 0;
+ 
+     bool isUpdated(void) { return updated; }
++    virtual bool prepareStorage(void) = 0;
++    virtual bool isStoragePrepared(void) = 0;
++    virtual std::vector<RingtoneFile> loadRingtones(const char *folder) = 0;
+     virtual std::set<std::string> loadMapStyles(const char *folder) = 0;
+     virtual std::string getUrlProvider(const char *folder, const char *style) = 0;
+     virtual ~ISdCard(void) {}
+@@ -73,6 +82,9 @@ class SDCard : public ISdCard
+     uint64_t cardSize(void) override;
+     bool format(void) override { return false; };
+ 
++    bool prepareStorage(void) override;
++    bool isStoragePrepared(void) override;
++    std::vector<RingtoneFile> loadRingtones(const char *folder) override;
+     std::set<std::string> loadMapStyles(const char *folder) override;
+     std::string getUrlProvider(const char *folder, const char *style) override;
+     virtual ~SDCard(void);
+@@ -91,6 +103,9 @@ class SdFsCard : public ISdCard
+     uint64_t cardSize(void) override;
+     bool format(void) override;
+ 
++    bool prepareStorage(void) override;
++    bool isStoragePrepared(void) override;
++    std::vector<RingtoneFile> loadRingtones(const char *folder) override;
+     std::set<std::string> loadMapStyles(const char *folder) override;
+     std::string getUrlProvider(const char *folder, const char *style) override;
+     virtual ~SdFsCard(void) {}
+@@ -113,6 +128,9 @@ class NoSdCard : public ISdCard
+     uint64_t cardSize(void) override { return 1; }
+     bool format(void) override { return false; }
+ 
++    bool prepareStorage(void) override { return false; }
++    bool isStoragePrepared(void) override { return false; }
++    std::vector<RingtoneFile> loadRingtones(const char *folder) override { return {}; }
+     std::set<std::string> loadMapStyles(const char *folder) override
+     {
+         updated = true;
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 37f2b62..d9f5e7f 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -3,6 +3,8 @@
+ #include "graphics/common/MeshtasticView.h"
+ #include "meshtastic/clientonly.pb.h"
+ #include <set>
++#include <string>
++#include <vector>
+ 
+ class MapPanel;
+ 
+@@ -188,6 +190,8 @@ class TFTView_320x240 : public MeshtasticView
+     virtual bool updateSDCard(void);
+     // format SD card if invalid
+     virtual void formatSDCard(void);
++    // prepare SD folder layout for user-managed data
++    virtual void prepareSDCard(void);
+     // update time display on home screen
+     virtual void updateFreeMem(void);
+     // update distance to other node
+@@ -227,6 +231,8 @@ class TFTView_320x240 : public MeshtasticView
+     TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver);
+ 
+     void enterProgrammingMode(void);
++    void createBootProgressBar(void);
++    void setBootProgress(uint8_t value);
+     void updateTheme(void);
+     void ui_events_init(void);
+     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
+@@ -272,6 +278,18 @@ class TFTView_320x240 : public MeshtasticView
+     void showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg);
+     void setBellText(bool banner, bool sound);
+     void setChannelName(const meshtastic_Channel &ch);
++    void populateRingtoneDropdown(void);
++    void refreshSdRingtones(void);
++    void loadLocalUISettings(void);
++    void storeLocalUISettings(void);
++    void updatePopupButtonLabel(void);
++    void showNoticePopup(const char *alert, bool show);
++    void createSDSetupPrompt(void);
++    void showSDSetupPrompt(void);
++    void hideSDSetupPrompt(void);
++    void setSDSetupStatus(const char *status);
++    void formatAndPrepareSDCard(void);
++    void updateUSBStatus(void);
+     uint32_t timestamp(char *buf, uint32_t time, bool update);
+     void updateLocationMap(uint32_t objects);
+ 
+@@ -344,6 +362,7 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_backup_button(lv_event_t *e);
+     static void ui_event_reset_button(lv_event_t *e);
+     static void ui_event_reboot_button(lv_event_t *e);
++    static void ui_event_popup_button(lv_event_t *e);
+     static void ui_event_device_reboot_button(lv_event_t *e);
+     static void ui_event_device_progmode_button(lv_event_t *e);
+     static void ui_event_device_shutdown_button(lv_event_t *e);
+@@ -402,6 +421,8 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_zdeckHealthButton(lv_event_t *e);
+     static void ui_event_zdeckSdButton(lv_event_t *e);
+     static void ui_event_screenCorrectionButton(lv_event_t *e);
++    static void ui_event_sd_setup_ignore(lv_event_t *e);
++    static void ui_event_sd_setup_format(lv_event_t *e);
+ 
+     // animations
+     static void ui_anim_node_panel_cb(void *var, int32_t v);
+@@ -414,6 +435,11 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *activeWidget = nullptr;
+     lv_obj_t *activeTextInput = nullptr;
+     lv_group_t *input_group = nullptr;
++    lv_obj_t *bootProgressBar = nullptr;
++    lv_obj_t *sdSetupPanel = nullptr;
++    lv_obj_t *sdSetupStatusLabel = nullptr;
++    lv_obj_t *sdSetupIgnoreButton = nullptr;
++    lv_obj_t *sdSetupFormatButton = nullptr;
+ 
+     enum BasicSettings activeSettings = eNone; // active settings menu (used to disable other button presses)
+ 
+@@ -426,6 +452,12 @@ class TFTView_320x240 : public MeshtasticView
+     bool detectorRunning;                                 // meshDetector is active
+     bool cardDetected;                                    // SD has been detected
+     bool formatSD;                                        // offer to format SD card
++    bool usbStatusKnown;                                  // USB state has been observed
++    bool lastUsbConnected;                                // previous USB state
++    bool noticePopupsEnabled;                             // show non-critical USB/SD notice popups
++    bool sdSetupIgnored;                                  // suppress SD setup prompt until the card is rescanned
++    bool suppressSDSetupPrompt;                           // internal guard while preparing a card
++    uint8_t bootProgressValue;                            // boot screen progress value
+     uint16_t buttonSize;                                  // size of group/chat buttons in pixels
+     uint16_t statisticTableRows;                          // number of rows in statistics table
+     uint16_t packetCounter;                               // number of packets in packet log
+@@ -450,6 +482,9 @@ class TFTView_320x240 : public MeshtasticView
+     char old_val1_scratch[64], old_val2_scratch[64];      // temporary scratch buffers for settings strings
+     std::array<lv_obj_t *, c_max_channels> ch_label;      // indexable label list for settings
+     meshtastic_Channel *channel_scratch;                  // temporary scratch copy of channel db
++    std::vector<std::string> sdRingtoneNames;             // custom ringtone names loaded from SD
++    std::vector<std::string> sdRingtoneValues;            // custom ringtone RTTTL loaded from SD
++    int16_t selectedSdRingtone;                           // selected SD ringtone index, -1 when using built-in
+     lv_obj_t *qr;                                         // qr code
+     MapPanel *map = nullptr;                              // map
+     lv_obj_t *mapInternetStatusLabel = nullptr;           // dynamic map WiFi/cache status
+diff --git a/source/graphics/TFT/TFTView_160x80.cpp b/source/graphics/TFT/TFTView_160x80.cpp
+index 784eeb0..589e836 100644
+--- a/source/graphics/TFT/TFTView_160x80.cpp
++++ b/source/graphics/TFT/TFTView_160x80.cpp
+@@ -1,4 +1,4 @@
+-#if HAS_TFT // VIEW_160x80
++#if HAS_TFT && defined(VIEW_160x80)
+ 
+ #include "graphics/view/TFT/TFTView_160x80.h"
+ #include "graphics/common/ViewController.h"
+@@ -41,4 +41,4 @@ void TFTView_160x80::task_handler(void)
+     MeshtasticView::task_handler();
+ }
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/source/graphics/TFT/TFTView_240x240.cpp b/source/graphics/TFT/TFTView_240x240.cpp
+index 762d806..51b15be 100644
+--- a/source/graphics/TFT/TFTView_240x240.cpp
++++ b/source/graphics/TFT/TFTView_240x240.cpp
+@@ -1,4 +1,4 @@
+-#if HAS_TFT // VIEW_240x240
++#if HAS_TFT && defined(VIEW_240x240)
+ 
+ #include "graphics/view/TFT/TFTView_240x240.h"
+ #include "graphics/common/ViewController.h"
+@@ -46,4 +46,4 @@ void TFTView_240x240::task_handler(void)
+     MeshtasticView::task_handler();
+ }
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 3f0fb8d..4313c42 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -2,6 +2,10 @@
+ 
+ #include "graphics/view/TFT/TFTView_320x240.h"
+ #include "Arduino.h"
++#if __has_include(<Preferences.h>)
++#include <Preferences.h>
++#endif
++#include "PowerStatus.h"
+ #include "graphics/common/BatteryLevel.h"
+ #include "graphics/common/LoRaPresets.h"
+ #include "graphics/common/Ringtones.h"
+@@ -84,6 +88,62 @@ constexpr lv_color_t colorMidGray = LV_COLOR_HEX(0x808080);
+ constexpr lv_color_t colorDarkGray = LV_COLOR_HEX(0x303030);
+ constexpr lv_color_t colorMesh = LV_COLOR_HEX(0x67ea94);
+ 
++#if defined(T_DECK)
++static constexpr uint16_t defaultScreenTimeoutSecs = 600;
++#else
++static constexpr uint16_t defaultScreenTimeoutSecs = 30;
++#endif
++
++static bool sanitizeUIConfig(meshtastic_DeviceUIConfig &config)
++{
++    bool changed = false;
++
++    if (config.theme != meshtastic_Theme_DARK && config.theme != meshtastic_Theme_LIGHT) {
++        config.theme = meshtastic_Theme_DARK;
++        changed = true;
++    }
++
++    if (config.screen_timeout == 1 || (defaultScreenTimeoutSecs > 30 && config.screen_timeout < defaultScreenTimeoutSecs)) {
++        config.screen_timeout = defaultScreenTimeoutSecs;
++        changed = true;
++    }
++
++    if (config.screen_brightness == 0) {
++        config.screen_brightness = 153;
++        changed = true;
++    }
++
++    return changed;
++}
++
++static void setNavButtonInactive(lv_obj_t *button)
++{
++    if (!button)
++        return;
++
++    lv_obj_remove_state(button, LV_STATE_CHECKED);
++    lv_obj_set_style_border_width(button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_outline_width(button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_img_recolor(button, colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_img_recolor_opa(button, Themes::get() == Themes::eDark ? 0 : 255,
++                                        LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
++static void setNavButtonActive(lv_obj_t *button)
++{
++    if (!button)
++        return;
++
++    lv_obj_add_state(button, LV_STATE_CHECKED);
++    lv_obj_set_style_border_width(button, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_side(button, LV_BORDER_SIDE_FULL, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_outline_width(button, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_outline_color(button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_img_recolor(button, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_img_recolor_opa(button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
+ // children index of nodepanel lv objects (see addNode)
+ enum NodePanelIdx {
+     node_img_idx,
+@@ -215,9 +275,10 @@ TFTView_320x240 *TFTView_320x240::instance(const DisplayDriverConfig &cfg)
+ TFTView_320x240::TFTView_320x240(const DisplayDriverConfig *cfg, DisplayDriver *driver)
+     : MeshtasticView(cfg, driver, new ViewController), screensInitialised(false), nodesFiltered(0), nodesChanged(true),
+       processingFilter(false), packetLogEnabled(false), detectorRunning(false), cardDetected(false), formatSD(false),
+-      packetCounter(0), actTime(0), uptime(0), lastHeard(0), hasPosition(false), gpsSatellites(0), myLatitude(0),
+-      myLongitude(0), topNodeLL(nullptr), scans(0), selectedHops(0), chooseNodeSignalScanner(false),
+-      chooseNodeTraceRoute(false), qr(nullptr),
++      usbStatusKnown(false), lastUsbConnected(false), noticePopupsEnabled(true), sdSetupIgnored(false),
++      suppressSDSetupPrompt(false), bootProgressValue(0), packetCounter(0), actTime(0), uptime(0), lastHeard(0),
++      hasPosition(false), gpsSatellites(0), myLatitude(0), myLongitude(0), topNodeLL(nullptr), scans(0), selectedHops(0),
++      chooseNodeSignalScanner(false), chooseNodeTraceRoute(false), selectedSdRingtone(-1), qr(nullptr),
+       db{}
+ {
+     filter.active = false;
+@@ -244,8 +305,11 @@ void TFTView_320x240::init(IClientBase *client)
+     ILOG_DEBUG("### Total size: %d bytes ###", total_size);
+ 
+     MeshtasticView::init(client);
++    loadLocalUISettings();
+ 
+     ui_init_boot();
++    createBootProgressBar();
++    setBootProgress(8);
+     FileLoader::init(&fileSystem);
+     if (!FileLoader::loadBootImage(objects.boot_logo))
+         lv_image_set_src(objects.boot_logo, &img_meshtastic_boot_logo_image);
+@@ -265,6 +329,7 @@ void TFTView_320x240::init(IClientBase *client)
+     time(&lastrun10);
+     time(&lastrun5);
+     time(&lastrun1);
++    setBootProgress(18);
+ 
+     lv_obj_add_event_cb(objects.boot_logo_button, ui_event_LogoButton, LV_EVENT_ALL, NULL);
+     lv_obj_add_event_cb(objects.blank_screen_button, ui_event_BlankScreenButton, LV_EVENT_ALL, NULL);
+@@ -280,15 +345,15 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
+     if (uiconfig.version == 1) {
+         ILOG_INFO("setupUIConfig version %d", uiconfig.version);
+         db.uiConfig = uiconfig;
+-        if (db.uiConfig.screen_timeout == 1) {
+-            db.uiConfig.screen_timeout = 30;
++        if (sanitizeUIConfig(db.uiConfig)) {
+             controller->storeUIConfig(db.uiConfig);
+         }
+     } else {
+         ILOG_WARN("invalid uiconfig version %d, reset UI settings to default", uiconfig.version);
+         db.uiConfig.version = 1;
+         db.uiConfig.screen_brightness = 153;
+-        db.uiConfig.screen_timeout = 30;
++        db.uiConfig.screen_timeout = defaultScreenTimeoutSecs;
++        db.uiConfig.theme = meshtastic_Theme_DARK;
+         controller->storeUIConfig(db.uiConfig);
+     }
+ 
+@@ -302,10 +367,13 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
+     }
+ 
+     state = MeshtasticView::eSetupUIConfig;
++    setBootProgress(42);
+ 
+     // now we have set language, continue creating all screens
+-    if (!screensInitialised)
++    if (!screensInitialised) {
++        setBootProgress(58);
+         init_screens();
++    }
+ 
+     // set language
+     setLanguage(db.uiConfig.language);
+@@ -427,8 +495,38 @@ bool TFTView_320x240::setupUIConfig(const meshtastic_DeviceUIConfig &uiconfig)
+  */
+ void TFTView_320x240::updateBootMessage(const char *msg)
+ {
+-    if (msg)
++    if (msg) {
+         lv_label_set_text(objects.firmware_label, msg);
++        setBootProgress(std::min<uint8_t>(bootProgressValue + 12, 92));
++    }
++}
++
++void TFTView_320x240::createBootProgressBar(void)
++{
++    if (bootProgressBar || !objects.boot_screen)
++        return;
++
++    bootProgressBar = lv_bar_create(objects.boot_screen);
++    lv_obj_set_size(bootProgressBar, 180, 6);
++    lv_obj_align(bootProgressBar, LV_ALIGN_BOTTOM_MID, 0, -34);
++    lv_obj_move_foreground(bootProgressBar);
++    lv_obj_set_style_radius(bootProgressBar, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_radius(bootProgressBar, 3, LV_PART_INDICATOR | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(bootProgressBar, lv_color_hex(0xff1b3b26), LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(bootProgressBar, 120, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(bootProgressBar, lv_color_hex(0xffffffff), LV_PART_INDICATOR | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(bootProgressBar, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
++    lv_obj_clear_flag(bootProgressBar, LV_OBJ_FLAG_CLICKABLE);
++    lv_obj_clear_flag(bootProgressBar, LV_OBJ_FLAG_SCROLLABLE);
++    lv_bar_set_range(bootProgressBar, 0, 100);
++    lv_bar_set_value(bootProgressBar, 0, LV_ANIM_OFF);
++}
++
++void TFTView_320x240::setBootProgress(uint8_t value)
++{
++    bootProgressValue = std::min<uint8_t>(value, 100);
++    if (bootProgressBar)
++        lv_bar_set_value(bootProgressBar, bootProgressValue, LV_ANIM_OFF);
+ }
+ 
+ /**
+@@ -439,8 +537,11 @@ void TFTView_320x240::init_screens(void)
+ {
+     ILOG_DEBUG("init screens...");
+     state = MeshtasticView::eInitScreens;
++    setBootProgress(72);
+     ui_init();
+     apply_hotfix();
++    createSDSetupPrompt();
++    updatePopupButtonLabel();
+ 
+     activeMsgContainer = objects.messages_container;
+     // setup the two channel label panels with arrays that allow indexing
+@@ -455,6 +556,7 @@ void TFTView_320x240::init_screens(void)
+     ui_events_init();
+ 
+     // load main screen
++    setBootProgress(100);
+     lv_screen_load_anim(objects.main_screen, LV_SCR_LOAD_ANIM_NONE, 300, 0, false);
+ 
+     // re-configuration based on capabilities
+@@ -541,15 +643,8 @@ void TFTView_320x240::init_screens(void)
+  */
+ void TFTView_320x240::ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp)
+ {
+-    if (activeButton) {
+-        lv_obj_set_style_border_width(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+-        if (Themes::get() == Themes::eDark)
+-            lv_obj_set_style_bg_img_recolor_opa(activeButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+-        lv_obj_set_style_bg_img_recolor(activeButton, colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    }
+-    lv_obj_set_style_border_width(b, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_bg_img_recolor(b, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_bg_img_recolor_opa(b, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
++    setNavButtonInactive(activeButton);
++    setNavButtonActive(b);
+ 
+     if (activePanel) {
+         lv_obj_add_flag(activePanel, LV_OBJ_FLAG_HIDDEN);
+@@ -683,6 +778,25 @@ void TFTView_320x240::apply_hotfix(void)
+     lv_textarea_set_placeholder_text(objects.nodes_filter_name_area, _("!Enter Filter ..."));
+     lv_textarea_set_placeholder_text(objects.nodes_hl_name_area, _("Enter Filter ..."));
+ 
++    // Keep the one-line chat composer from vertically scrolling/re-centering on each keypress.
++    lv_obj_set_size(objects.message_input_area, LV_PCT(85), 28);
++    lv_obj_set_style_min_height(objects.message_input_area, 28, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_max_height(objects.message_input_area, 28, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_font(objects.message_input_area, &ui_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_line_space(objects.message_input_area, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_top(objects.message_input_area, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_bottom(objects.message_input_area, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_left(objects.message_input_area, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_right(objects.message_input_area, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_scroll_dir(objects.message_input_area, LV_DIR_HOR);
++    lv_obj_clear_flag(objects.message_input_area, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
++
++    lv_obj_t *messageInputLabel = lv_textarea_get_label(objects.message_input_area);
++    if (messageInputLabel) {
++        lv_obj_set_style_text_font(messageInputLabel, &ui_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_text_line_space(messageInputLabel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    }
++
+     auto applyStyle = [](lv_obj_t *tab_buttons) {
+         for (int i = 0; i < lv_obj_get_child_count(tab_buttons); i++) {
+             if (tab_buttons->spec_attr->children[i]->class_p == &lv_button_class) {
+@@ -767,6 +881,7 @@ void TFTView_320x240::updateTheme(void)
+     lv_obj_set_style_bg_img_recolor_opa(objects.messages_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_bg_img_recolor_opa(objects.map_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_bg_img_recolor_opa(objects.settings_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
++    setNavButtonActive(activeButton);
+ 
+     for (int i = 0; i < c_max_channels; i++) {
+         if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
+@@ -808,7 +923,7 @@ void TFTView_320x240::ui_events_init(void)
+     lv_obj_add_event_cb(objects.home_location_button, this->ui_event_LocationButton, LV_EVENT_LONG_PRESSED, NULL);
+     lv_obj_add_event_cb(objects.home_wlan_button, this->ui_event_WLANButton, LV_EVENT_LONG_PRESSED, NULL);
+     lv_obj_add_event_cb(objects.home_mqtt_button, this->ui_event_MQTTButton, LV_EVENT_ALL, NULL);
+-    lv_obj_add_event_cb(objects.home_sd_card_button, this->ui_event_SDCardButton, LV_EVENT_CLICKED, NULL);
++    lv_obj_add_event_cb(objects.home_sd_card_button, this->ui_event_SDCardButton, LV_EVENT_ALL, NULL);
+     lv_obj_add_event_cb(objects.home_memory_button, this->ui_event_MemoryButton, LV_EVENT_CLICKED, NULL);
+     lv_obj_add_event_cb(objects.home_qr_button, this->ui_event_QrButton, LV_EVENT_CLICKED, NULL);
+     lv_obj_add_event_cb(objects.home_cancel_qr_button, this->ui_event_CancelQrButton, LV_EVENT_CLICKED, NULL);
+@@ -869,6 +984,7 @@ void TFTView_320x240::ui_events_init(void)
+     lv_obj_add_event_cb(objects.basic_settings_backup_restore_button, ui_event_backup_button, LV_EVENT_CLICKED, NULL);
+     lv_obj_add_event_cb(objects.basic_settings_reset_button, ui_event_reset_button, LV_EVENT_CLICKED, NULL);
+     lv_obj_add_event_cb(objects.basic_settings_reboot_button, ui_event_reboot_button, LV_EVENT_CLICKED, NULL);
++    lv_obj_add_event_cb(objects.basic_settings_timezone_button, ui_event_popup_button, LV_EVENT_CLICKED, NULL);
+ 
+     lv_obj_add_event_cb(objects.reboot_button, ui_event_device_reboot_button, LV_EVENT_CLICKED, NULL);
+     lv_obj_add_event_cb(objects.progmode_button, ui_event_device_progmode_button, LV_EVENT_ALL, NULL);
+@@ -1612,14 +1728,35 @@ void TFTView_320x240::ui_event_SDCardButton(lv_event_t *e)
+             return;
+         }
+         THIS->updateSDCard();
++        if (THIS->formatSD || (THIS->cardDetected && sdCard && !sdCard->isStoragePrepared())) {
++            THIS->sdSetupIgnored = false;
++            THIS->showSDSetupPrompt();
++        }
+     } else if (event_code == LV_EVENT_LONG_PRESSED) {
++        ignoreClicked = true;
+         if (THIS->formatSD) {
+-            ignoreClicked = true;
+-            THIS->formatSDCard();
++            THIS->formatAndPrepareSDCard();
++        } else {
++            THIS->prepareSDCard();
+         }
+     }
+ }
+ 
++void TFTView_320x240::ui_event_sd_setup_ignore(lv_event_t *e)
++{
++    if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
++        THIS->sdSetupIgnored = true;
++        THIS->hideSDSetupPrompt();
++    }
++}
++
++void TFTView_320x240::ui_event_sd_setup_format(lv_event_t *e)
++{
++    if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
++        THIS->formatAndPrepareSDCard();
++    }
++}
++
+ void TFTView_320x240::ui_event_MemoryButton(lv_event_t *e)
+ {
+     lv_event_code_t event_code = lv_event_get_code(e);
+@@ -1784,7 +1921,9 @@ void TFTView_320x240::ui_event_Keyboard(lv_event_t *e)
+ void TFTView_320x240::ui_event_message_ready(lv_event_t *e)
+ {
+     lv_event_code_t event_code = lv_event_get_code(e);
+-    if (event_code == LV_EVENT_READY) {
++    if (event_code == LV_EVENT_VALUE_CHANGED) {
++        lv_obj_scroll_to_y(objects.message_input_area, 0, LV_ANIM_OFF);
++    } else if (event_code == LV_EVENT_READY) {
+         char *txt = (char *)lv_textarea_get_text(objects.message_input_area);
+         uint32_t len = strlen(txt);
+         if (len) {
+@@ -2065,14 +2204,7 @@ void TFTView_320x240::ui_event_alert_button(lv_event_t *e)
+         } else {
+             lv_obj_remove_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
+         }
+-        // populate dropdown
+-        if (lv_dropdown_get_option_count(objects.settings_ringtone_dropdown) <= 1) {
+-            for (int i = 2; i < numRingtones; i++) {
+-                lv_dropdown_add_option(objects.settings_ringtone_dropdown, ringtone[i].name, i);
+-            }
+-        }
+-
+-        lv_dropdown_set_selected(objects.settings_ringtone_dropdown, THIS->db.uiConfig.ring_tone_id - 1);
++        THIS->populateRingtoneDropdown();
+         lv_obj_clear_flag(objects.settings_alert_buzzer_panel, LV_OBJ_FLAG_HIDDEN);
+         lv_group_focus_obj(objects.settings_alert_buzzer_switch);
+         THIS->disablePanel(objects.controller_panel);
+@@ -2124,6 +2256,23 @@ void TFTView_320x240::ui_event_reboot_button(lv_event_t *e)
+     }
+ }
+ 
++void TFTView_320x240::ui_event_popup_button(lv_event_t *e)
++{
++    lv_event_code_t event_code = lv_event_get_code(e);
++    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone) {
++        THIS->noticePopupsEnabled = !THIS->noticePopupsEnabled;
++        THIS->storeLocalUISettings();
++        THIS->updatePopupButtonLabel();
++
++        if (THIS->noticePopupsEnabled) {
++            THIS->messageAlert(_("Popups on"), true);
++        } else {
++            THIS->messageAlert("", false);
++            THIS->hideSDSetupPrompt();
++        }
++    }
++}
++
+ void TFTView_320x240::ui_event_device_reboot_button(lv_event_t *e)
+ {
+     lv_event_code_t event_code = lv_event_get_code(e);
+@@ -2402,24 +2551,36 @@ void TFTView_320x240::ui_event_backup_restore_radio_button(lv_event_t *e)
+ 
+ void TFTView_320x240::ui_event_zoomSlider(lv_event_t *e)
+ {
++    if (!THIS->map)
++        return;
++
+     THIS->map->setZoom(lv_slider_get_value(objects.zoom_slider));
+     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+ }
+ 
+ void TFTView_320x240::ui_event_zoomIn(lv_event_t *e)
+ {
++    if (!THIS->map)
++        return;
++
+     THIS->map->setZoom(MapTileSettings::getZoomLevel() + 1);
+     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+ }
+ 
+ void TFTView_320x240::ui_event_zoomOut(lv_event_t *e)
+ {
++    if (!THIS->map)
++        return;
++
+     THIS->map->setZoom(MapTileSettings::getZoomLevel() - 1);
+     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+ }
+ 
+ void TFTView_320x240::ui_event_lockGps(lv_event_t *e)
+ {
++    if (!THIS->map)
++        return;
++
+     bool gpsLocked = lv_obj_has_state(objects.gps_lock_button, LV_STATE_CHECKED);
+     THIS->map->setLocked(gpsLocked);
+     THIS->db.uiConfig.map_data.follow_gps = gpsLocked;
+@@ -2441,6 +2602,9 @@ void TFTView_320x240::ui_event_mapContrastSlider(lv_event_t *e)
+ 
+ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
+ {
++    if (!THIS->map || !sdCard)
++        return;
++
+     lv_dropdown_get_selected_str(objects.map_style_dropdown, THIS->db.uiConfig.map_data.style,
+                                  sizeof(THIS->db.uiConfig.map_data.style));
+     MapTileSettings::setTileStyle(THIS->db.uiConfig.map_data.style);
+@@ -2462,6 +2626,9 @@ void TFTView_320x240::ui_event_map_style_dropdown(lv_event_t *e)
+ 
+ void TFTView_320x240::ui_event_map_url_dropdown(lv_event_t *e)
+ {
++    if (!THIS->map)
++        return;
++
+     uint32_t urlId = lv_dropdown_get_selected(objects.map_url_dropdown);
+     TileProvider::selectTemplate(urlId);
+     MapTileSettings::setSaveOK(false);
+@@ -3121,7 +3288,11 @@ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
+     // navigate to node in node list
+     uint32_t nodeNum = (unsigned long)e->user_data;
+     ILOG_DEBUG("map node %08x", nodeNum);
+-    lv_obj_t *panel = THIS->nodes[nodeNum];
++    auto it = THIS->nodes.find(nodeNum);
++    if (it == THIS->nodes.end() || !it->second) {
++        return;
++    }
++    lv_obj_t *panel = it->second;
+     THIS->ui_set_active(objects.nodes_button, objects.nodes_panel, objects.top_nodes_panel);
+     lv_obj_scroll_to_view(panel, LV_ANIM_ON);
+     if (panel != currentPanel)
+@@ -3359,7 +3530,7 @@ void TFTView_320x240::loadMap(void)
+                 const float lonKm =
+                     std::max(0.05f, float(sortedLon.back() - sortedLon.front()) * 1e-7f * 111.32f * latCos);
+                 const float distanceKm = std::max(latKm, lonKm);
+-                const float panelPixels = std::max(64, lv_obj_get_width(objects.raw_map_panel) - 64);
++                const float panelPixels = std::max<int32_t>(64, lv_obj_get_width(objects.raw_map_panel) - 64);
+                 const float targetMpp = distanceKm * 1000.0f / panelPixels;
+                 uint8_t zoom = 20;
+                 while (zoom > 1 && (156543.034f * latCos / float(1UL << zoom)) < targetMpp)
+@@ -4499,6 +4670,10 @@ void TFTView_320x240::setBrightness(uint32_t brightness)
+  */
+ void TFTView_320x240::setTheme(uint32_t value)
+ {
++    if (value != meshtastic_Theme_LIGHT) {
++        value = meshtastic_Theme_DARK;
++    }
++
+     char buf1[30], buf2[30];
+     lv_dropdown_set_selected(objects.settings_theme_dropdown, value);
+     lv_dropdown_get_selected_str(objects.settings_theme_dropdown, buf1, sizeof(buf1));
+@@ -4904,7 +5079,22 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
+         }
+         case eAlertBuzzer: {
+             meshtastic_ModuleConfig_ExternalNotificationConfig &config = THIS->db.module_config.external_notification;
+-            int tone = lv_dropdown_get_selected(objects.settings_ringtone_dropdown) + 1;
++            uint32_t selected = lv_dropdown_get_selected(objects.settings_ringtone_dropdown);
++            uint32_t builtInOptions = numRingtones > 0 ? numRingtones - 1 : 0;
++            int tone = 1;
++            const char *selectedRtttl = ringtone[tone].rtttl;
++
++            if (selected < builtInOptions) {
++                tone = selected + 1;
++                selectedRtttl = ringtone[tone].rtttl;
++                THIS->selectedSdRingtone = -1;
++            } else {
++                uint32_t sdIndex = selected - builtInOptions;
++                if (sdIndex < THIS->sdRingtoneValues.size()) {
++                    selectedRtttl = THIS->sdRingtoneValues[sdIndex].c_str();
++                    THIS->selectedSdRingtone = sdIndex;
++                }
++            }
+ 
+             bool silent = false;
+             bool alert_message = lv_obj_has_state(objects.settings_alert_buzzer_switch, LV_STATE_CHECKED);
+@@ -4925,7 +5115,7 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
+                 silent = true;
+             }
+ 
+-            THIS->controller->sendConfig(ringtone[silent ? 0 : tone].rtttl, THIS->ownNode);
++            THIS->controller->sendConfig(silent ? ringtone[0].rtttl : selectedRtttl, THIS->ownNode);
+             THIS->db.uiConfig.ring_tone_id = tone;
+             THIS->db.silent = silent;
+             THIS->db.uiConfig.alert_enabled = !silent;
+@@ -6541,6 +6731,172 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
+         lv_obj_add_flag(objects.alert_panel, LV_OBJ_FLAG_HIDDEN);
+ }
+ 
++void TFTView_320x240::loadLocalUISettings(void)
++{
++    noticePopupsEnabled = true;
++#if __has_include(<Preferences.h>)
++    Preferences prefs;
++    if (prefs.begin("chatdeck", true)) {
++        noticePopupsEnabled = prefs.getBool("popups", true);
++        prefs.end();
++    }
++#endif
++}
++
++void TFTView_320x240::storeLocalUISettings(void)
++{
++#if __has_include(<Preferences.h>)
++    Preferences prefs;
++    if (prefs.begin("chatdeck", false)) {
++        prefs.putBool("popups", noticePopupsEnabled);
++        prefs.end();
++    }
++#endif
++}
++
++void TFTView_320x240::updatePopupButtonLabel(void)
++{
++    if (!objects.basic_settings_timezone_button || !objects.basic_settings_timezone_label)
++        return;
++
++    lv_obj_clear_flag(objects.basic_settings_timezone_button, LV_OBJ_FLAG_HIDDEN);
++    lv_label_set_text(objects.basic_settings_timezone_label, noticePopupsEnabled ? _("Popups: on") : _("Popups: off"));
++}
++
++void TFTView_320x240::showNoticePopup(const char *alert, bool show)
++{
++    if (!noticePopupsEnabled && show)
++        return;
++    messageAlert(alert, show);
++}
++
++void TFTView_320x240::createSDSetupPrompt(void)
++{
++    if (sdSetupPanel || !objects.main_screen)
++        return;
++
++    int32_t screenWidth = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
++    int32_t panelWidth = std::max<int32_t>(210, std::min<int32_t>(screenWidth - 24, 292));
++    int32_t buttonWidth = (panelWidth - 30) / 2;
++
++    sdSetupPanel = lv_obj_create(objects.main_screen);
++    lv_obj_set_size(sdSetupPanel, panelWidth, 156);
++    lv_obj_align(sdSetupPanel, LV_ALIGN_CENTER, 0, 0);
++    lv_obj_clear_flag(sdSetupPanel, LV_OBJ_FLAG_SCROLLABLE);
++    lv_obj_add_flag(sdSetupPanel, LV_OBJ_FLAG_HIDDEN);
++    add_style_alert_panel_style(sdSetupPanel);
++    lv_obj_set_style_border_width(sdSetupPanel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(sdSetupPanel, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_all(sdSetupPanel, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    lv_obj_t *title = lv_label_create(sdSetupPanel);
++    lv_obj_set_width(title, LV_PCT(100));
++    lv_label_set_text(title, _("SD card setup"));
++    lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 0);
++
++    lv_obj_t *body = lv_label_create(sdSetupPanel);
++    lv_obj_set_width(body, panelWidth - 18);
++    lv_label_set_long_mode(body, LV_LABEL_LONG_WRAP);
++    lv_label_set_text(body, _("This SD card is not set up yet. Format erases it."));
++    lv_obj_set_style_text_align(body, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_align(body, LV_ALIGN_TOP_MID, 0, 28);
++
++    sdSetupStatusLabel = lv_label_create(sdSetupPanel);
++    lv_obj_set_width(sdSetupStatusLabel, panelWidth - 18);
++    lv_label_set_long_mode(sdSetupStatusLabel, LV_LABEL_LONG_WRAP);
++    lv_label_set_text(sdSetupStatusLabel, _("Ready for setup"));
++    lv_obj_set_style_text_align(sdSetupStatusLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(sdSetupStatusLabel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_align(sdSetupStatusLabel, LV_ALIGN_TOP_MID, 0, 68);
++
++    sdSetupIgnoreButton = lv_btn_create(sdSetupPanel);
++    lv_obj_set_size(sdSetupIgnoreButton, buttonWidth, 34);
++    lv_obj_align(sdSetupIgnoreButton, LV_ALIGN_BOTTOM_LEFT, 0, 0);
++    add_style_settings_button_style(sdSetupIgnoreButton);
++    lv_obj_add_event_cb(sdSetupIgnoreButton, ui_event_sd_setup_ignore, LV_EVENT_CLICKED, NULL);
++
++    lv_obj_t *ignoreLabel = lv_label_create(sdSetupIgnoreButton);
++    lv_obj_set_width(ignoreLabel, LV_PCT(100));
++    lv_label_set_long_mode(ignoreLabel, LV_LABEL_LONG_DOT);
++    lv_label_set_text(ignoreLabel, _("Ignore"));
++    lv_obj_set_style_text_align(ignoreLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_center(ignoreLabel);
++
++    sdSetupFormatButton = lv_btn_create(sdSetupPanel);
++    lv_obj_set_size(sdSetupFormatButton, buttonWidth, 34);
++    lv_obj_align(sdSetupFormatButton, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
++    add_style_settings_button_style(sdSetupFormatButton);
++    lv_obj_add_event_cb(sdSetupFormatButton, ui_event_sd_setup_format, LV_EVENT_CLICKED, NULL);
++
++    lv_obj_t *formatLabel = lv_label_create(sdSetupFormatButton);
++    lv_obj_set_width(formatLabel, LV_PCT(100));
++    lv_label_set_long_mode(formatLabel, LV_LABEL_LONG_DOT);
++    lv_label_set_text(formatLabel, _("Format + Setup"));
++    lv_obj_set_style_text_align(formatLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_center(formatLabel);
++}
++
++void TFTView_320x240::setSDSetupStatus(const char *status)
++{
++    if (!status)
++        return;
++
++    createSDSetupPrompt();
++    if (sdSetupStatusLabel) {
++        lv_label_set_text(sdSetupStatusLabel, status);
++        lv_obj_clear_flag(sdSetupPanel, LV_OBJ_FLAG_HIDDEN);
++        lv_obj_move_foreground(sdSetupPanel);
++    }
++    if (objects.home_sd_card_label)
++        lv_label_set_text(objects.home_sd_card_label, status);
++    lv_refr_now(displaydriver->getDisplay());
++}
++
++void TFTView_320x240::showSDSetupPrompt(void)
++{
++    createSDSetupPrompt();
++    if (!sdSetupPanel)
++        return;
++
++    lv_obj_clear_flag(sdSetupPanel, LV_OBJ_FLAG_HIDDEN);
++    lv_obj_move_foreground(sdSetupPanel);
++    if (sdSetupIgnoreButton)
++        lv_group_focus_obj(sdSetupIgnoreButton);
++}
++
++void TFTView_320x240::hideSDSetupPrompt(void)
++{
++    if (sdSetupPanel)
++        lv_obj_add_flag(sdSetupPanel, LV_OBJ_FLAG_HIDDEN);
++}
++
++void TFTView_320x240::formatAndPrepareSDCard(void)
++{
++    sdSetupIgnored = false;
++    suppressSDSetupPrompt = true;
++    if (sdSetupIgnoreButton)
++        lv_obj_add_state(sdSetupIgnoreButton, LV_STATE_DISABLED);
++    if (sdSetupFormatButton)
++        lv_obj_add_state(sdSetupFormatButton, LV_STATE_DISABLED);
++
++    setSDSetupStatus(_("Formatting SD card...\nDo not remove it"));
++    formatSDCard();
++    suppressSDSetupPrompt = false;
++
++    if (cardDetected) {
++        setSDSetupStatus(_("Creating Z-Deck folders...\nAlmost done"));
++        prepareSDCard();
++    } else {
++        setSDSetupStatus(_("SD format failed\nCheck card and retry"));
++    }
++
++    if (sdSetupIgnoreButton)
++        lv_obj_clear_state(sdSetupIgnoreButton, LV_STATE_DISABLED);
++    if (sdSetupFormatButton)
++        lv_obj_clear_state(sdSetupFormatButton, LV_STATE_DISABLED);
++}
++
+ /**
+  * @brief mark the sent message as either heard or acknowledged or failed
+  *
+@@ -7169,10 +7525,55 @@ void TFTView_320x240::updateExtNotificationModule(const meshtastic_ModuleConfig_
+     lv_label_set_text(objects.basic_settings_alert_label, buf);
+ }
+ 
++void TFTView_320x240::refreshSdRingtones(void)
++{
++    sdRingtoneNames.clear();
++    sdRingtoneValues.clear();
++
++    if (!sdCard || sdCard->cardType() == ISdCard::eNone)
++        return;
++
++    const char *folders[] = {"/ringtones", "/meshtastic/ringtones"};
++    for (const char *folder : folders) {
++        std::vector<ISdCard::RingtoneFile> files = sdCard->loadRingtones(folder);
++        for (const ISdCard::RingtoneFile &file : files) {
++            if (std::find(sdRingtoneValues.begin(), sdRingtoneValues.end(), file.rtttl) != sdRingtoneValues.end())
++                continue;
++
++            sdRingtoneNames.push_back(file.name);
++            sdRingtoneValues.push_back(file.rtttl);
++        }
++    }
++}
++
++void TFTView_320x240::populateRingtoneDropdown(void)
++{
++    refreshSdRingtones();
++
++    std::string options = ringtone[1].name;
++    for (int i = 2; i < numRingtones; i++) {
++        options += '\n';
++        options += ringtone[i].name;
++    }
++    for (const std::string &name : sdRingtoneNames) {
++        options += "\nSD: ";
++        options += name;
++    }
++
++    lv_dropdown_set_options(objects.settings_ringtone_dropdown, options.c_str());
++
++    uint32_t selected = db.uiConfig.ring_tone_id > 0 ? db.uiConfig.ring_tone_id - 1 : 0;
++    if (selectedSdRingtone >= 0 && selectedSdRingtone < (int16_t)sdRingtoneNames.size()) {
++        selected = (numRingtones - 1) + selectedSdRingtone;
++    }
++    lv_dropdown_set_selected(objects.settings_ringtone_dropdown, selected);
++}
++
+ void TFTView_320x240::updateRingtone(const char rtttl[231])
+ {
+     // retrieving ringtone index for dropdown
+     uint16_t rtIndex = 0;
++    selectedSdRingtone = -1;
+     for (int i = 0; i < numRingtones; i++) {
+         if (strncmp(ringtone[i].rtttl, rtttl, 16) == 0) {
+             rtIndex = i;
+@@ -7184,6 +7585,17 @@ void TFTView_320x240::updateRingtone(const char rtttl[231])
+     if (db.uiConfig.ring_tone_id == 0)
+         db.uiConfig.ring_tone_id = 1;
+ 
++    if (rtIndex == 0 && rtttl[0] != '\0') {
++        refreshSdRingtones();
++        for (size_t i = 0; i < sdRingtoneValues.size(); i++) {
++            if (strncmp(sdRingtoneValues[i].c_str(), rtttl, 16) == 0) {
++                selectedSdRingtone = i;
++                db.uiConfig.ring_tone_id = 1;
++                break;
++            }
++        }
++    }
++
+     // update home panel bell text
+     setBellText(db.uiConfig.alert_enabled, !db.silent);
+     bool off = !db.uiConfig.alert_enabled && db.silent;
+@@ -8093,6 +8505,8 @@ void TFTView_320x240::updateTime(void)
+ bool TFTView_320x240::updateSDCard(void)
+ {
+     formatSD = false;
++    cardDetected = false;
++    bool storagePrepared = false;
+     if (sdCard) {
+         delete sdCard;
+         sdCard = nullptr;
+@@ -8130,6 +8544,10 @@ bool TFTView_320x240::updateSDCard(void)
+         Themes::recolorButton(objects.home_sd_card_button, true);
+         Themes::recolorText(objects.home_sd_card_label, true);
+         cardDetected = true;
++        storagePrepared = sdCard->isStoragePrepared();
++        if (!storagePrepared) {
++            lv_snprintf(buf, sizeof(buf), _("SD needs setup\nTap for options"));
++        }
+     } else {
+         ILOG_DEBUG("SdFsCard init failed");
+         err = sdCard->errorType();
+@@ -8165,11 +8583,25 @@ bool TFTView_320x240::updateSDCard(void)
+         }
+         Themes::recolorButton(objects.home_sd_card_button, false);
+         Themes::recolorText(objects.home_sd_card_label, false);
++        if (!formatSD) {
++            sdSetupIgnored = false;
++            hideSDSetupPrompt();
++        }
+         // allow backup/restore only if there is an SD card detected
+         lv_obj_add_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
+     } else {
+         // enable backup/restore
+         lv_obj_clear_state(objects.basic_settings_backup_restore_button, LV_STATE_DISABLED);
++        if (storagePrepared) {
++            sdSetupIgnored = false;
++            hideSDSetupPrompt();
++            refreshSdRingtones();
++        } else if (!suppressSDSetupPrompt && noticePopupsEnabled && !sdSetupIgnored) {
++            showSDSetupPrompt();
++        }
++    }
++    if (formatSD && !suppressSDSetupPrompt && noticePopupsEnabled && !sdSetupIgnored) {
++        showSDSetupPrompt();
+     }
+     lv_label_set_text(objects.home_sd_card_label, buf);
+ #else
+@@ -8185,8 +8617,30 @@ bool TFTView_320x240::updateSDCard(void)
+     return cardDetected;
+ }
+ 
++void TFTView_320x240::prepareSDCard(void)
++{
++    if (!sdCard || sdCard->cardType() == ISdCard::eNone) {
++        updateSDCard();
++    }
++
++    setSDSetupStatus(_("Creating Z-Deck folders...\nDo not remove it"));
++    if (cardDetected && sdCard && sdCard->prepareStorage()) {
++        refreshSdRingtones();
++        sdSetupIgnored = false;
++        setSDSetupStatus(_("SD ready\nFolders prepared"));
++        hideSDSetupPrompt();
++        lv_label_set_text(objects.home_sd_card_label, _("SD ready\nFolders prepared"));
++        showNoticePopup(_("SD card prepared"), true);
++    } else {
++        setSDSetupStatus(_("SD prep failed\nCheck card and retry"));
++        showNoticePopup(_("SD prep failed"), true);
++    }
++}
++
+ void TFTView_320x240::formatSDCard(void)
+ {
++    formatSD = false;
++    cardDetected = false;
+     if (sdCard) {
+         delete sdCard;
+         sdCard = nullptr;
+@@ -8198,16 +8652,39 @@ void TFTView_320x240::formatSDCard(void)
+     sdCard = new SdFsCard;
+ #endif
+     ILOG_DEBUG("formatting SD card");
++    lv_label_set_text(objects.home_sd_card_label, _("SD formatting\nDo not remove"));
++    lv_refr_now(displaydriver->getDisplay());
+     if (sdCard->format()) {
+         updateSDCard();
+     } else {
+         lv_label_set_text(objects.home_sd_card_label, "SD format failed");
++        showNoticePopup(_("SD format failed"), true);
+     }
+ #endif
+     if (!sdCard)
+         sdCard = new NoSdCard;
+ }
+ 
++void TFTView_320x240::updateUSBStatus(void)
++{
++    if (!powerStatus || !powerStatus->knowsUSB())
++        return;
++
++    bool connected = powerStatus->getHasUSB();
++    if (!usbStatusKnown) {
++        usbStatusKnown = true;
++        lastUsbConnected = connected;
++        if (connected)
++            showNoticePopup(_("USB connected"), true);
++        return;
++    }
++
++    if (connected != lastUsbConnected) {
++        lastUsbConnected = connected;
++        showNoticePopup(connected ? _("USB connected") : _("USB disconnected"), true);
++    }
++}
++
+ void TFTView_320x240::updateFreeMem(void)
+ {
+     // only update if HomePanel is active (since this is some critical code that did crash sporadically)
+@@ -8253,6 +8730,7 @@ void TFTView_320x240::task_handler(void)
+             lastrun1 = curtime;
+             actTime++;
+             updateTime();
++            updateUSBStatus();
+ 
+             if (curtime - lastrun5 >= 5) { // call every 5s
+                 lastrun5 = curtime;
+@@ -8276,6 +8754,9 @@ void TFTView_320x240::task_handler(void)
+             if (curtime - lastrun10 >= 10) { // call every 10s
+                 lastrun10 = curtime;
+                 updateFreeMem();
++                if (!cardDetected && (!sdSetupPanel || lv_obj_has_flag(sdSetupPanel, LV_OBJ_FLAG_HIDDEN))) {
++                    updateSDCard();
++                }
+ 
+                 if ((db.config.network.wifi_enabled || db.module_config.mqtt.enabled) && !displaydriver->isPowersaving()) {
+                     controller->requestDeviceConnectionStatus();
+diff --git a/source/graphics/TFT/Themes.cpp b/source/graphics/TFT/Themes.cpp
+index b8a8f72..f0e00c7 100644
+--- a/source/graphics/TFT/Themes.cpp
++++ b/source/graphics/TFT/Themes.cpp
+@@ -5,6 +5,11 @@
+ 
+ static enum Themes::Theme theme = Themes::eDark;
+ 
++static Themes::Theme supportedTheme(Themes::Theme th)
++{
++    return th == Themes::eLight ? Themes::eLight : Themes::eDark;
++}
++
+ Themes::Theme Themes::get(void)
+ {
+     return theme;
+@@ -145,10 +150,10 @@ uint32_t themeColor[][2] = {
+     {0xff303030, 0xfff4f4f4}, // eTabViewBg
+     {0xffaafbff, 0xff003c9f}, // eTabViewText
+     {0xff303030, 0xffe0e0e0}, // eTabButtonDefaultBg
+-    {0xff303030, 0xffffffff}, // eTabButtonActiveBg
++    {0xff67ea94, 0xff67ea94}, // eTabButtonActiveBg
+     {0xff67ea94, 0xffaafbff}, // eTabButtonPressedBg
+     {0xffA0A0A0, 0xff606060}, // eTabButtonDefaultText
+-    {0xffffffff, 0xff101010}, // eTabButtonActiveText
++    {0xff101010, 0xff101010}, // eTabButtonActiveText
+     {0xffffffff, 0xffffffff}, // eTabButtonPressedText
+     {0xff505050, 0xffb0b0b0}, // eTabButtonDefaultBorder
+     {0xff303030, 0xfffbfce9}, // eChatMessageBg
+@@ -383,7 +388,7 @@ void apply_style_statistics_table_style_ITEMS_DEFAULT(void)
+ 
+ void Themes::set(enum Theme th)
+ {
+-    theme = th;
++    theme = supportedTheme(th);
+     apply_style_top_panel_style();
+     apply_style_panel_style_MAIN_DEFAULT();
+     apply_style_panel_style_MAIN_PRESSED();
+@@ -433,10 +438,10 @@ void Themes::initStyles(void)
+     lv_style_set_text_color(&style_btn_active, lv_color_hex(THEME(eTabButtonActiveText)));
+     lv_style_set_bg_color(&style_btn_active, lv_color_hex(THEME(eTabButtonActiveBg)));
+     lv_style_set_bg_opa(&style_btn_active, LV_OPA_COVER);
+-    lv_style_set_border_color(&style_btn_active, lv_color_hex(0xff67ea94));
++    lv_style_set_border_color(&style_btn_active, lv_color_hex(THEME(eTabButtonActiveText)));
+     lv_style_set_border_opa(&style_btn_active, LV_OPA_COVER);
+-    lv_style_set_border_width(&style_btn_active, 3);
+-    lv_style_set_border_side(&style_btn_active, LV_BORDER_SIDE_BOTTOM);
++    lv_style_set_border_width(&style_btn_active, 2);
++    lv_style_set_border_side(&style_btn_active, LV_BORDER_SIDE_FULL);
+ 
+     lv_style_init(&style_btn_pressed);
+     lv_style_set_text_color(&style_btn_pressed, lv_color_hex(THEME(eTabButtonPressedText)));
+@@ -522,4 +527,4 @@ void Themes::recolorTableRow(lv_draw_fill_dsc_t *fill_draw_dsc, bool odd)
+     }
+ }
+ 
+-#endif // VIEW_320x240
+\ No newline at end of file
++#endif // VIEW_320x240
+diff --git a/source/graphics/common/SdCard.cpp b/source/graphics/common/SdCard.cpp
+index 429652b..87ad92a 100644
+--- a/source/graphics/common/SdCard.cpp
++++ b/source/graphics/common/SdCard.cpp
+@@ -3,6 +3,7 @@
+ #include "util/ILog.h"
+ #include "sdkconfig.h"
+ #include <algorithm>
++#include <cctype>
+ #include <cstring>
+ #include <cstdio>
+ 
+@@ -155,6 +156,97 @@ bool zDeckWriteSdVolumeLabel(const char *)
+ }
+ #endif
+ 
++static const char *legacyStorageFolders[] = {"/maps", "/ringtones", "/messages", "/backups", "/logs"};
++static const char *zDeckStorageFolders[] = {"/zdeck", "/zdeck/history", "/zdeck/ringtones", "/itsz", "/itsz/history"};
++static const char *storageFolders[] = {"/maps", "/ringtones", "/messages", "/backups", "/logs", "/zdeck", "/zdeck/maps",
++                                       "/zdeck/maps/cache", "/zdeck/history", "/zdeck/ringtones", "/zdeck/logs",
++                                       "/zdeck/exports", "/itsz", "/itsz/history"};
++
++static size_t storageFolderCount(void)
++{
++    return sizeof(storageFolders) / sizeof(storageFolders[0]);
++}
++
++static bool storageFolderExists(const char *folder)
++{
++    File dir = SDFs.open(folder);
++    bool exists = dir && dir.isDirectory();
++    if (dir)
++        dir.close();
++    return exists;
++}
++
++static bool storageLayoutPrepared(const char *const *folders, size_t count)
++{
++    for (size_t i = 0; i < count; i++) {
++        if (!storageFolderExists(folders[i]))
++            return false;
++    }
++    return true;
++}
++
++static bool zDeckStoragePrepared(void)
++{
++    return storageLayoutPrepared(zDeckStorageFolders, sizeof(zDeckStorageFolders) / sizeof(zDeckStorageFolders[0]));
++}
++
++static bool legacyStoragePrepared(void)
++{
++    return storageLayoutPrepared(legacyStorageFolders, sizeof(legacyStorageFolders) / sizeof(legacyStorageFolders[0]));
++}
++
++static bool isRingtoneFile(const std::string &name)
++{
++    std::string lower = name;
++    std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
++    auto endsWith = [&lower](const char *suffix) {
++        size_t suffixLen = strlen(suffix);
++        return lower.size() >= suffixLen && lower.compare(lower.size() - suffixLen, suffixLen, suffix) == 0;
++    };
++    return endsWith(".rtttl") || endsWith(".txt") || endsWith(".ring");
++}
++
++static std::string displayNameForRingtone(const std::string &path, const std::string &rtttl)
++{
++    std::string name;
++    size_t sep = rtttl.find(':');
++    if (sep != std::string::npos && sep > 0) {
++        name = rtttl.substr(0, sep);
++    } else {
++        size_t slash = path.find_last_of('/');
++        name = slash == std::string::npos ? path : path.substr(slash + 1);
++        size_t dot = name.find_last_of('.');
++        if (dot != std::string::npos)
++            name.resize(dot);
++    }
++
++    if (name.size() > 28)
++        name.resize(28);
++    return name.empty() ? "SD ringtone" : name;
++}
++
++static bool validRtttl(const std::string &rtttl)
++{
++    size_t first = rtttl.find(':');
++    if (first == std::string::npos)
++        return false;
++    return rtttl.find(':', first + 1) != std::string::npos && rtttl.size() < 231;
++}
++
++static std::string readRtttlLine(File &file)
++{
++    while (file.available()) {
++        String line = file.readStringUntil('\n');
++        line.trim();
++        if (line.length() == 0 || line[0] == '#')
++            continue;
++
++        std::string rtttl = line.c_str();
++        return validRtttl(rtttl) ? rtttl : std::string{};
++    }
++    return {};
++}
++
+ #if defined(ZDECK_USB_SD_MSC_ENABLED) && ZDECK_USB_SD_MSC_ENABLED == 1 && defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO) &&                    \
+     defined(ARDUINO_ARCH_ESP32) && CONFIG_TINYUSB_MSC_ENABLED
+ #include "USBMSC.h"
+@@ -397,6 +489,52 @@ SDCard::~SDCard(void)
+ #endif
+ 
+ #if defined(ARCH_PORTDUINO) || defined(HAS_SD_MMC)
++bool SDCard::prepareStorage(void)
++{
++    bool ok = true;
++    for (size_t i = 0; i < storageFolderCount(); i++) {
++        const char *folder = storageFolders[i];
++        bool exists = storageFolderExists(folder);
++        if (!exists && !SDFs.mkdir(folder)) {
++            ILOG_WARN("SD: failed to create %s", folder);
++            ok = false;
++        }
++    }
++    return ok;
++}
++
++bool SDCard::isStoragePrepared(void)
++{
++    return zDeckStoragePrepared() || legacyStoragePrepared();
++}
++
++std::vector<ISdCard::RingtoneFile> SDCard::loadRingtones(const char *folder)
++{
++    std::vector<RingtoneFile> ringtones;
++    File dir = SDFs.open(folder);
++    if (!dir)
++        return ringtones;
++
++    do {
++        File entry = dir.openNextFile();
++        if (!entry)
++            break;
++
++        std::string path = entry.name();
++        if (!entry.isDirectory() && isRingtoneFile(path)) {
++            std::string rtttl = readRtttlLine(entry);
++            if (!rtttl.empty()) {
++                ILOG_DEBUG("SD: found ringtone: %s", path.c_str());
++                ringtones.push_back({displayNameForRingtone(path, rtttl), rtttl});
++            }
++        }
++        entry.close();
++    } while (true);
++
++    dir.close();
++    return ringtones;
++}
++
+ std::set<std::string> SDCard::loadMapStyles(const char *folder)
+ {
+     std::set<std::string> styles;
+@@ -546,6 +684,54 @@ bool SdFsCard::format(void)
+     return SDFs.format();
+ }
+ 
++bool SdFsCard::prepareStorage(void)
++{
++    bool ok = true;
++    for (size_t i = 0; i < storageFolderCount(); i++) {
++        const char *folder = storageFolders[i];
++        bool exists = storageFolderExists(folder);
++        if (!exists && !SDFs.mkdir(folder)) {
++            ILOG_WARN("SdFs: failed to create %s", folder);
++            ok = false;
++        }
++    }
++    return ok;
++}
++
++bool SdFsCard::isStoragePrepared(void)
++{
++    return zDeckStoragePrepared() || legacyStoragePrepared();
++}
++
++std::vector<ISdCard::RingtoneFile> SdFsCard::loadRingtones(const char *folder)
++{
++    std::vector<RingtoneFile> ringtones;
++    File dir = SDFs.open(folder);
++    if (!dir)
++        return ringtones;
++
++    do {
++        File entry = dir.openNextFile();
++        if (!entry)
++            break;
++
++        char name[64];
++        entry.getName(name, sizeof(name));
++        std::string path = std::string(folder) + "/" + name;
++        if (!entry.isDirectory() && isRingtoneFile(name)) {
++            std::string rtttl = readRtttlLine(entry);
++            if (!rtttl.empty()) {
++                ILOG_DEBUG("SdFs: found ringtone: %s", path.c_str());
++                ringtones.push_back({displayNameForRingtone(path, rtttl), rtttl});
++            }
++        }
++        entry.close();
++    } while (true);
++
++    dir.close();
++    return ringtones;
++}
++
+ std::set<std::string> SdFsCard::loadMapStyles(const char *folder)
+ {
+     std::set<std::string> styles;
+diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
+index 435f4f9..35c638f 100644
+--- a/source/graphics/map/MapPanel.cpp
++++ b/source/graphics/map/MapPanel.cpp
+@@ -603,4 +603,4 @@ void MapPanel::printTiles(void)
+     }
+     ILOG_DEBUG("tiles: %d\n%s", tiles.size(), ss.str().c_str());
+ }
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/source/graphics/map/SdFatService.cpp b/source/graphics/map/SdFatService.cpp
+index c116add..5f27439 100644
+--- a/source/graphics/map/SdFatService.cpp
++++ b/source/graphics/map/SdFatService.cpp
+@@ -146,4 +146,4 @@ lv_fs_res_t SdFatService::fs_dir_close(lv_fs_drv_t *drv, void *rddir_p)
+     return LV_FS_RES_NOT_IMP; // TODO
+ }
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/source/graphics/map/URLService.cpp b/source/graphics/map/URLService.cpp
+index fd2597d..f72abde 100644
+--- a/source/graphics/map/URLService.cpp
++++ b/source/graphics/map/URLService.cpp
+@@ -6,6 +6,7 @@
+ #include "util/ILog.h"
+ 
+ #ifdef ARDUINO_ARCH_ESP32
++#include <WiFi.h>
+ 
+ // from ConvertPNG.c
+ extern "C" {

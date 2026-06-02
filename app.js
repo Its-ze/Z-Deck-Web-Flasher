@@ -1,8 +1,8 @@
 ﻿const idleLines = [
   "status: waiting for T-Deck",
-  "firmware: Z-Deck 0.2.7-public / LongFast",
+  "firmware: Z-Deck 0.2.8-public / LongFast",
   "target: ESP32-S3 / t-deck-tft",
-  "bundle: SD setup fix + stable serial recovery",
+  "bundle: Modern Field UI + SD setup fix",
   "ready: connect deck and authorize serial"
 ];
 
@@ -24,9 +24,9 @@ installButton.addEventListener("click", () => {
   setTicker([
     "status: serial action requested",
     "next: choose the T-Deck port in the browser prompt",
-    "firmware: Z-Deck 0.2.7-public / LongFast",
+    "firmware: Z-Deck 0.2.8-public / LongFast",
     "flash map: app0 + app1 + littlefs",
-    "features: SD setup progress + USB SD disabled"
+    "features: Modern Field UI + SD setup progress"
   ]);
 });
 

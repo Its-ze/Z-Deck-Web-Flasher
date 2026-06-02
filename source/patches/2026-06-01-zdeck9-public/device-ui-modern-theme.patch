@@ -1,0 +1,515 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index d9f5e7f..60fe173 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -233,6 +233,7 @@ class TFTView_320x240 : public MeshtasticView
+     void enterProgrammingMode(void);
+     void createBootProgressBar(void);
+     void setBootProgress(uint8_t value);
++    void applyZDeckModernLayout(void);
+     void updateTheme(void);
+     void ui_events_init(void);
+     void ui_set_active(lv_obj_t *b, lv_obj_t *p, lv_obj_t *tp);
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 4313c42..c7a3bab 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -76,17 +76,31 @@ LV_IMAGE_DECLARE(node_location_pin24_image);
+ 
+ #define VALID_TIME(T) (T > 1000000 && T < UINT32_MAX)
+ 
+-constexpr lv_color_t colorRed = LV_COLOR_HEX(0xff5555);
++constexpr lv_color_t colorRed = LV_COLOR_HEX(0xff6f61);
+ constexpr lv_color_t colorDarkRed = LV_COLOR_HEX(0xa70a0a);
+-constexpr lv_color_t colorOrange = LV_COLOR_HEX(0xff8c04);
+-constexpr lv_color_t colorYellow = LV_COLOR_HEX(0xdbd251);
+-constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x05f6cb);
+-constexpr lv_color_t colorBlue = LV_COLOR_HEX(0x436C70);
+-constexpr lv_color_t colorGray = LV_COLOR_HEX(0x757575);
+-constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xAAFBFF);
+-constexpr lv_color_t colorMidGray = LV_COLOR_HEX(0x808080);
+-constexpr lv_color_t colorDarkGray = LV_COLOR_HEX(0x303030);
+-constexpr lv_color_t colorMesh = LV_COLOR_HEX(0x67ea94);
++constexpr lv_color_t colorOrange = LV_COLOR_HEX(0xf7bc4d);
++constexpr lv_color_t colorYellow = LV_COLOR_HEX(0xf7bc4d);
++constexpr lv_color_t colorBlueGreen = LV_COLOR_HEX(0x2de2c7);
++constexpr lv_color_t colorBlue = LV_COLOR_HEX(0x6aa8ff);
++constexpr lv_color_t colorGray = LV_COLOR_HEX(0x5e7680);
++constexpr lv_color_t colorLightGray = LV_COLOR_HEX(0xedf8fb);
++constexpr lv_color_t colorMidGray = LV_COLOR_HEX(0x94aeb7);
++constexpr lv_color_t colorDarkGray = LV_COLOR_HEX(0x12252c);
++constexpr lv_color_t colorMesh = LV_COLOR_HEX(0x2de2c7);
++
++constexpr lv_color_t zDeckModernBg = LV_COLOR_HEX(0x071014);
++constexpr lv_color_t zDeckModernSurface = LV_COLOR_HEX(0x0d1a20);
++constexpr lv_color_t zDeckModernPanel = LV_COLOR_HEX(0x12252c);
++constexpr lv_color_t zDeckModernPanel2 = LV_COLOR_HEX(0x182b32);
++constexpr lv_color_t zDeckModernLine = LV_COLOR_HEX(0x2e5660);
++constexpr lv_color_t zDeckModernText = LV_COLOR_HEX(0xedf8fb);
++constexpr lv_color_t zDeckModernDim = LV_COLOR_HEX(0x94aeb7);
++constexpr lv_color_t zDeckModernSoft = LV_COLOR_HEX(0x5e7680);
++constexpr lv_color_t zDeckModernAccent = LV_COLOR_HEX(0x2de2c7);
++constexpr lv_color_t zDeckModernAccent2 = LV_COLOR_HEX(0x6aa8ff);
++constexpr lv_color_t zDeckModernWarn = LV_COLOR_HEX(0xf7bc4d);
++constexpr lv_color_t zDeckModernGood = LV_COLOR_HEX(0x4fe38a);
++constexpr lv_color_t zDeckModernMagenta = LV_COLOR_HEX(0xdf7dff);
+ 
+ #if defined(T_DECK)
+ static constexpr uint16_t defaultScreenTimeoutSecs = 600;
+@@ -125,8 +139,7 @@ static void setNavButtonInactive(lv_obj_t *button)
+     lv_obj_set_style_border_width(button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_outline_width(button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_bg_img_recolor(button, colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_bg_img_recolor_opa(button, Themes::get() == Themes::eDark ? 0 : 255,
+-                                        LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_img_recolor_opa(button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+ }
+ 
+ static void setNavButtonActive(lv_obj_t *button)
+@@ -144,6 +157,47 @@ static void setNavButtonActive(lv_obj_t *button)
+     lv_obj_set_style_bg_img_recolor_opa(button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+ }
+ 
++static void zDeckModernFrame(lv_obj_t *obj, lv_color_t bg, lv_color_t border, lv_opa_t opa = 245)
++{
++    if (!obj)
++        return;
++
++    lv_obj_set_style_bg_color(obj, bg, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(obj, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(obj, border, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_opa(obj, 220, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_radius(obj, 7, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_shadow_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(obj, zDeckModernText, LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
++static void zDeckModernIconButton(lv_obj_t *obj, lv_color_t accent)
++{
++    if (!obj)
++        return;
++
++    zDeckModernFrame(obj, zDeckModernPanel, zDeckModernLine);
++    lv_obj_set_style_bg_color(obj, zDeckModernPanel2, LV_PART_MAIN | LV_STATE_PRESSED);
++    lv_obj_set_style_border_color(obj, accent, LV_PART_MAIN | LV_STATE_CHECKED);
++    lv_obj_set_style_outline_color(obj, accent, LV_PART_MAIN | LV_STATE_FOCUSED);
++    lv_obj_set_style_outline_width(obj, 1, LV_PART_MAIN | LV_STATE_FOCUSED);
++    lv_obj_set_style_bg_image_recolor(obj, accent, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_image_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_img_recolor(obj, accent, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_img_recolor_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
++static void zDeckModernStatusLabel(lv_obj_t *obj)
++{
++    if (!obj)
++        return;
++
++    lv_obj_set_style_text_color(obj, zDeckModernDim, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_font(obj, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_line_space(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
+ // children index of nodepanel lv objects (see addNode)
+ enum NodePanelIdx {
+     node_img_idx,
+@@ -512,9 +566,9 @@ void TFTView_320x240::createBootProgressBar(void)
+     lv_obj_move_foreground(bootProgressBar);
+     lv_obj_set_style_radius(bootProgressBar, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_radius(bootProgressBar, 3, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+-    lv_obj_set_style_bg_color(bootProgressBar, lv_color_hex(0xff1b3b26), LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_bg_opa(bootProgressBar, 120, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_bg_color(bootProgressBar, lv_color_hex(0xffffffff), LV_PART_INDICATOR | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(bootProgressBar, zDeckModernLine, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(bootProgressBar, 160, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(bootProgressBar, zDeckModernAccent, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+     lv_obj_set_style_bg_opa(bootProgressBar, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+     lv_obj_clear_flag(bootProgressBar, LV_OBJ_FLAG_CLICKABLE);
+     lv_obj_clear_flag(bootProgressBar, LV_OBJ_FLAG_SCROLLABLE);
+@@ -554,6 +608,7 @@ void TFTView_320x240::init_screens(void)
+     channelGroup = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+     ui_set_active(objects.home_button, objects.home_panel, objects.top_panel);
+     ui_events_init();
++    applyZDeckModernLayout();
+ 
+     // load main screen
+     setBootProgress(100);
+@@ -854,6 +909,147 @@ void TFTView_320x240::apply_hotfix(void)
+     lv_obj_add_style(objects.settings_restore_checkbox, &style_radio, LV_PART_INDICATOR);
+ }
+ 
++void TFTView_320x240::applyZDeckModernLayout(void)
++{
++    if (Themes::get() != Themes::eDark || !objects.main_screen)
++        return;
++
++    const uint32_t h = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
++    const uint32_t v = lv_display_get_vertical_resolution(displaydriver->getDisplay());
++    const bool largeDisplay = h > 320 && v > 320;
++    const int32_t navSize = largeDisplay ? 64 : 34;
++    const int32_t statusIconSize = largeDisplay ? 42 : 34;
++
++    lv_obj_set_style_bg_color(objects.main_screen, zDeckModernBg, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(objects.main_screen, zDeckModernText, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    lv_obj_t *topPanels[] = {objects.top_panel, objects.top_settings_panel, objects.top_advanced_settings_panel,
++                             objects.top_node_options_panel};
++    for (lv_obj_t *panel : topPanels) {
++        zDeckModernFrame(panel, zDeckModernSurface, zDeckModernLine, 255);
++        if (panel)
++            lv_obj_set_style_radius(panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    }
++
++    if (objects.button_panel) {
++        zDeckModernFrame(objects.button_panel, zDeckModernSurface, zDeckModernLine, 255);
++        lv_obj_set_style_border_side(objects.button_panel, LV_BORDER_SIDE_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_radius(objects.button_panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_row(objects.button_panel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_column(objects.button_panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    }
++
++    lv_obj_t *navButtons[] = {objects.home_button, objects.nodes_button,    objects.groups_button,
++                              objects.messages_button, objects.map_button, objects.settings_button};
++    for (lv_obj_t *button : navButtons) {
++        if (!button)
++            continue;
++        lv_obj_set_size(button, navSize, navSize);
++        zDeckModernIconButton(button, zDeckModernDim);
++    }
++    if (activeButton)
++        setNavButtonActive(activeButton);
++
++    lv_obj_t *mainPanels[] = {objects.home_panel, objects.nodes_panel, objects.groups_panel, objects.messages_panel,
++                              objects.controller_panel, objects.node_options_panel};
++    for (lv_obj_t *panel : mainPanels) {
++        zDeckModernFrame(panel, zDeckModernBg, zDeckModernBg, 255);
++        if (panel) {
++            lv_obj_set_style_border_width(panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++            lv_obj_set_style_radius(panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++        }
++    }
++
++    if (objects.home_container) {
++        zDeckModernFrame(objects.home_container, zDeckModernSurface, zDeckModernLine, 255);
++        lv_obj_set_style_pad_left(objects.home_container, largeDisplay ? 9 : 6, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_right(objects.home_container, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_top(objects.home_container, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_bottom(objects.home_container, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_column(objects.home_container, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_row(objects.home_container, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
++    }
++
++    lv_obj_t *statusButtons[] = {objects.home_mail_button,      objects.home_nodes_button,    objects.home_time_button,
++                                 objects.home_lora_button,      objects.home_signal_button,   objects.home_bell_button,
++                                 objects.home_location_button,  objects.home_wlan_button,     objects.home_ethernet_button,
++                                 objects.home_bluetooth_button, objects.home_mqtt_button,     objects.home_sd_card_button,
++                                 objects.home_memory_button,    objects.home_qr_button};
++    for (lv_obj_t *button : statusButtons) {
++        if (!button)
++            continue;
++        lv_obj_set_size(button, statusIconSize, statusIconSize);
++        zDeckModernIconButton(button, zDeckModernDim);
++    }
++
++    zDeckModernIconButton(objects.home_mail_button, zDeckModernAccent2);
++    zDeckModernIconButton(objects.home_nodes_button, zDeckModernGood);
++    zDeckModernIconButton(objects.home_lora_button, db.config.lora.tx_enabled ? zDeckModernAccent : zDeckModernSoft);
++    zDeckModernIconButton(objects.home_signal_button, zDeckModernAccent2);
++    zDeckModernIconButton(objects.home_bell_button, db.uiConfig.alert_enabled || !db.silent ? zDeckModernWarn : zDeckModernSoft);
++    zDeckModernIconButton(objects.home_location_button,
++                          db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED ? zDeckModernGood
++                                                                                                          : zDeckModernSoft);
++    zDeckModernIconButton(objects.home_wlan_button, db.config.network.wifi_enabled ? zDeckModernAccent2 : zDeckModernSoft);
++    zDeckModernIconButton(objects.home_mqtt_button, db.module_config.mqtt.enabled ? zDeckModernAccent : zDeckModernSoft);
++    zDeckModernIconButton(objects.home_sd_card_button, cardDetected ? zDeckModernGood : zDeckModernWarn);
++    zDeckModernIconButton(objects.home_memory_button, zDeckModernMagenta);
++    zDeckModernIconButton(objects.home_qr_button, zDeckModernAccent2);
++
++    lv_obj_t *statusLabels[] = {objects.home_mail_label,      objects.home_nodes_label,    objects.home_time_label,
++                                objects.home_lora_label,      objects.home_signal_label,   objects.home_signal_pct_label,
++                                objects.home_bell_label,      objects.home_location_label, objects.home_wlan_label,
++                                objects.home_ethernet_label,  objects.home_bluetooth_label, objects.home_mqtt_label,
++                                objects.home_sd_card_label,   objects.home_memory_label,   objects.home_qr_label};
++    for (lv_obj_t *label : statusLabels)
++        zDeckModernStatusLabel(label);
++
++    auto setStatusText = [](lv_obj_t *obj, bool active) {
++        if (obj)
++            lv_obj_set_style_text_color(obj, active ? zDeckModernText : zDeckModernDim, LV_PART_MAIN | LV_STATE_DEFAULT);
++    };
++    setStatusText(objects.home_lora_label, db.config.lora.tx_enabled);
++    setStatusText(objects.home_bell_label, db.uiConfig.alert_enabled || !db.silent);
++    setStatusText(objects.home_location_label, db.config.position.gps_mode == meshtastic_Config_PositionConfig_GpsMode_ENABLED);
++    setStatusText(objects.home_wlan_label, db.config.network.wifi_enabled);
++    setStatusText(objects.home_mqtt_label, db.module_config.mqtt.enabled);
++    setStatusText(objects.home_sd_card_label, cardDetected);
++
++    if (objects.tab_page_tools) {
++        lv_obj_set_style_bg_color(objects.tab_page_tools, zDeckModernBg, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_row(objects.tab_page_tools, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++    }
++
++    zDeckModernFrame(zDeckHealthButton, zDeckModernPanel, zDeckModernAccent);
++    zDeckModernFrame(zDeckHealthPanel, zDeckModernPanel, zDeckModernAccent, 245);
++    zDeckModernFrame(zDeckSdButton, zDeckModernPanel, zDeckModernWarn);
++    zDeckModernFrame(zDeckSdPanel, zDeckModernPanel, zDeckModernWarn, 245);
++    zDeckModernFrame(screenCorrectionButton, zDeckModernPanel, zDeckModernAccent2);
++    if (zDeckHealthButtonLabel)
++        lv_obj_set_style_text_color(zDeckHealthButtonLabel, zDeckModernText, LV_PART_MAIN | LV_STATE_DEFAULT);
++    if (zDeckHealthLabel)
++        lv_obj_set_style_text_color(zDeckHealthLabel, zDeckModernText, LV_PART_MAIN | LV_STATE_DEFAULT);
++    if (zDeckSdButtonLabel)
++        lv_obj_set_style_text_color(zDeckSdButtonLabel, zDeckModernText, LV_PART_MAIN | LV_STATE_DEFAULT);
++    if (zDeckSdLabel)
++        lv_obj_set_style_text_color(zDeckSdLabel, zDeckModernText, LV_PART_MAIN | LV_STATE_DEFAULT);
++    if (screenCorrectionButtonLabel)
++        lv_obj_set_style_text_color(screenCorrectionButtonLabel, zDeckModernText, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    zDeckModernFrame(sdSetupPanel, zDeckModernSurface, zDeckModernAccent, 255);
++    zDeckModernFrame(sdSetupIgnoreButton, zDeckModernPanel, zDeckModernLine);
++    zDeckModernFrame(sdSetupFormatButton, zDeckModernPanel, zDeckModernWarn);
++    if (sdSetupStatusLabel)
++        lv_obj_set_style_text_color(sdSetupStatusLabel, zDeckModernWarn, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    if (bootProgressBar) {
++        lv_obj_set_style_bg_color(bootProgressBar, zDeckModernLine, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_bg_opa(bootProgressBar, 160, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_bg_color(bootProgressBar, zDeckModernAccent, LV_PART_INDICATOR | LV_STATE_DEFAULT);
++        lv_obj_set_style_bg_opa(bootProgressBar, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
++    }
++}
++
+ void TFTView_320x240::updateTheme(void)
+ {
+     Themes::initStyles();
+@@ -874,7 +1070,7 @@ void TFTView_320x240::updateTheme(void)
+     Themes::recolorText(objects.home_sd_card_label, cardDetected);
+     Themes::recolorText(objects.home_memory_label, (bool)objects.home_memory_button->user_data);
+ 
+-    lv_opa_t opa = (Themes::get() == Themes::eDark) ? 0 : 255;
++    lv_opa_t opa = 255;
+     lv_obj_set_style_bg_img_recolor_opa(objects.home_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_bg_img_recolor_opa(objects.nodes_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_bg_img_recolor_opa(objects.groups_button, opa, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -887,6 +1083,7 @@ void TFTView_320x240::updateTheme(void)
+         if (db.channel[i].role != meshtastic_Channel_Role_DISABLED)
+             updateGroupChannel(i);
+     }
++    applyZDeckModernLayout();
+ }
+ 
+ void TFTView_320x240::ui_events_init(void)
+@@ -4677,7 +4874,7 @@ void TFTView_320x240::setTheme(uint32_t value)
+     char buf1[30], buf2[30];
+     lv_dropdown_set_selected(objects.settings_theme_dropdown, value);
+     lv_dropdown_get_selected_str(objects.settings_theme_dropdown, buf1, sizeof(buf1));
+-    lv_snprintf(buf2, sizeof(buf2), _("Theme: %s"), buf1);
++    lv_snprintf(buf2, sizeof(buf2), _("Theme: %s"), value == meshtastic_Theme_DARK ? "Modern Field" : buf1);
+     lv_label_set_text(objects.basic_settings_theme_label, buf2);
+ 
+     // change theme and redraw UI
+diff --git a/source/graphics/TFT/Themes.cpp b/source/graphics/TFT/Themes.cpp
+index f0e00c7..8194625 100644
+--- a/source/graphics/TFT/Themes.cpp
++++ b/source/graphics/TFT/Themes.cpp
+@@ -98,88 +98,89 @@ enum ThemeColor {
+     eTableCellBorder
+ };
+ 
++// ZDECK_MODERN_THEME: Modern Field dark palette. Light theme stays close to upstream.
+ uint32_t themeColor[][2] = {
+     // dark,       light
+-    {0xff303030, 0xfff4f4f4}, // eMainScreenStyle
+-    {0xff436C70, 0xff67ea94}, // eTopPanelBg
+-    {0xffE0E0E0, 0xff212121}, // eTopPanelText
+-    {0xff436C70, 0xff67ea94}, // eTopImageBg
+-    {0xffffffff, 0xff212121}, // eTopImageRecolor
++    {0xff071014, 0xfff4f4f4}, // eMainScreenStyle
++    {0xff0d1a20, 0xff67ea94}, // eTopPanelBg
++    {0xffedf8fb, 0xff212121}, // eTopPanelText
++    {0xff0d1a20, 0xff67ea94}, // eTopImageBg
++    {0xff2de2c7, 0xff212121}, // eTopImageRecolor
+     {255, 255},               // eTopImageRecolorOpa
+-    {0xffffffff, 0xff212121}, // ePositiveImageRecolor,
+-    {0xff303030, 0xfff4f4f0}, // ePanelBg
+-    {0xff303030, 0xfffafafa}, // ePanelPressedBg
+-    {0xfff0f0f0, 0xff212121}, // ePanelText
+-    {0xff67ea94, 0xff67ea94}, // ePanelBorder
+-    {0xff404040, 0xffffffff}, // eNodePanelBg
+-    {0xff808080, 0xff979797}, // eNodePanelBorder
+-    {0xfff0f0f0, 0xff212121}, // eNodePanelText
+-    {0xff404040, 0xffffffff}, // eNodeButtonBg
++    {0xff4fe38a, 0xff212121}, // ePositiveImageRecolor,
++    {0xff0d1a20, 0xfff4f4f0}, // ePanelBg
++    {0xff182b32, 0xfffafafa}, // ePanelPressedBg
++    {0xffedf8fb, 0xff212121}, // ePanelText
++    {0xff2e5660, 0xff67ea94}, // ePanelBorder
++    {0xff12252c, 0xffffffff}, // eNodePanelBg
++    {0xff2e5660, 0xff979797}, // eNodePanelBorder
++    {0xffedf8fb, 0xff212121}, // eNodePanelText
++    {0xff12252c, 0xffffffff}, // eNodeButtonBg
+     {0, 0},                   // eNodeButtonBgOpa
+-    {0xff585858, 0xffffffff}, // eButtonPanelBg
+-    {0xff585858, 0xffeaeae0}, // eMainButtonBg
+-    {0xffaafbff, 0xff101010}, // eMainButtonText
+-    {0xff67ea94, 0xff67ea94}, // eMainButtonBorder
+-    {0xff9e9e9e, 0xffc0c0c0}, // eMainButtonShadow
+-    {0xff67ea94, 0xff757575}, // eMainButtonImageRecolor
+-    {0, 255},                 // eMainButtonImageRecolorOpa
+-    {0xff303030, 0xfffafaf4}, // eHomeContainerBg
+-    {0xff67EA94, 0xffaaaaaa}, // eHomeContainerBorder
+-    {0xff2B824A, 0xff999999}, // eHomeContainerShadow
+-    {0xffaafbff, 0xff294337}, // eHomeContainerText
+-    {0xff303030, 0xffffffff}, // eHomeButtonBg
+-    {0xffffffff, 0xff101010}, // eHomeButtonText
+-    {0xff303030, 0xffd0d0d0}, // eHomeButtonBorder
+-    {0xff606060, 0xff57a6b3}, // eHomeButtonImageRecolor
+-    {0, 255},                 // eHomeButtonImageRecolorOpa
+-    {0xff404040, 0xfffafaf4}, // eChannelButtonBg
+-    {0xffA0A0A0, 0xffD0D0D0}, // eChannelButtonBorder
+-    {0xffffffff, 0xff101010}, // eChannelButtonText
+-    {0xff303030, 0xfff0f0f0}, // eSettingsPanelBg
+-    {0xffaafbff, 0xff003c9f}, // eSettingsPanelText
+-    {0, 0xff979797},          // eSettingsPanelBorder
+-    {0, 0xff7e7e7e},          // eSettingsPanelShadow
++    {0xff0d1a20, 0xffffffff}, // eButtonPanelBg
++    {0xff12252c, 0xffeaeae0}, // eMainButtonBg
++    {0xffedf8fb, 0xff101010}, // eMainButtonText
++    {0xff2e5660, 0xff67ea94}, // eMainButtonBorder
++    {0xff071014, 0xffc0c0c0}, // eMainButtonShadow
++    {0xff94aeb7, 0xff757575}, // eMainButtonImageRecolor
++    {255, 255},               // eMainButtonImageRecolorOpa
++    {0xff071014, 0xfffafaf4}, // eHomeContainerBg
++    {0xff2e5660, 0xffaaaaaa}, // eHomeContainerBorder
++    {0xff071014, 0xff999999}, // eHomeContainerShadow
++    {0xffedf8fb, 0xff294337}, // eHomeContainerText
++    {0xff12252c, 0xffffffff}, // eHomeButtonBg
++    {0xffedf8fb, 0xff101010}, // eHomeButtonText
++    {0xff2e5660, 0xffd0d0d0}, // eHomeButtonBorder
++    {0xff2de2c7, 0xff57a6b3}, // eHomeButtonImageRecolor
++    {255, 255},               // eHomeButtonImageRecolorOpa
++    {0xff12252c, 0xfffafaf4}, // eChannelButtonBg
++    {0xff2e5660, 0xffD0D0D0}, // eChannelButtonBorder
++    {0xffedf8fb, 0xff101010}, // eChannelButtonText
++    {0xff0d1a20, 0xfff0f0f0}, // eSettingsPanelBg
++    {0xffedf8fb, 0xff003c9f}, // eSettingsPanelText
++    {0xff2e5660, 0xff979797}, // eSettingsPanelBorder
++    {0xff071014, 0xff7e7e7e}, // eSettingsPanelShadow
+     {250, 250},               // eSettingsPanelBgOpa
+-    {0xff505050, 0xffeaeae0}, // eSettingsButtonBg
+-    {0xffaafbff, 0xff294337}, // eSettingsButtonText
+-    {0xff303030, 0xffd0d0d0}, // eSettingsButtonBorder
+-    {0, 0xff67ea94},          // eSettingsButtonImageRecolor
+-    {0, 255},                 // eSettingsButtonImageRecolorOpa
+-    {0xff404040, 0xffffffff}, // eSettingsLabelBg
+-    {0xff404040, 0xff808080}, // eSettingsLabelBorder
+-    {0xff303030, 0xfff4f4f4}, // eTabViewBg
+-    {0xffaafbff, 0xff003c9f}, // eTabViewText
+-    {0xff303030, 0xffe0e0e0}, // eTabButtonDefaultBg
+-    {0xff67ea94, 0xff67ea94}, // eTabButtonActiveBg
+-    {0xff67ea94, 0xffaafbff}, // eTabButtonPressedBg
+-    {0xffA0A0A0, 0xff606060}, // eTabButtonDefaultText
+-    {0xff101010, 0xff101010}, // eTabButtonActiveText
++    {0xff12252c, 0xffeaeae0}, // eSettingsButtonBg
++    {0xffedf8fb, 0xff294337}, // eSettingsButtonText
++    {0xff2e5660, 0xffd0d0d0}, // eSettingsButtonBorder
++    {0xff2de2c7, 0xff67ea94}, // eSettingsButtonImageRecolor
++    {255, 255},               // eSettingsButtonImageRecolorOpa
++    {0xff12252c, 0xffffffff}, // eSettingsLabelBg
++    {0xff2e5660, 0xff808080}, // eSettingsLabelBorder
++    {0xff071014, 0xfff4f4f4}, // eTabViewBg
++    {0xffedf8fb, 0xff003c9f}, // eTabViewText
++    {0xff0d1a20, 0xffe0e0e0}, // eTabButtonDefaultBg
++    {0xff2de2c7, 0xff67ea94}, // eTabButtonActiveBg
++    {0xff6aa8ff, 0xffaafbff}, // eTabButtonPressedBg
++    {0xff94aeb7, 0xff606060}, // eTabButtonDefaultText
++    {0xff071014, 0xff101010}, // eTabButtonActiveText
+     {0xffffffff, 0xffffffff}, // eTabButtonPressedText
+-    {0xff505050, 0xffb0b0b0}, // eTabButtonDefaultBorder
+-    {0xff303030, 0xfffbfce9}, // eChatMessageBg
++    {0xff2e5660, 0xffb0b0b0}, // eTabButtonDefaultBorder
++    {0xff12252c, 0xfffbfce9}, // eChatMessageBg
+     {255, 255},               // eChatMessageBgOpa
+-    {0xffffffff, 0xff294337}, // eChatMessageText
+-    {0xff707070, 0xff888888}, // eChatMessageBorder
+-    {0xff404040, 0xffffffff}, // eNewMessageBg
++    {0xffedf8fb, 0xff294337}, // eChatMessageText
++    {0xff2e5660, 0xff888888}, // eChatMessageBorder
++    {0xff182b32, 0xffffffff}, // eNewMessageBg
+     {255, 255},               // eNewMessageBgOpa
+-    {0xffd0d0d0, 0xff294337}, // eNewMessageText
+-    {0xff808080, 0xff888888}, // eNewMessageBorder
+-    {0xff303030, 0xfffbfbfb}, // eAlertPanelBg
+-    {0xff303030, 0xfff4f4f4}, // eBtnMatrixBorderMain
+-    {0xff67ea94, 0xff67ea94}, // eBtnMatrixBorderItems
+-    {0xff606060, 0xfffffff8}, // eBtnMatrixBgItems
+-    {0xffaafbff, 0xff212121}, // eBtnMatrixTextItems
+-    {0xffaafbff, 0xff212121}, // eBatteryPercentageText
+-    {0xffaafbff, 0xff003c9f}, // eColorTextLabel
+-    {0xff404040, 0xffe0e0e0}, // eSpinnerMainArc
+-    {0xff67ea94, 0xff67ea94}, // eSpinnerIndicatorArc
+-    {0xffaafbff, 0xff212121}, // eTableHeadingText,
+-    {0xff303030, 0xfff4f4f0}, // eTableHeadingBg
+-    {0xffaafbff, 0xff212121}, // eTableItemText,
+-    {0xff505050, 0xfff4f4f0}, // eTableItemBg
+-    {0xff303030, 0xffd4d4d0}, // eTableItemDarkBg
+-    {0xff404040, 0xffe0e0e0}, // eTableBorder
+-    {0xff404040, 0xffe0e0e0}  // eTableCellBorder
++    {0xffedf8fb, 0xff294337}, // eNewMessageText
++    {0xff2de2c7, 0xff888888}, // eNewMessageBorder
++    {0xff0d1a20, 0xfffbfbfb}, // eAlertPanelBg
++    {0xff071014, 0xfff4f4f4}, // eBtnMatrixBorderMain
++    {0xff2de2c7, 0xff67ea94}, // eBtnMatrixBorderItems
++    {0xff12252c, 0xfffffff8}, // eBtnMatrixBgItems
++    {0xffedf8fb, 0xff212121}, // eBtnMatrixTextItems
++    {0xffedf8fb, 0xff212121}, // eBatteryPercentageText
++    {0xffedf8fb, 0xff003c9f}, // eColorTextLabel
++    {0xff2e5660, 0xffe0e0e0}, // eSpinnerMainArc
++    {0xff2de2c7, 0xff67ea94}, // eSpinnerIndicatorArc
++    {0xffedf8fb, 0xff212121}, // eTableHeadingText,
++    {0xff0d1a20, 0xfff4f4f0}, // eTableHeadingBg
++    {0xffedf8fb, 0xff212121}, // eTableItemText,
++    {0xff12252c, 0xfff4f4f0}, // eTableItemBg
++    {0xff0d1a20, 0xffd4d4d0}, // eTableItemDarkBg
++    {0xff2e5660, 0xffe0e0e0}, // eTableBorder
++    {0xff2e5660, 0xffe0e0e0}  // eTableCellBorder
+ };
+ 
+ #include "fonts.h"
+@@ -447,7 +448,7 @@ void Themes::initStyles(void)
+     lv_style_set_text_color(&style_btn_pressed, lv_color_hex(THEME(eTabButtonPressedText)));
+     lv_style_set_bg_color(&style_btn_pressed, lv_color_hex(THEME(eTabButtonPressedBg)));
+     lv_style_set_bg_opa(&style_btn_pressed, LV_OPA_COVER);
+-    lv_style_set_border_color(&style_btn_pressed, lv_color_hex(0xff67ea94));
++    lv_style_set_border_color(&style_btn_pressed, lv_color_hex(THEME(eTabButtonActiveBg)));
+     lv_style_set_border_opa(&style_btn_pressed, LV_OPA_COVER);
+     lv_style_set_border_width(&style_btn_pressed, 3);
+     lv_style_set_border_side(&style_btn_pressed, LV_BORDER_SIDE_BOTTOM);
+@@ -461,7 +462,7 @@ void Themes::recolorButton(lv_obj_t *obj, bool enabled, lv_opa_t opa)
+         color = enabled ? lv_color_hex(THEME(eHomeButtonImageRecolor)) : lv_color_hex(0xffc0c0c0);
+         break;
+     case eDark:
+-        color = enabled ? lv_color_hex(0xffe0e0e0) : lv_color_hex(0xff606060);
++        color = enabled ? lv_color_hex(THEME(eHomeButtonImageRecolor)) : lv_color_hex(0xff5e7680);
+         break;
+     default:
+         break;
+@@ -478,7 +479,7 @@ void Themes::recolorImage(lv_obj_t *obj, bool enabled)
+         color = enabled ? lv_color_hex(THEME(eHomeButtonImageRecolor)) : lv_color_hex(0xffc0c0c0);
+         break;
+     case eDark:
+-        color = enabled ? lv_color_hex(0xffe0e0e0) : lv_color_hex(0xff606060);
++        color = enabled ? lv_color_hex(THEME(eHomeButtonImageRecolor)) : lv_color_hex(0xff5e7680);
+         break;
+     default:
+         break;
+@@ -494,7 +495,7 @@ void Themes::recolorText(lv_obj_t *obj, bool enabled)
+         color = enabled ? lv_color_hex(THEME(eHomeContainerText)) : lv_color_hex(0xffc0c0c0);
+         break;
+     case eDark:
+-        color = enabled ? lv_color_hex(THEME(eHomeContainerText)) : lv_color_hex(0xff606060);
++        color = enabled ? lv_color_hex(THEME(eHomeContainerText)) : lv_color_hex(0xff94aeb7);
+         break;
+     default:
+         break;

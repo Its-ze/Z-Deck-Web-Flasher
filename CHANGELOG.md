@@ -1,5 +1,17 @@
 # Changelog
 
+## Z-Deck 0.2.8-public - 2026-06-01
+
+Modern Field theme and layout refresh for the public T-Deck build.
+
+- Rebuilt bundled firmware from `20260601-zdeck9-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck9` and pack label to `0.2.8-public`.
+- Added the Modern Field dark theme palette for the T-Deck UI.
+- Restyled the generated home/status layout with compact modern icon chips, a darker surface palette, and clearer active/inactive state colors.
+- Restyled the Tools health panel, SD prepare/reset panel, SD setup popup, nav rail, and boot progress bar to match the new theme.
+- Kept the 0.2.7 SD setup fixes: prepared cards are not treated as new on every insert, and setup/reset operations show visible progress readouts.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.7-public - 2026-06-01
 
 SD setup detection and progress-readout fix for the public T-Deck build.
