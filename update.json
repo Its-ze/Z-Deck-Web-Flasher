@@ -5,9 +5,9 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.10-public",
-                   "packVersion":  "0.2.10-public",
-                   "firmwareVersion":  "2.8.0.zdeck11",
+                   "title":  "Z-Deck 0.2.11-public",
+                   "packVersion":  "0.2.11-public",
+                   "firmwareVersion":  "2.8.0.zdeck12",
                    "released":  "2026-06-02",
                    "updateMode":  "app-only",
                    "preserves":  [
@@ -17,12 +17,12 @@
                                      "sd_chat_journal"
                                  ],
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck11-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck11-public/zdeck-firmware.bin",
-                                    "size":  3655696,
-                                    "sha256":  "3619cb819f55b9393ddb9726b7f0f2c94b733b09e30feaa52aac38398d20e7d3",
-                                    "md5":  "488f5a51c16c08d7ba66aae3ddeaed29"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck12-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck12-public/zdeck-firmware.bin",
+                                    "size":  3655680,
+                                    "sha256":  "eb2153968b799ccba6edd9b410d1cef7e667a853a0d6093799c119bc2705d194",
+                                    "md5":  "4fbccd3e2ba2e1a9e921bc72f73f00a4"
                                 },
-                   "notes":  "Fixes the front-page LoRa RX overlap and the public channel fallback label so empty/default LongFast no longer appears as unset. App-only updates write only the firmware app slot and preserve Meshtastic config, channels, keys, and SD chat history."
+                   "notes":  "Fixes the physical T-Deck home screen RX/status layout so it no longer overlaps the front-page icons. App-only updates write only the firmware app slot and preserve Meshtastic config, channels, keys, and SD chat history."
                }
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## Z-Deck 0.2.11-public - 2026-06-02
+
+Physical T-Deck home screen layout correction for the public build.
+
+- Rebuilt bundled firmware from 20260602-073938-t-deck-tft.
+- Bumped runtime identity to 2.8.0.zdeck12 and pack label to 0.2.11-public.
+- Fixed the physical T-Deck home RX/status layout so it stays inside the signal block and does not overlap the front-page icons.
+- Kept the LongFast default channel fallback, app-only Wi-Fi updates, Modern Field UI, SD setup detection/progress fixes, boot progress fix, public LongFast defaults, and disabled USB SD mass storage from 0.2.10.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
 ## Z-Deck 0.2.10-public - 2026-06-02
 
 Front-page radio status cleanup for the public T-Deck build.

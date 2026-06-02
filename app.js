@@ -1,6 +1,6 @@
 const idleLines = [
   "status: waiting for T-Deck",
-  "firmware: Z-Deck 0.2.10-public / LongFast",
+  "firmware: Z-Deck 0.2.11-public / LongFast",
   "target: ESP32-S3 / t-deck-tft",
   "bundle: Modern Field UI + Wi-Fi updater",
   "ready: connect deck and authorize serial"
@@ -24,7 +24,7 @@ installButton.addEventListener("click", () => {
   setTicker([
     "status: serial action requested",
     "next: choose the T-Deck port in the browser prompt",
-    "firmware: Z-Deck 0.2.10-public / LongFast",
+    "firmware: Z-Deck 0.2.11-public / LongFast",
     "flash map: app0 + app1 + littlefs",
     "features: Wi-Fi updater + SD setup progress"
   ]);
