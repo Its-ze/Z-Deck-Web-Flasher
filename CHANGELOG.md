@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.10-public - 2026-06-02
+
+Front-page radio status cleanup for the public T-Deck build.
+
+- Rebuilt bundled firmware from `20260601-233903-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck11` and pack label to `0.2.10-public`.
+- Fixed the home-screen LoRa status text so `RX` no longer overlaps the front page.
+- Changed the public default channel fallback so empty/default LongFast no longer displays as `unset`.
+- Kept app-only Wi-Fi updates, Modern Field UI, SD setup detection/progress fixes, boot progress fix, public LongFast defaults, and disabled USB SD mass storage from 0.2.9.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
 ## Z-Deck 0.2.9-public - 2026-06-02
 
 On-device Wi-Fi update flow for the public T-Deck build.

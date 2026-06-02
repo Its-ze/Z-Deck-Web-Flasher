@@ -17,6 +17,7 @@ The public beta includes the Z-Deck source patch set under [source/patches](sour
 - `device-ui-screen-correction.patch`
 - `device-ui-sd-message-journal.patch`
 - `device-ui-sd-tools.patch`
+- `device-ui-home-status.patch`
 - `device-ui-usability.patch`
 - `device-ui-polish.patch`
 - `device-ui-delivery-status.patch`
