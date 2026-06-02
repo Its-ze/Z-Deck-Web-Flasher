@@ -1,5 +1,17 @@
 # Changelog
 
+## Z-Deck 0.2.7-public - 2026-06-01
+
+SD setup detection and progress-readout fix for the public T-Deck build.
+
+- Rebuilt bundled firmware from `20260601-zdeck8-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck8` and pack label to `0.2.7-public`.
+- Fixed SD setup detection so a card prepared with the Z-Deck `/zdeck` and `/itsz/history` layout is not treated as new on every insert.
+- Kept compatibility with cards prepared by the older `/maps`, `/ringtones`, `/messages`, `/backups`, and `/logs` layout.
+- Added visible SD setup progress during popup setup and Tools reset/format work, including checking, formatting, remounting, and folder creation status.
+- Kept the 0.2.6 public stack: corrected boot progress bar, US LongFast default, classic UI, serial recovery, disabled USB mass storage, SD history/ringtones, popup controls, map/status/delivery improvements, and sound-off setup compatibility.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.6-public - 2026-06-01
 
 Boot progress and clean source rebuild fix for the public T-Deck build.
