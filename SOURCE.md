@@ -17,8 +17,6 @@ The public beta includes the Z-Deck source patch set under [source/patches](sour
 - `device-ui-screen-correction.patch`
 - `device-ui-sd-message-journal.patch`
 - `device-ui-sd-tools.patch`
-- `device-ui-sd-card-notices-ringtones.patch`
-- `device-ui-modern-theme.patch`
 - `device-ui-usability.patch`
 - `device-ui-polish.patch`
 - `device-ui-delivery-status.patch`
@@ -30,4 +28,4 @@ These patches document the custom changes layered on top of upstream Meshtastic 
 
 ## Rebuild Notes
 
-Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.
+Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The current full source patch also includes the Z-Deck app-only Wi-Fi updater service and menu wiring. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.

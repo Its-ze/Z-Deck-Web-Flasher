@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "product": "Z-Deck",
+  "channel": "public",
+  "hardware": "T_DECK",
+  "environment": "t-deck-tft",
+  "latest": {
+    "title": "Z-Deck 0.2.9-public",
+    "packVersion": "0.2.9-public",
+    "firmwareVersion": "2.8.0.zdeck10",
+    "released": "2026-06-02",
+    "updateMode": "app-only",
+    "preserves": [
+      "meshtastic_config",
+      "channels",
+      "keys",
+      "sd_chat_journal"
+    ],
+    "firmware": {
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck10-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck10-public/zdeck-firmware.bin",
+      "size": 3655664,
+      "sha256": "637839741f4c62b53db3dbdce55f19f19edec6e37ea45f3764e7475b74d4363b",
+      "md5": "ee0e86ad47ef65aee4e69ae8685a7ae1"
+    },
+    "notes": "Adds the on-device Wi-Fi update menu. App-only updates write only the firmware app slot and preserve Meshtastic config, channels, keys, and SD chat history."
+  }
+}

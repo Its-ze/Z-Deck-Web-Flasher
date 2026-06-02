@@ -1,6 +1,6 @@
 {
   "name": "Z-Deck Firmware Pack Public",
-  "version": "0.2.8-public",
+  "version": "0.2.9-public",
   "new_install_prompt_erase": false,
   "builds": [
     {
@@ -8,27 +8,27 @@
       "parts": [
         {
           "offset": 0,
-          "path": "firmware/zdeck-2.8.0-zdeck9-public/bootloader.bin"
+          "path": "firmware/zdeck-2.8.0-zdeck10-public/bootloader.bin"
         },
         {
           "offset": 32768,
-          "path": "firmware/zdeck-2.8.0-zdeck9-public/partitions.bin"
+          "path": "firmware/zdeck-2.8.0-zdeck10-public/partitions.bin"
         },
         {
           "offset": 57344,
-          "path": "firmware/zdeck-2.8.0-zdeck9-public/boot_app0.bin"
+          "path": "firmware/zdeck-2.8.0-zdeck10-public/boot_app0.bin"
         },
         {
           "offset": 65536,
-          "path": "firmware/zdeck-2.8.0-zdeck9-public/zdeck-firmware.bin"
+          "path": "firmware/zdeck-2.8.0-zdeck10-public/zdeck-firmware.bin"
         },
         {
           "offset": 6619136,
-          "path": "firmware/zdeck-2.8.0-zdeck9-public/zdeck-firmware.bin"
+          "path": "firmware/zdeck-2.8.0-zdeck10-public/zdeck-firmware.bin"
         },
         {
           "offset": 13172736,
-          "path": "firmware/zdeck-2.8.0-zdeck9-public/zdeck-littlefs.bin"
+          "path": "firmware/zdeck-2.8.0-zdeck10-public/zdeck-littlefs.bin"
         }
       ]
     }

@@ -1,6 +1,6 @@
 # Z-Deck Web Flasher
 
-Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.8 PUBLIC**.
+Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.9 PUBLIC**.
 
 This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped public build. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
 
@@ -41,8 +41,8 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 
 ## Included Build
 
-- Release label: `Z-Deck 0.2.8-public`
-- Firmware base version: `2.8.0.zdeck9`
+- Release label: `Z-Deck 0.2.9-public`
+- Firmware base version: `2.8.0.zdeck10`
 - Target: `t-deck-tft`
 - LoRa region: `US` compiled default for public LongFast reliability
 - Chip: `ESP32-S3`
@@ -51,7 +51,8 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 - Message UI: received packets show measured hop count as `H#`; unknown route data shows `H?`; outbound limits use `TTL#`.
 - Audio: T-Deck I2S ringtone playback uses full tone sequences instead of stopping on the first note.
 - SD card: Tools includes a two-press `Prepare / Reset SD` action that shows setup progress, formats the card, builds Z-Deck folders, writes a README, labels supported FAT cards as `TDECKSDCARD`, stores local message history, discovers ringtones from the SD card, and recognizes the same prepared card on later inserts.
-- USB storage: disabled by default in `0.2.8-public` so Web Serial and Meshtastic API sessions stay stable; SD prep/journal/ringtone features still use the card internally.
+- Updates: after this build is installed once by USB, use `System > Updates > Check for Updates` on the T-Deck over Wi-Fi, then `Apply Update`. The hosted updater is app-only and preserves Meshtastic config, channels, keys, owner settings, and SD chat history unless a future manifest explicitly declares a different update mode.
+- USB storage: disabled by default in `0.2.9-public` so Web Serial and Meshtastic API sessions stay stable; SD prep/journal/ringtone features still use the card internally.
 - On-device notices: USB connected and SD inserted/setup prompts can be disabled in settings.
 
 ## Documentation

@@ -1,5 +1,17 @@
 # Changelog
 
+## Z-Deck 0.2.9-public - 2026-06-02
+
+On-device Wi-Fi update flow for the public T-Deck build.
+
+- Rebuilt bundled firmware from `20260601-221536-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck10` and pack label to `0.2.9-public`.
+- Added `System > Updates` on the T-Deck with `Check for Updates`, `Apply Update`, and `Update Status`.
+- Added hosted `update.json` metadata for app-only Wi-Fi OTA updates.
+- App-only OTA writes only the firmware app slot, preserving Meshtastic config, channels, keys, owner settings, and SD chat history.
+- Kept the Modern Field UI, SD setup detection/progress fixes, boot progress fix, public LongFast defaults, and disabled USB SD mass storage from 0.2.8.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.8-public - 2026-06-01
 
 Modern Field theme and layout refresh for the public T-Deck build.
