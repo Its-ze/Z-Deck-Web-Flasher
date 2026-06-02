@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.12-public - 2026-06-02
+
+Main screen signal row overlap correction for the public build.
+
+- Rebuilt bundled firmware from `20260602-zdeck13-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck13` and pack label to `0.2.12-public`.
+- Fixed the T-Deck home signal row so the short `Listening` / `RX` status keeps a full row slot and no longer pushes the next icon into the same line.
+- Kept the LongFast default channel fallback, app-only Wi-Fi updates, Modern Field UI, SD setup detection/progress fixes, boot progress fix, public LongFast defaults, and disabled USB SD mass storage from 0.2.11.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.11-public - 2026-06-02
 
 Physical T-Deck home screen layout correction for the public build.

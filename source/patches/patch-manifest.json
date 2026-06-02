@@ -2,9 +2,9 @@
     "name":  "zdeck-public-stack",
     "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced US LongFast region default for this public T-Deck build, GPS/compass refresh fixes, map/cache status, clearer message delivery labels, hop counters where packet route data exposes them, SD message journal support, SD prepare/reset tools, SD setup detection/progress readouts, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, the Modern Field on-device theme/layout, a public on-device health panel, an app-only Wi-Fi update menu, and home-screen LoRa status label fixes.",
     "release":  {
-                    "label":  "Z-Deck 0.2.11-public",
-                    "firmwareVersion":  "2.8.0.zdeck12",
-                    "packVersion":  "0.2.11-public",
+                    "label":  "Z-Deck 0.2.12-public",
+                    "firmwareVersion":  "2.8.0.zdeck13",
+                    "packVersion":  "0.2.12-public",
                     "channelDefaults":  "LongFast only, US region default",
                     "privateChannelsBundled":  false,
                     "privateKeysBundled":  false,
@@ -24,9 +24,9 @@
                    "patchBase":  "origin/2.8"
                },
     "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck12-public",
-                  "latestBuiltFrom":  "20260602-073938-t-deck-tft",
-                  "status":  "Clean WSL PlatformIO build completed successfully. This public build uses zdeck12 / 0.2.11-public naming, keeps the prior Z-Deck public stack, preserves the compiled US LoRa region default, keeps the SD setup detection/progress fixes and Modern Field layout, keeps app-only Wi-Fi updates, and fixes the physical T-Deck home RX/status overlap."
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck13-public",
+                  "latestBuiltFrom":  "20260602-zdeck13-t-deck-tft",
+                  "status":  "Clean PlatformIO build completed successfully. This public build uses zdeck13 / 0.2.12-public naming, keeps the prior Z-Deck public stack, preserves the compiled US LoRa region default, keeps the SD setup detection/progress fixes and Modern Field layout, keeps app-only Wi-Fi updates, and fixes the T-Deck home signal row so the RX status keeps a full row slot."
               },
     "patchFiles":  [
                        "device-ui-brand-version.patch",
@@ -42,7 +42,7 @@
                        "device-ui-zdeck-public-stack.patch",
                        "zdeck-full-source.patch"
                    ],
-    "sourceArchive":  "source/patches/2026-06-02-zdeck12-public",
+    "sourceArchive":  "source/patches/2026-06-02-zdeck13-public",
     "publicSetup":  {
                         "ownerDefault":  "Z-Deck",
                         "shortNameDefault":  "ZDK",
