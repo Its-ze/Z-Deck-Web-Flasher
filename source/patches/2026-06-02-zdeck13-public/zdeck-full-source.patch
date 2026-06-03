@@ -8,7 +8,7 @@ index b75c66624..9bddd3e79 100644
  from datetime import datetime
 +from pathlib import Path
  from typing import Dict
- 
+
  from readprops import readProps
 @@ -137,6 +138,12 @@ def manifest_write(files, env):
          "has_mui": False,
@@ -24,7 +24,7 @@ index b75c66624..9bddd3e79 100644
      if env.get("custom_mtjson_part"):
          # custom_mtjson_part is a JSON string, convert it back to a dict
 @@ -201,6 +208,24 @@ Import("projenv")
- 
+
  prefsLoc = projenv["PROJECT_DIR"] + "/version.properties"
  verObj = readProps(prefsLoc)
 +
@@ -46,7 +46,7 @@ index b75c66624..9bddd3e79 100644
 +    verObj["long"] = "{}.{}".format(verObj["short"], custom_version_suffix)
 +
  print(f"Using meshtastic platformio-custom.py, firmware version {verObj['long']} on {env.get('PIOENV')}")
- 
+
  # get repository owner if git is installed
 @@ -242,6 +267,9 @@ build_epoch = int(current_date.timestamp())
  flags = [
@@ -61,7 +61,7 @@ index b75c66624..9bddd3e79 100644
 @@ -255,9 +283,138 @@ projenv.Append(
      CCFLAGS=flags,
  )
- 
+
 +def apply_itsz_device_ui_map_patch(lib_root):
 +    pioenv = env.get("PIOENV")
 +    if pioenv != "t-deck-tft":
@@ -196,7 +196,7 @@ index b75c66624..9bddd3e79 100644
 +        lb.env.Append(CPPDEFINES=device_ui_defines)
 +        apply_itsz_device_ui_map_patch(Path(env.subst("$PROJECT_LIBDEPS_DIR")) / lb.name)
          break
- 
+
  # Get the display resolution from macros
 diff --git a/itsz/device-ui-brand-version.patch b/itsz/device-ui-brand-version.patch
 new file mode 100644
@@ -3352,21 +3352,21 @@ index 25c7b1039..b808e4e86 100644
 --- a/src/GPSStatus.h
 +++ b/src/GPSStatus.h
 @@ -79,8 +79,16 @@ class GPSStatus : public Status
- 
+
      uint32_t getDOP() const { return p.PDOP; }
- 
+
 +    bool getHasHeading() const { return p.has_ground_track; }
 +
 +    float getHeadingDegrees() const { return p.ground_track * 1e-5f; }
 +
      uint32_t getHeading() const { return p.ground_track; }
- 
+
 +    bool getHasGroundSpeed() const { return p.has_ground_speed; }
 +
 +    float getGroundSpeedKmh() const { return p.ground_speed * 1e-2f; }
 +
      uint32_t getNumSatellites() const { return p.sats_in_view; }
- 
+
      /// Return millis() when the last GPS fix occurred (0 = never)
 diff --git a/src/SerialConsole.cpp b/src/SerialConsole.cpp
 index 2a3f08cbc..2e099298b 100644
@@ -3378,7 +3378,7 @@ index 2a3f08cbc..2e099298b 100644
  #include "configuration.h"
 +#include "main.h"
  #include "time.h"
- 
+
 +#include <cstring>
 +
  #if defined(ARDUINO_USB_CDC_ON_BOOT) && ARDUINO_USB_CDC_ON_BOOT
@@ -3387,7 +3387,7 @@ index 2a3f08cbc..2e099298b 100644
 @@ -26,6 +29,101 @@
  // Defaulting to the formerly removed phone_timeout_secs value of 15 minutes
  #define SERIAL_CONNECTION_TIMEOUT (15 * 60) * 1000UL
- 
+
 +#if defined(ITSZ_SERIAL_RECOVERY) && ITSZ_SERIAL_RECOVERY
 +namespace
 +{
@@ -3484,12 +3484,12 @@ index 2a3f08cbc..2e099298b 100644
 +#endif
 +
  SerialConsole *console;
- 
+
  void consoleInit()
 @@ -91,7 +189,25 @@ int32_t SerialConsole::runOnce()
      }
  #endif
- 
+
 +#if defined(ITSZ_SERIAL_RECOVERY) && ITSZ_SERIAL_RECOVERY
 +    char rxBuf[96];
 +    uint16_t rxLen = 0;
@@ -3538,14 +3538,14 @@ index 6692d996d..c8c0a5ac0 100644
 --- a/src/buzz/buzz.cpp
 +++ b/src/buzz/buzz.cpp
 @@ -8,6 +8,8 @@
- 
+
  #if defined(HAS_I2S)
  #include "main.h"
 +#include <cstring>
 +#include <string>
  #include <unordered_map>
  #endif
- 
+
 @@ -58,21 +60,25 @@ const int DURATION_1_1 = 1000; // 1/1 note
  #ifdef HAS_I2S
  void playTonesRTTTL(const ToneDuration *tone_durations, int size)
@@ -3565,7 +3565,7 @@ index 6692d996d..c8c0a5ac0 100644
 +        {NOTE_A3, "a3"},    {NOTE_AS3, "a#3"}, {NOTE_B3, "b3"},   {NOTE_C4, "c4"},  {NOTE_CS4, "c#4"},
 +        {NOTE_E4, "e4"},    {NOTE_G4, "g4"},   {NOTE_A4, "a4"},   {NOTE_B4, "b4"},  {NOTE_C5, "c5"},
 +        {NOTE_E5, "e5"},    {NOTE_F5, "f5"},   {NOTE_G5, "g5"},   {NOTE_G6, "g6"},  {NOTE_E7, "e7"}};
- 
+
 -    char rtttl[128] = "tone:d=32,o=4,b=200:"; // default duration and octave
 +    char rtttl[256] = "zdeck:d=32,o=5,b=200:";
      for (int i = 0; i < size; i++) {
@@ -3583,7 +3583,7 @@ index 6692d996d..c8c0a5ac0 100644
 @@ -86,16 +92,14 @@ void playTonesRTTTL(const ToneDuration *tone_durations, int size)
          else
              dur = 32;
- 
+
 -        char noteStr[64];
 -        snprintf(noteStr, sizeof(noteStr), "%s,%d", note.c_str(), dur);
 +        char noteStr[24];
@@ -3602,7 +3602,7 @@ index 6692d996d..c8c0a5ac0 100644
 +        delay(10);
  }
  #endif
- 
+
 @@ -107,7 +111,12 @@ void playTones(const ToneDuration *tone_durations, int size)
          return;
      }
@@ -3631,7 +3631,7 @@ index d263d9ae1..32d266175 100644
 @@ -68,6 +68,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #error APP_VERSION must be set by the build environment
  #endif
- 
+
 +#ifndef APP_BUILD_NAME
 +#define APP_BUILD_NAME ""
 +#endif
@@ -3652,19 +3652,19 @@ index e581eb0ef..5477b8c5e 100644
              LOG_WARN("BOGUS course.value() REJECTED: %d", reader.course.value());
          }
 @@ -1828,6 +1829,7 @@ bool GPS::lookForLocation()
- 
+
      if (reader.speed.isUpdated() && reader.speed.isValid()) {
          p.ground_speed = reader.speed.kmph();
 +        p.has_ground_speed = true;
      }
- 
+
      return true;
 diff --git a/src/graphics/Screen.cpp b/src/graphics/Screen.cpp
 index 044db3637..c74412129 100644
 --- a/src/graphics/Screen.cpp
 +++ b/src/graphics/Screen.cpp
 @@ -1001,12 +1001,14 @@ int32_t Screen::runOnce()
- 
+
      uint32_t desiredFramerate = IDLE_FRAMERATE;
  #if HAS_GPS && !defined(USE_EINK)
 -    if (showingNormalScreen && hasCompass) {
@@ -3709,7 +3709,7 @@ index 877835ea6..4ab2f7183 100644
 --- a/src/graphics/TFTColorRegions.cpp
 +++ b/src/graphics/TFTColorRegions.cpp
 @@ -50,12 +50,21 @@ static inline bool isBodyColorRole(TFTColorRole role)
- 
+
  static inline bool isMonochromeTheme(uint32_t themeId)
  {
 -    return themeId == ThemeID::MeshtasticGreen || themeId == ThemeID::ClassicRed || themeId == ThemeID::MonochromeWhite;
@@ -3719,7 +3719,7 @@ index 877835ea6..4ab2f7183 100644
 +#endif
 +        ;
  }
- 
+
  static inline uint16_t getMonochromeAccent(uint32_t themeId)
  {
 -    return (themeId == ThemeID::MeshtasticGreen) ? TFTPalette::MeshtasticGreen
@@ -3787,7 +3787,7 @@ index 516a9f057..c7952cd2f 100644
 --- a/src/graphics/TFTPalette.h
 +++ b/src/graphics/TFTPalette.h
 @@ -58,12 +58,14 @@ constexpr uint16_t ClassicRed = rgb565(255, 64, 64);
- 
+
  // Fast contrast picker for monochrome glyph overlays on arbitrary RGB565 backgrounds.
  // Uses channel-sum brightness approximation to keep code size small.
 +constexpr uint16_t rgb565ChannelSum(uint16_t backgroundColor)
@@ -3803,16 +3803,16 @@ index 516a9f057..c7952cd2f 100644
 -    return ((r + g + b) >= 70) ? DarkGray : White;
 +    return (rgb565ChannelSum(backgroundColor) >= 70) ? DarkGray : White;
  }
- 
+
  } // namespace TFTPalette
 diff --git a/src/graphics/draw/DebugRenderer.cpp b/src/graphics/draw/DebugRenderer.cpp
 index 67136437a..0ce4a642a 100644
 --- a/src/graphics/draw/DebugRenderer.cpp
 +++ b/src/graphics/draw/DebugRenderer.cpp
 @@ -701,6 +701,13 @@ void drawSystemScreen(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x
- 
+
      display->drawString(nameX, getTextPositions(display)[line++], appversionstr);
- 
+
 +    const char *buildName = APP_BUILD_NAME;
 +    if (buildName[0] && (SCREEN_HEIGHT > 64 || line <= 5)) {
 +        textWidth = display->getStringWidth(buildName);
@@ -3851,7 +3851,7 @@ index cfde10124..3ebdc085d 100644
 --- a/src/graphics/draw/UIRenderer.cpp
 +++ b/src/graphics/draw/UIRenderer.cpp
 @@ -1498,7 +1498,8 @@ void UIRenderer::drawIconScreen(const char *upperMsg, OLEDDisplay *display, OLED
- 
+
      display->setFont(FONT_MEDIUM);
      display->setTextAlignment(TEXT_ALIGN_LEFT);
 -    const char *title = "meshtastic.org";
@@ -4328,12 +4328,12 @@ index 28842734c..9ec4eafdc 100644
 --- a/src/main.cpp
 +++ b/src/main.cpp
 @@ -222,7 +222,7 @@ std::pair<uint8_t, TwoWire *> nodeTelemetrySensorsMap[_meshtastic_TelemetrySenso
- 
+
  Router *router = NULL; // Users of router don't care what sort of subclass implements that API
- 
+
 -const char *firmware_version = optstr(APP_VERSION_SHORT);
 +const char *firmware_version = optstr(APP_VERSION);
- 
+
  const char *getDeviceName()
  {
 diff --git a/src/mesh/NodeDB.cpp b/src/mesh/NodeDB.cpp
@@ -4343,7 +4343,7 @@ index 8660aefae..b08472fbf 100644
 @@ -1716,6 +1716,43 @@ void NodeDB::loadFromDisk()
          }
      }
- 
+
 +#if defined(ITSZ_TDECK_GPS_DEFAULTS) && HAS_GPS
 +    bool itszGpsConfigChanged = false;
 +    const bool itszGpsWasBroken =
@@ -4415,7 +4415,7 @@ index dbc573c95..a4b6900ca 100644
 @@ -192,6 +195,30 @@ void esp32Loop()
      // radio.radioIf.canSleep();
  }
- 
+
 +void enterDfuMode()
 +{
 +#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
@@ -4448,14 +4448,14 @@ index a7701549f..5df708be6 100644
 --- a/variants/esp32s3/t-deck/platformio.ini
 +++ b/variants/esp32s3/t-deck/platformio.ini
 @@ -25,6 +25,9 @@ build_src_filter =
- build_flags = ${esp32s3_base.build_flags} 
-   -D T_DECK 
+ build_flags = ${esp32s3_base.build_flags}
+   -D T_DECK
    -D BOARD_HAS_PSRAM
 +  -D ARDUINO_USB_MSC_ON_BOOT=0
 +  -D ITSZ_FORCE_USB_SERIAL_API=1
 +  -D ITSZ_SERIAL_RECOVERY=1
    -I variants/esp32s3/t-deck
- 
+
  lib_deps = ${esp32s3_base.lib_deps}
 @@ -38,9 +41,19 @@ lib_deps = ${esp32s3_base.lib_deps}
  [env:t-deck-tft]
@@ -4467,7 +4467,7 @@ index a7701549f..5df708be6 100644
 +custom_zdeck_pack_version = 0.2.12-public
 +custom_zdeck_build_folder = 20260602-zdeck13-t-deck-tft
 +custom_zdeck_usb_sd_msc = 0
- 
+
  build_flags =
    ${env:t-deck.build_flags}
 +  -D ITSZ_CLASSIC_UI=1
@@ -4484,7 +4484,7 @@ index eb1bbdfef..42b1f7635 100644
 @@ -37,7 +37,11 @@
  #define BUTTON_ACTIVE_LOW true
  #define BUTTON_ACTIVE_PULLUP true
- 
+
 +#if defined(ITSZ_TDECK_GPS_DEFAULTS)
 +#define GPS_DEFAULT_NOT_PRESENT 0
 +#else
@@ -4492,4 +4492,4 @@ index eb1bbdfef..42b1f7635 100644
 +#endif
  #define GPS_RX_PIN 44
  #define GPS_TX_PIN 43
- 
+
