@@ -1,5 +1,20 @@
 # Changelog
 
+## Z-Deck 0.2.13-public - 2026-06-05
+
+Home RX, map pages, chat ordering, names, and send-status cleanup for the public build.
+
+- Rebuilt bundled firmware from `20260605-zdeck14-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck14` and pack label to `0.2.13-public`.
+- Fixed the T-Deck home LoRa RX status as a clipped fixed-size label so it does not overlap neighboring front-page icons.
+- Added map page/default selection for Mesh map, Live compass, DF/Radar, and Distance alert.
+- Prepared SD/offline map folders under `/maps/zdeck-*` and changed the map status card so it reports offline readiness instead of staying stuck on loading.
+- Sorted group and direct chat thread pickers by latest activity first.
+- Improved node-name fallbacks so missing long/short names do not render as `??` or `?? ??`.
+- Changed channel broadcast send labels to `BCAST SENT` / `BCAST TTL# SENT`, while keeping direct-message ACK/no-response labels.
+- Kept app-only Wi-Fi updates, Modern Field UI, SD setup detection/progress fixes, boot progress fix, public LongFast defaults, and disabled USB SD mass storage from 0.2.12.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.12-public - 2026-06-02
 
 Main screen signal row overlap correction for the public build.

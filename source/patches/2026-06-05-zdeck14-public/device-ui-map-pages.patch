@@ -1,0 +1,253 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 37f2b62..978bee4 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -199,6 +199,7 @@ class TFTView_320x240 : public MeshtasticView
+     void updateMapStatusOverlay(uint32_t objectsOnMap);
+     void openWifiSettingsFromMap(void);
+     void rememberCurrentMapArea(void);
++    void cycleZDeckMapPage(void);
+     void setupZDeckHealthTool(void);
+     void updateZDeckHealthPanel(void);
+     void setupZDeckSDTool(void);
+@@ -399,6 +400,7 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_positionButton(lv_event_t *e);
+     static void ui_event_mapInternetButton(lv_event_t *e);
+     static void ui_event_mapCacheButton(lv_event_t *e);
++    static void ui_event_mapModeButton(lv_event_t *e);
+     static void ui_event_zdeckHealthButton(lv_event_t *e);
+     static void ui_event_zdeckSdButton(lv_event_t *e);
+     static void ui_event_screenCorrectionButton(lv_event_t *e);
+@@ -457,6 +459,8 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *mapInternetButtonLabel = nullptr;
+     lv_obj_t *mapCacheButton = nullptr;                    // dynamic map area/cache action
+     lv_obj_t *mapCacheButtonLabel = nullptr;
++    lv_obj_t *mapModeButton = nullptr;                     // offline map page/default selector
++    lv_obj_t *mapModeButtonLabel = nullptr;
+     lv_obj_t *mapCacheStatusLabel = nullptr;
+     lv_obj_t *mapStatusOverlayLabel = nullptr;             // map screen reason/status hint
+     lv_obj_t *settingsDisabledPanel = nullptr;             // panel disabled while a settings popup is open
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 3cf95b3..f6fd5ca 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -23,6 +23,7 @@
+ #include <algorithm>
+ #include <cmath>
+ #include <cstdio>
++#include <cstring>
+ #include <functional>
+ #include <iomanip>
+ #include <list>
+@@ -144,6 +145,54 @@ bool TFTView_320x240::screenUnlockRequest = false;
+
+ namespace
+ {
++struct ZDeckMapPage {
++    const char *style;
++    const char *name;
++    const char *button;
++};
++
++constexpr ZDeckMapPage zDeckMapPages[] = {
++    {"zdeck-mesh", "Mesh map", "MESH"},
++    {"zdeck-compass", "Live compass", "COMPASS"},
++    {"zdeck-radar", "DF/Radar", "RADAR"},
++    {"zdeck-alert", "Distance alert", "ALERT"},
++};
++
++int zDeckMapPageIndex(const char *style)
++{
++    if (!style || !style[0])
++        return 0;
++    for (size_t i = 0; i < sizeof(zDeckMapPages) / sizeof(zDeckMapPages[0]); ++i) {
++        if (strcmp(style, zDeckMapPages[i].style) == 0)
++            return (int)i;
++    }
++    return 0;
++}
++
++bool zDeckMapStyleIsManaged(const char *style)
++{
++    if (!style || !style[0])
++        return true;
++    for (const auto &page : zDeckMapPages) {
++        if (strcmp(style, page.style) == 0)
++            return true;
++    }
++    return false;
++}
++
++void zDeckEnsureMapStyle(meshtastic_Map &mapData)
++{
++    if (!mapData.style[0]) {
++        strncpy(mapData.style, zDeckMapPages[0].style, sizeof(mapData.style) - 1);
++        mapData.style[sizeof(mapData.style) - 1] = '\0';
++    }
++}
++
++const ZDeckMapPage &zDeckCurrentMapPage(const meshtastic_Map &mapData)
++{
++    return zDeckMapPages[zDeckMapPageIndex(mapData.style)];
++}
++
+ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingRequest)
+ {
+     switch (status) {
+@@ -2475,16 +2524,18 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     if (mapInternetStatusLabel)
+         return;
+
++    zDeckEnsureMapStyle(db.uiConfig.map_data);
++
+     lv_obj_set_height(objects.map_osd_panel, 212);
+
+     mapInternetStatusLabel = lv_label_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapInternetStatusLabel, 7, 118);
++    lv_obj_set_pos(mapInternetStatusLabel, 7, 112);
+     lv_obj_set_width(mapInternetStatusLabel, lv_pct(94));
+     lv_label_set_long_mode(mapInternetStatusLabel, LV_LABEL_LONG_DOT);
+
+     mapInternetButton = lv_btn_create(objects.map_osd_panel);
+     lv_obj_set_pos(mapInternetButton, 7, 140);
+-    lv_obj_set_size(mapInternetButton, 116, 26);
++    lv_obj_set_size(mapInternetButton, 76, 26);
+     lv_obj_set_style_bg_color(mapInternetButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapInternetButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapInternetButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -2495,8 +2545,8 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_obj_center(mapInternetButtonLabel);
+
+     mapCacheButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapCacheButton, 131, 140);
+-    lv_obj_set_size(mapCacheButton, 116, 26);
++    lv_obj_set_pos(mapCacheButton, 89, 140);
++    lv_obj_set_size(mapCacheButton, 76, 26);
+     lv_obj_set_style_bg_color(mapCacheButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapCacheButton, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapCacheButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -2505,5 +2555,16 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_label_set_text(mapCacheButtonLabel, "CACHE");
+     lv_obj_center(mapCacheButtonLabel);
+
++    mapModeButton = lv_btn_create(objects.map_osd_panel);
++    lv_obj_set_pos(mapModeButton, 171, 140);
++    lv_obj_set_size(mapModeButton, 76, 26);
++    lv_obj_set_style_bg_color(mapModeButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(mapModeButton, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(mapModeButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_add_event_cb(mapModeButton, ui_event_mapModeButton, LV_EVENT_CLICKED, NULL);
++    mapModeButtonLabel = lv_label_create(mapModeButton);
++    lv_label_set_text(mapModeButtonLabel, "VIEW");
++    lv_obj_center(mapModeButtonLabel);
++
+     mapCacheStatusLabel = lv_label_create(objects.map_osd_panel);
+     lv_obj_set_pos(mapCacheStatusLabel, 7, 172);
+@@ -2537,5 +2597,7 @@ void TFTView_320x240::updateDynamicMapMenu(void)
+     if (!mapInternetStatusLabel)
+         return;
+
++    zDeckEnsureMapStyle(db.uiConfig.map_data);
++    const ZDeckMapPage &page = zDeckCurrentMapPage(db.uiConfig.map_data);
+     const bool hasNetwork = db.config.has_network;
+     const bool hasWifiStatus = db.connectionStatus.has_wifi && db.connectionStatus.wifi.has_status;
+@@ -2567,17 +2628,20 @@ void TFTView_320x240::updateDynamicMapMenu(void)
+         lv_label_set_text(mapInternetButtonLabel, "WIFI ON");
+     }
+
++    if (mapModeButtonLabel)
++        lv_label_set_text(mapModeButtonLabel, page.button);
++
+     if (MapTileSettings::saveOK()) {
+-        lv_snprintf(buf, sizeof(buf), "Tiles: online + SD cache z%d %s", MapTileSettings::getZoomLevel(),
++        lv_snprintf(buf, sizeof(buf), "Default: %s | SD cache z%d %s", page.name, MapTileSettings::getZoomLevel(),
+                     MapTileSettings::getTileStyle()[0] ? MapTileSettings::getTileStyle() : "default");
+     } else if (cardDetected && wifiConnected) {
+-        lv_snprintf(buf, sizeof(buf), "Tiles: WiFi fetch active; remember area to cache");
++        lv_snprintf(buf, sizeof(buf), "Default: %s | WiFi fetch; remember to cache", page.name);
+     } else if (cardDetected) {
+-        lv_snprintf(buf, sizeof(buf), "Tiles: SD/offline only; press remember for this area");
++        lv_snprintf(buf, sizeof(buf), "Default: %s | SD/offline ready", page.name);
+     } else if (wifiConnected) {
+-        lv_snprintf(buf, sizeof(buf), "Tiles: online fetch only; no SD cache");
++        lv_snprintf(buf, sizeof(buf), "Default: %s | online only; no SD", page.name);
+     } else {
+-        lv_snprintf(buf, sizeof(buf), "Tiles: no SD cache and WiFi offline");
++        lv_snprintf(buf, sizeof(buf), "Default: %s | offline grid; add SD tiles", page.name);
+     }
+     lv_label_set_text(mapCacheStatusLabel, buf);
+     lv_label_set_text(mapCacheButtonLabel, "REMEMBER");
+@@ -2594,6 +2657,10 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+     const bool gpsReady = hasPosition && myLatitude != 0 && myLongitude != 0;
+     const bool wifiConnected = db.connectionStatus.has_wifi && db.connectionStatus.wifi.has_status &&
+                                db.connectionStatus.wifi.status.is_connected;
++    zDeckEnsureMapStyle(db.uiConfig.map_data);
++    const ZDeckMapPage &page = zDeckCurrentMapPage(db.uiConfig.map_data);
++    const bool managedPage = zDeckMapStyleIsManaged(db.uiConfig.map_data.style);
++    const bool offlineToolPage = managedPage && strcmp(page.style, "zdeck-mesh") != 0;
+
+     char gps[40];
+     if (gpsReady && gpsSatellites > 0) {
+@@ -2609,7 +2673,7 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+         lv_snprintf(gps, sizeof(gps), "GPS off");
+     }
+
+-    const bool mapUseful = gpsReady && objectsOnMap > 0;
++    const bool mapUseful = offlineToolPage || (gpsReady && objectsOnMap > 0);
+     const char *tiles = wifiConnected ? "WiFi tiles" : cardDetected ? "SD tiles" : "no tiles";
+     const char *locs = objectsOnMap > 0 ? "nodes located" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
+
+@@ -2632,7 +2696,10 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+     }
+
+     char buf[128];
+-    if (mapUseful) {
++    if (offlineToolPage) {
++        lv_snprintf(buf, sizeof(buf), "%s\n%s | %u/%u %s", page.name, gps, (unsigned int)objectsOnMap,
++                    (unsigned int)nodeCount, locs);
++    } else if (mapUseful) {
+         lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
+                     locs);
+     } else {
+@@ -2678,6 +2745,27 @@ void TFTView_320x240::rememberCurrentMapArea(void)
+     messageAlert(_("Map area remembered"), true);
+ }
+
++void TFTView_320x240::cycleZDeckMapPage(void)
++{
++    zDeckEnsureMapStyle(db.uiConfig.map_data);
++    const int next = (zDeckMapPageIndex(db.uiConfig.map_data.style) + 1) %
++                     (int)(sizeof(zDeckMapPages) / sizeof(zDeckMapPages[0]));
++    strncpy(db.uiConfig.map_data.style, zDeckMapPages[next].style, sizeof(db.uiConfig.map_data.style) - 1);
++    db.uiConfig.map_data.style[sizeof(db.uiConfig.map_data.style) - 1] = '\0';
++    db.uiConfig.has_map_data = true;
++    MapTileSettings::setPrefix("/maps");
++    MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
++    if (cardDetected)
++        MapTileSettings::setSaveOK(true);
++    controller->storeUIConfig(db.uiConfig);
++    if (map)
++        map->forceRedraw();
++    updateDynamicMapMenu();
++    char msg[48];
++    lv_snprintf(msg, sizeof(msg), "Default map: %s", zDeckMapPages[next].name);
++    messageAlert(msg, true);
++}
++
+ void TFTView_320x240::ui_event_mapInternetButton(lv_event_t *e)
+ {
+     lv_event_code_t event_code = lv_event_get_code(e);
+@@ -2715,6 +2803,13 @@ void TFTView_320x240::ui_event_mapCacheButton(lv_event_t *e)
+         THIS->rememberCurrentMapArea();
+ }
+
++void TFTView_320x240::ui_event_mapModeButton(lv_event_t *e)
++{
++    lv_event_code_t event_code = lv_event_get_code(e);
++    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone)
++        THIS->cycleZDeckMapPage();
++}
++
+ void TFTView_320x240::setupScreenCorrectionTool(void)
+ {
+     if (screenCorrectionButton || !objects.tab_page_tools)

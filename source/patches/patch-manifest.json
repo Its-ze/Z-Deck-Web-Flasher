@@ -1,10 +1,10 @@
 {
     "name":  "zdeck-public-stack",
-    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced US LongFast region default for this public T-Deck build, GPS/compass refresh fixes, map/cache status, clearer message delivery labels, hop counters where packet route data exposes them, SD message journal support, SD prepare/reset tools, SD setup detection/progress readouts, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, the Modern Field on-device theme/layout, a public on-device health panel, an app-only Wi-Fi update menu, and home-screen LoRa status label fixes.",
+    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced US LongFast region default for this public T-Deck build, GPS/compass refresh fixes, saved map page defaults, SD/offline map folder prep, map/cache status, clearer message delivery labels, hop counters where packet route data exposes them, latest-activity chat ordering, node-name fallback cleanup, SD message journal support, SD prepare/reset tools, SD setup detection/progress readouts, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, the Modern Field on-device theme/layout, a public on-device health panel, an app-only Wi-Fi update menu, and fixed clipped home LoRa RX labels.",
     "release":  {
-                    "label":  "Z-Deck 0.2.12-public",
-                    "firmwareVersion":  "2.8.0.zdeck13",
-                    "packVersion":  "0.2.12-public",
+                    "label":  "Z-Deck 0.2.13-public",
+                    "firmwareVersion":  "2.8.0.zdeck14",
+                    "packVersion":  "0.2.13-public",
                     "channelDefaults":  "LongFast only, US region default",
                     "privateChannelsBundled":  false,
                     "privateKeysBundled":  false,
@@ -24,15 +24,16 @@
                    "patchBase":  "origin/2.8"
                },
     "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck13-public",
-                  "latestBuiltFrom":  "20260602-zdeck13-t-deck-tft",
-                  "status":  "Clean PlatformIO build completed successfully. This public build uses zdeck13 / 0.2.12-public naming, keeps the prior Z-Deck public stack, preserves the compiled US LoRa region default, keeps the SD setup detection/progress fixes and Modern Field layout, keeps app-only Wi-Fi updates, and fixes the T-Deck home signal row so the RX status keeps a full row slot."
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck14-public",
+                  "latestBuiltFrom":  "20260605-zdeck14-t-deck-tft",
+                  "status":  "Clean PlatformIO build completed successfully. This public build uses zdeck14 / 0.2.13-public naming, keeps the prior Z-Deck public stack, preserves the compiled US LoRa region default, keeps app-only Wi-Fi updates, fixes the clipped T-Deck home RX label, adds saved map pages and SD/offline map folders, orders chat pickers by latest activity, improves node-name fallbacks, and clarifies broadcast send status."
               },
     "patchFiles":  [
                        "device-ui-brand-version.patch",
                        "device-ui-delivery-status.patch",
                        "device-ui-home-status.patch",
                        "device-ui-map-internet.patch",
+                       "device-ui-map-pages.patch",
                        "device-ui-map.patch",
                        "device-ui-polish.patch",
                        "device-ui-screen-correction.patch",
@@ -42,7 +43,7 @@
                        "device-ui-zdeck-public-stack.patch",
                        "zdeck-full-source.patch"
                    ],
-    "sourceArchive":  "source/patches/2026-06-02-zdeck13-public",
+    "sourceArchive":  "source/patches/2026-06-05-zdeck14-public",
     "publicSetup":  {
                         "ownerDefault":  "Z-Deck",
                         "shortNameDefault":  "ZDK",
