@@ -16,7 +16,7 @@ The journal is plaintext local history. Anyone with access to the SD card may be
 
 ## USB SD Access
 
-In `0.2.13-public`, Z-Deck does not expose the SD card as USB mass storage by default. Treat the SD card as plaintext local storage: files, maps, logs, ringtone assets, and message history may be visible if the card is removed or mounted by another build.
+In `0.2.14-public`, Z-Deck does not expose the SD card as USB mass storage by default. Treat the SD card as plaintext local storage: files, maps, logs, ringtone assets, and message history may be visible if the card is removed or mounted by another build.
 
 ## On-Device Updates
 

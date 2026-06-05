@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.14-public - 2026-06-05
+
+Physical T-Deck home-screen row-wrap fix for the public build.
+
+- Rebuilt bundled firmware from `20260605-zdeck15-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck15` and pack label to `0.2.14-public`.
+- Restored full-row layout space for the home LoRa RX status label so LVGL flex wrapping cannot put the next front-page icon into the same row.
+- Kept the LoRa RX text compact with clipped status text, a smaller label font, and a short idle/readout line inside the reserved row.
+- Kept map page/default selection, SD/offline map folder prep, newest-first chat pickers, stable node-name fallbacks, clearer send status, app-only Wi-Fi updates, Modern Field UI, public LongFast defaults, and disabled USB SD mass storage from 0.2.13.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.13-public - 2026-06-05
 
 Home RX, map pages, chat ordering, names, and send-status cleanup for the public build.

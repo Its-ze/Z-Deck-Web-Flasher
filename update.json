@@ -5,9 +5,9 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.13-public",
-                   "packVersion":  "0.2.13-public",
-                   "firmwareVersion":  "2.8.0.zdeck14",
+                   "title":  "Z-Deck 0.2.14-public",
+                   "packVersion":  "0.2.14-public",
+                   "firmwareVersion":  "2.8.0.zdeck15",
                    "released":  "2026-06-05",
                    "updateMode":  "app-only",
                    "preserves":  [
@@ -17,12 +17,12 @@
                                      "sd_chat_journal"
                                  ],
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck14-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck14-public/zdeck-firmware.bin",
-                                    "size":  3671408,
-                                    "sha256":  "944a03d27fafb989fb719f8a2dbe9d3f4a5f4340d9ea3fc87ad9840fc6ec9a48",
-                                    "md5":  "39ad1b99792b380b047319bb9edc0a8e"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck15-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck15-public/zdeck-firmware.bin",
+                                    "size":  3671440,
+                                    "sha256":  "3b8c28db6b118791f56752f97cc47e33526b1e11f1a7aa26a74c29d0720ad6ee",
+                                    "md5":  "c7e9fe7a9262394478d8136d5dc94869"
                                 },
-                   "notes":  "Fixes the clipped T-Deck home LoRa RX status, adds saved map pages for Mesh map, Live compass, DF/Radar, and Distance alert, prepares SD/offline map folders, orders chat pickers by latest activity, improves node-name fallbacks, and clarifies send status. App-only updates write only the firmware app slot and preserve Meshtastic config, channels, keys, owner settings, and SD chat history."
+                   "notes":  "Fixes the physical T-Deck home screen row-wrap regression by reserving a full row slot for the LoRa RX status label so nearby icons cannot overlap it. Keeps saved map pages, SD/offline map folder prep, newest-first chat pickers, improved node-name fallbacks, clearer send status, and app-only Wi-Fi updates. App-only updates write only the firmware app slot and preserve Meshtastic config, channels, keys, owner settings, and SD chat history."
                }
 }
