@@ -5,265 +5,200 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Z-Deck Firmware Pack Public</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260606-zdeck16">
+  <link rel="stylesheet" href="style.css?v=20260606-layout2">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
 </head>
 <body>
-  <main class="shell">
-    <section class="hero">
-      <div class="terminal">
-        <div class="bar">
-          <span></span><span></span><span></span>
-          <strong>Z-DECK FLASH CONSOLE</strong>
-          <em>0.2.15 PUBLIC</em>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Z-Deck web flasher home">
+        <span class="brand-mark">ZD</span>
+        <span>
+          <strong>Z-Deck</strong>
+          <small>Public T-Deck flasher</small>
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Project links">
+        <a href="wiki/">Wiki</a>
+        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/releases" target="_blank" rel="noreferrer">Releases</a>
+        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/issues/new/choose" target="_blank" rel="noreferrer">Report</a>
+      </nav>
+    </header>
+
+    <section class="flash-grid" aria-label="Z-Deck flasher">
+      <div class="flash-panel">
+        <p class="eyebrow">Current public build</p>
+        <h1>Flash Z-Deck 0.2.15</h1>
+        <p class="lead">Browser-based installer for the LILYGO T-Deck/T-Deck Plus t-deck-tft build. First install by USB, then use on-device Wi-Fi updates from System &gt; Updates.</p>
+
+        <div class="release-badges" aria-label="Release summary">
+          <span>2.8.0.zdeck16</span>
+          <span>0.2.15-public</span>
+          <span>ESP32-S3</span>
+          <span>LongFast public</span>
         </div>
-        <div class="usb-scene" aria-hidden="true">
-          <svg class="deck-vector deck-vector-lowpoly" viewBox="0 0 360 520" xmlns="http://www.w3.org/2000/svg">
-            <polygon class="lp-shadow" points="75,492 285,492 320,510 40,510"/>
-            <g class="lp-device">
-              <polygon class="lp-case" points="86,18 274,18 318,58 318,455 284,498 76,498 42,455 42,58"/>
-              <polygon class="lp-rim" points="93,33 267,33 301,66 301,447 275,482 85,482 59,447 59,66"/>
-              <polygon class="lp-facet a" points="42,58 86,18 93,33 59,66"/>
-              <polygon class="lp-facet b" points="274,18 318,58 301,66 267,33"/>
-              <polygon class="lp-facet c" points="59,447 85,482 76,498 42,455"/>
-              <polygon class="lp-facet d" points="301,447 284,498 275,482"/>
-              <rect class="lp-speaker" x="139" y="44" width="82" height="5"/>
-              <text class="lp-logo top" x="180" y="70">LILYGO</text>
 
-              <polygon class="lp-screen-frame" points="73,91 287,91 298,102 298,214 287,226 73,226 62,214 62,102"/>
-              <rect class="lp-screen" x="78" y="108" width="204" height="94"/>
-              <text class="lp-screen-title" x="91" y="133">Z-DECK</text>
-              <text class="lp-screen-small" x="91" y="154">LONGFAST PUBLIC</text>
-              <polyline class="lp-screen-line" points="91,178 130,160 164,173 204,145 253,166"/>
+        <div class="install-row">
+          <esp-web-install-button id="installButton" manifest="manifest.json">
+            <button slot="activate" class="action">Connect and flash</button>
+            <span slot="unsupported">Use Chrome or Edge with Web Serial enabled.</span>
+            <span slot="not-allowed">Serial access was blocked. Reload and allow the browser prompt.</span>
+          </esp-web-install-button>
+          <p>Use bootloader mode if the serial port does not appear: hold the center trackball/BOOT, tap RESET, then release BOOT after the port shows up.</p>
+        </div>
 
-              <polygon class="lp-rail" points="65,252 295,252 309,267 295,302 65,302 51,267"/>
-              <polygon class="lp-chevrons left" points="78,266 111,266 95,282 111,296 78,296 94,282"/>
-              <polygon class="lp-chevrons left2" points="118,266 151,266 135,282 151,296 118,296 134,282"/>
-              <polygon class="lp-chevrons right" points="282,266 249,266 265,282 249,296 282,296 266,282"/>
-              <polygon class="lp-chevrons right2" points="242,266 209,266 225,282 209,296 242,296 226,282"/>
-              <circle class="lp-track-ring" cx="180" cy="282" r="24"/>
-              <circle class="lp-track" cx="180" cy="282" r="15"/>
+        <div class="custom-manifest">
+          <label for="customManifest">Custom ESP Web Tools manifest</label>
+          <div class="manifest-form">
+            <input id="customManifest" type="url" placeholder="https://example.com/manifest.json" autocomplete="off">
+            <button id="applyManifest" type="button">Use URL</button>
+          </div>
+          <p id="manifestStatus" class="muted">Default manifest: bundled Z-Deck firmware.</p>
+        </div>
 
-              <polygon class="lp-key-row" points="72,334 288,334 297,357 63,357"/>
-              <polygon class="lp-key-row two" points="82,372 278,372 286,395 74,395"/>
-              <polygon class="lp-key-row three" points="97,410 263,410 270,433 90,433"/>
-              <rect class="lp-space" x="119" y="448" width="122" height="22"/>
-              <text class="lp-logo bottom" x="180" y="489">LILYGO</text>
-            </g>
-          </svg>
-          <svg class="deck-vector deck-vector-photo legacy-vector" viewBox="0 0 360 620" xmlns="http://www.w3.org/2000/svg" hidden>
-            <defs>
-              <linearGradient id="caseGrad" x1="46" x2="316" y1="18" y2="610" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#2d3433"/>
-                <stop offset="0.38" stop-color="#121716"/>
-                <stop offset="1" stop-color="#030505"/>
-              </linearGradient>
-              <linearGradient id="rimGrad" x1="48" x2="318" y1="34" y2="588" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#5b6460"/>
-                <stop offset="0.2" stop-color="#1e2523"/>
-                <stop offset="0.8" stop-color="#070909"/>
-                <stop offset="1" stop-color="#48514d"/>
-              </linearGradient>
-              <linearGradient id="screenGrad" x1="48" x2="314" y1="78" y2="238" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#192968"/>
-                <stop offset="0.45" stop-color="#12384d"/>
-                <stop offset="1" stop-color="#06120f"/>
-              </linearGradient>
-              <linearGradient id="keyGrad" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stop-color="#39413f"/>
-                <stop offset="0.45" stop-color="#1b2120"/>
-                <stop offset="1" stop-color="#060807"/>
-              </linearGradient>
-              <radialGradient id="trackballGrad" cx="38%" cy="34%" r="70%">
-                <stop offset="0" stop-color="#f7fff2"/>
-                <stop offset="0.38" stop-color="#aebbb5"/>
-                <stop offset="1" stop-color="#111817"/>
-              </radialGradient>
-              <pattern id="screenGrid" width="12" height="12" patternUnits="userSpaceOnUse">
-                <path d="M12 0H0V12" fill="none" stroke="#5fd7ff" stroke-opacity=".16" stroke-width="1"/>
-              </pattern>
-              <filter id="greenGlow" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="5" result="blur"/>
-                <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.32 0 0 0 0 1 0 0 0 0 0.6 0 0 0 .75 0"/>
-                <feMerge>
-                  <feMergeNode/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
+        <pre id="ticker" class="console">waiting for deck...</pre>
+      </div>
 
-            <ellipse class="portrait-shadow" cx="180" cy="594" rx="128" ry="16"/>
-            <rect class="side-button left" x="13" y="112" width="9" height="73" rx="4"/>
-            <rect class="side-button right" x="338" y="123" width="9" height="66" rx="4"/>
-
-            <g class="deck-body portrait-body">
-              <path class="deck-case portrait-case" d="M75 12h210c33 0 60 27 60 60v462c0 44-35 74-78 74H93c-43 0-78-30-78-74V72c0-33 27-60 60-60Z"/>
-              <path class="portrait-rim" d="M82 23h196c31 0 56 24 56 55v449c0 39-31 68-70 68H96c-39 0-70-29-70-68V78c0-31 25-55 56-55Z"/>
-              <rect class="top-speaker" x="137" y="37" width="85" height="5" rx="2.5"/>
-              <text class="body-logo top" x="180" y="62" text-anchor="middle">LILYGO</text>
-
-              <rect class="screen-frame portrait-screen-frame" x="42" y="78" width="276" height="170" rx="9"/>
-              <rect class="screen-glass portrait-screen" x="53" y="88" width="254" height="150" rx="4"/>
-              <rect class="screen-grid-fill" x="53" y="88" width="254" height="150" rx="4"/>
-              <rect class="screen-status-bar" x="62" y="98" width="236" height="18" rx="2"/>
-              <text class="screen-title" x="70" y="112">Z-DECK FLASHER</text>
-              <text class="screen-small" x="260" y="112">0.2.15</text>
-              <rect class="screen-card" x="67" y="127" width="226" height="40" rx="3"/>
-              <text class="screen-card-title" x="78" y="143">LONGFAST PUBLIC</text>
-              <text class="screen-small" x="78" y="158">ESP32-S3  |  T-DECK-TFT</text>
-              <rect class="screen-button" x="67" y="181" width="63" height="23" rx="3"/>
-              <rect class="screen-button" x="143" y="181" width="63" height="23" rx="3"/>
-              <rect class="screen-button" x="220" y="181" width="63" height="23" rx="3"/>
-              <text class="screen-label" x="82" y="196">FLASH</text>
-              <text class="screen-label" x="158" y="196">MAPS</text>
-              <text class="screen-label" x="232" y="196">TOOLS</text>
-              <path class="screen-grid-lines" d="M67 219h216M67 226h216M67 233h216M104 214v22M180 214v22M256 214v22"/>
-
-              <rect class="bezel-shelf" x="36" y="257" width="288" height="66" rx="6"/>
-              <path class="chevrons left" d="M66 279h31l-17 18 17 18H66l17-18Zm33 0h31l-17 18 17 18H99l17-18Zm33 0h31l-17 18 17 18h-31l17-18Z"/>
-              <path class="chevrons right" d="M294 279h-31l17 18-17 18h31l-17-18Zm-33 0h-31l17 18-17 18h31l-17-18Zm-33 0h-31l17 18-17 18h31l-17-18Z"/>
-              <path class="circuit-left" d="M49 268h42M49 278h25l15 15M49 288h16l22 23"/>
-              <path class="circuit-right" d="M311 268h-42M311 278h-25l-15 15M311 288h-16l-22 23"/>
-              <circle class="trackball-ring" cx="180" cy="294" r="24"/>
-              <circle class="trackball-vector" cx="180" cy="294" r="17"/>
-              <circle class="trackball-glint" cx="173" cy="288" r="5"/>
-
-              <g class="key-grid portrait-keys">
-                <rect x="35" y="344" width="22" height="28" rx="5"/><text x="46" y="363">Q</text>
-                <rect x="64" y="344" width="22" height="28" rx="5"/><text x="75" y="363">W</text>
-                <rect x="93" y="344" width="22" height="28" rx="5"/><text x="104" y="363">E</text>
-                <rect x="122" y="344" width="22" height="28" rx="5"/><text x="133" y="363">R</text>
-                <rect x="151" y="344" width="22" height="28" rx="5"/><text x="162" y="363">T</text>
-                <rect x="180" y="344" width="22" height="28" rx="5"/><text x="191" y="363">Y</text>
-                <rect x="209" y="344" width="22" height="28" rx="5"/><text x="220" y="363">U</text>
-                <rect x="238" y="344" width="22" height="28" rx="5"/><text x="249" y="363">I</text>
-                <rect x="267" y="344" width="22" height="28" rx="5"/><text x="278" y="363">O</text>
-                <rect x="296" y="344" width="22" height="28" rx="5"/><text x="307" y="363">P</text>
-                <rect x="50" y="381" width="22" height="28" rx="5"/><text x="61" y="400">A</text>
-                <rect x="79" y="381" width="22" height="28" rx="5"/><text x="90" y="400">S</text>
-                <rect x="108" y="381" width="22" height="28" rx="5"/><text x="119" y="400">D</text>
-                <rect x="137" y="381" width="22" height="28" rx="5"/><text x="148" y="400">F</text>
-                <rect x="166" y="381" width="22" height="28" rx="5"/><text x="177" y="400">G</text>
-                <rect x="195" y="381" width="22" height="28" rx="5"/><text x="206" y="400">H</text>
-                <rect x="224" y="381" width="22" height="28" rx="5"/><text x="235" y="400">J</text>
-                <rect x="253" y="381" width="22" height="28" rx="5"/><text x="264" y="400">K</text>
-                <rect x="282" y="381" width="22" height="28" rx="5"/><text x="293" y="400">L</text>
-                <rect x="35" y="418" width="27" height="28" rx="5"/><text x="48" y="437">alt</text>
-                <rect x="70" y="418" width="22" height="28" rx="5"/><text x="81" y="437">Z</text>
-                <rect x="99" y="418" width="22" height="28" rx="5"/><text x="110" y="437">X</text>
-                <rect x="128" y="418" width="22" height="28" rx="5"/><text x="139" y="437">C</text>
-                <rect x="157" y="418" width="22" height="28" rx="5"/><text x="168" y="437">V</text>
-                <rect x="186" y="418" width="22" height="28" rx="5"/><text x="197" y="437">B</text>
-                <rect x="215" y="418" width="22" height="28" rx="5"/><text x="226" y="437">N</text>
-                <rect x="244" y="418" width="22" height="28" rx="5"/><text x="255" y="437">M</text>
-                <rect x="274" y="418" width="44" height="28" rx="5"/><text x="296" y="437">sym</text>
-                <rect x="35" y="455" width="28" height="28" rx="5"/><text x="49" y="474">#</text>
-                <rect x="71" y="455" width="28" height="28" rx="5"/><text x="85" y="474">*</text>
-                <rect x="107" y="455" width="126" height="28" rx="6"/><text x="170" y="474">space</text>
-                <rect x="241" y="455" width="33" height="28" rx="5"/><text x="258" y="474">.</text>
-                <rect x="282" y="455" width="36" height="28" rx="5"/><text x="300" y="474">go</text>
-              </g>
-
-              <rect class="bottom-strip" x="78" y="515" width="204" height="5" rx="2.5"/>
-              <text class="body-logo bottom" x="180" y="548" text-anchor="middle">LILYGO</text>
+      <aside class="device-panel" aria-label="Release device preview">
+        <div class="device-stage">
+          <svg class="device-art" viewBox="0 0 320 520" role="img" aria-label="Stylized LILYGO T-Deck with Z-Deck screen">
+            <path class="device-shadow" d="M57 494h206l34 16H23z"/>
+            <path class="device-case" d="M76 18h168l42 40v396l-34 44H68l-34-44V58z"/>
+            <path class="device-rim" d="M84 34h152l31 30v382l-25 34H78l-25-34V64z"/>
+            <rect class="speaker" x="123" y="50" width="74" height="5" rx="2"/>
+            <text class="device-logo" x="160" y="76">LILYGO</text>
+            <path class="screen-frame" d="M65 96h190l10 10v118l-10 10H65l-10-10V106z"/>
+            <rect class="screen" x="75" y="112" width="170" height="92" rx="4"/>
+            <text class="screen-title" x="90" y="139">Z-DECK</text>
+            <text class="screen-subtitle" x="90" y="160">0.2.15 PUBLIC</text>
+            <path class="screen-line" d="M90 182h42l17-15 23 11 33-27 29 22"/>
+            <path class="control-rail" d="M61 262h198l15 16-15 36H61l-15-36z"/>
+            <path class="chev-left" d="M82 277h31l-15 18 15 18H82l15-18zm39 0h31l-15 18 15 18h-31l15-18z"/>
+            <path class="chev-right" d="M239 277h-31l15 18-15 18h31l-15-18zm-39 0h-31l15 18-15 18h31l-15-18z"/>
+            <circle class="track-ring" cx="160" cy="296" r="25"/>
+            <circle class="track" cx="160" cy="296" r="15"/>
+            <g class="keys">
+              <path d="M66 346h188l8 21H58z"/>
+              <path d="M78 383h164l7 21H71z"/>
+              <path d="M94 420h132l7 21H87z"/>
+              <rect x="113" y="455" width="94" height="21" rx="4"/>
             </g>
           </svg>
         </div>
-        <pre id="ticker">waiting for deck...</pre>
-      </div>
-      <div class="copy">
-        <p class="eyebrow">Z-Deck public flasher</p>
-        <h1>Z-Deck Firmware Pack</h1>
-        <p>Public browser flasher for the T-Deck build. Flash the bundled firmware, start on LongFast, then add your own channels only when you need them.</p>
-        <div class="linkbar" aria-label="Project links">
-          <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher" target="_blank" rel="noreferrer">GitHub</a>
-          <a href="wiki/">Wiki</a>
-          <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/issues/new/choose" target="_blank" rel="noreferrer">Report Problem</a>
-          <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/releases" target="_blank" rel="noreferrer">Releases</a>
+
+        <div class="payload-card">
+          <p class="eyebrow">Payload</p>
+          <dl>
+            <div><dt>Update mode</dt><dd>App-only OTA</dd></div>
+            <div><dt>Backup path</dt><dd>/zdeck/backups/preferences.proto</dd></div>
+            <div><dt>Firmware SHA256</dt><dd>df94b60d...e097f665</dd></div>
+          </dl>
         </div>
-      </div>
+      </aside>
     </section>
 
-    <section class="panel">
-      <div>
-        <h2>Bundled Firmware</h2>
-        <p>Release <strong>Z-Deck 0.2.15-public</strong>, target <strong>t-deck-tft</strong>, build skin <strong>Z-Deck Modern Field</strong>.</p>
-      </div>
-      <esp-web-install-button id="installButton" manifest="manifest.json">
-        <button slot="activate" class="action">Connect and flash</button>
-        <span slot="unsupported">Use Chrome or Edge with Web Serial enabled.</span>
-        <span slot="not-allowed">Serial access was blocked. Reload and allow the browser prompt.</span>
-      </esp-web-install-button>
-    </section>
-
-    <section class="feature-list" aria-label="Z-Deck features">
-      <div class="section-head">
-        <p class="eyebrow">features</p>
-        <h2>What This Build Adds</h2>
-      </div>
-      <ul>
-        <li><strong>SD settings backup</strong><span>System &gt; Updates can back up and restore Meshtastic settings to /zdeck/backups/preferences.proto on the SD card.</span></li>
-        <li><strong>Safer Wi-Fi updates</strong><span>Apply Update writes and verifies the SD settings backup before downloading the app-only firmware update.</span></li>
-        <li><strong>Modern T-Deck layout</strong><span>Compact dark UI, clipped home LoRa RX status, clearer TX/RX chips, and front-page spacing fixes for the physical device.</span></li>
-        <li><strong>Map pages</strong><span>Mesh map, Live compass, DF/Radar, and Distance alert pages can be selected and saved as the default map style.</span></li>
-        <li><strong>SD-first field storage</strong><span>SD setup prepares map, ringtone, log, backup, and message-history folders with visible progress and prepared-card detection.</span></li>
-        <li><strong>Cleaner chats</strong><span>Direct and group chat pickers sort by latest activity, use stable node-name fallbacks, and expose clearer hop/send status.</span></li>
-      </ul>
-    </section>
-
-    <section class="grid">
+    <section class="status-strip" aria-label="Install checkpoints">
       <article>
-        <h3>Bootloader Mode</h3>
+        <span>1</span>
+        <strong>USB flash</strong>
+        <p>Install the full bootloader, app slots, and LittleFS bundle from the browser.</p>
+      </article>
+      <article>
+        <span>2</span>
+        <strong>Configure mesh</strong>
+        <p>Set owner, region, GPS, channels, and private keys outside this public repo.</p>
+      </article>
+      <article>
+        <span>3</span>
+        <strong>Back up to SD</strong>
+        <p>Use System &gt; Updates to write a local settings backup before updating.</p>
+      </article>
+      <article>
+        <span>4</span>
+        <strong>Update over Wi-Fi</strong>
+        <p>Check and apply app-only updates while preserving config and SD files.</p>
+      </article>
+    </section>
+
+    <section class="section-block" aria-labelledby="featuresTitle">
+      <div class="section-heading">
+        <p class="eyebrow">Feature set</p>
+        <h2 id="featuresTitle">What this build does</h2>
+      </div>
+      <div class="feature-matrix">
+        <article>
+          <h3>SD settings backup</h3>
+          <p>Backup and restore Meshtastic preferences from /zdeck/backups/preferences.proto on the SD card.</p>
+        </article>
+        <article>
+          <h3>Safer updates</h3>
+          <p>Apply Update writes and verifies the SD backup before downloading app-only firmware.</p>
+        </article>
+        <article>
+          <h3>Cleaner home screen</h3>
+          <p>Modern Field UI, clipped LoRa RX text, clearer TX/RX chips, and fixed front-page spacing.</p>
+        </article>
+        <article>
+          <h3>Map pages</h3>
+          <p>Mesh map, Live compass, DF/Radar, and Distance alert pages with saved defaults.</p>
+        </article>
+        <article>
+          <h3>SD field storage</h3>
+          <p>Visible SD setup progress, prepared-card detection, map folders, ringtones, logs, and chat history.</p>
+        </article>
+        <article>
+          <h3>Better chats</h3>
+          <p>Newest-first direct/group chat pickers, stable node-name fallback labels, and clearer hop/send status.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="two-column">
+      <article class="info-panel">
+        <p class="eyebrow">Before flashing</p>
+        <h2>Keep recovery simple</h2>
         <ol>
-          <li>Plug in the T-Deck over USB.</li>
-          <li>Hold the center trackball / BOOT control.</li>
-          <li>Tap RESET, then release RESET.</li>
-          <li>Release BOOT after the serial port appears.</li>
+          <li>Use Chrome or Edge with Web Serial.</li>
+          <li>Confirm this is a T-Deck/T-Deck Plus class ESP32-S3 device.</li>
+          <li>Keep bootloader mode available for rollback.</li>
+          <li>Do not put private channel URLs or PSKs in public issues.</li>
         </ol>
       </article>
-      <article>
-        <h3>Custom Firmware</h3>
-        <p>Paste another ESP Web Tools manifest URL to flash a different hosted build.</p>
-        <div class="manifest-form">
-          <input id="customManifest" type="url" placeholder="https://example.com/manifest.json" autocomplete="off">
-          <button id="applyManifest" type="button">Use URL</button>
-        </div>
-        <p id="manifestStatus" class="muted">Default manifest: bundled Z-Deck firmware.</p>
-      </article>
-      <article>
-        <h3>After Flash</h3>
-        <p>Set your Meshtastic owner, region, GPS, channels, and device keys after flashing. Private channels, PSKs, channel URLs, and admin keys stay outside this public repo.</p>
+      <article class="info-panel warning-panel">
+        <p class="eyebrow">Local privacy</p>
+        <h2>SD backups are sensitive</h2>
+        <p>The settings backup contains Meshtastic config, channels, PSKs, owner data, and security keys. Treat the card as private local storage.</p>
+        <code>/zdeck/backups/preferences.proto</code>
+        <code>/itsz/history/messages.jsonl</code>
       </article>
     </section>
 
-    <section class="docs-grid" aria-label="Release documents">
+    <section class="docs-row" aria-label="Release documents">
       <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/COMPATIBILITY.md" target="_blank" rel="noreferrer">Compatibility</a>
       <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/RECOVERY.md" target="_blank" rel="noreferrer">Recovery</a>
       <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/KNOWN_ISSUES.md" target="_blank" rel="noreferrer">Known Issues</a>
       <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">Privacy</a>
       <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/SOURCE.md" target="_blank" rel="noreferrer">Source</a>
       <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">Changelog</a>
-      <a href="wiki/">Wiki Page</a>
+      <a href="wiki/">Wiki</a>
     </section>
 
-    <section class="release-panel">
-      <div>
-        <p class="eyebrow">release notes</p>
-        <h2>Release Notes</h2>
-        <p>Z-Deck is Meshtastic firmware with a custom T-Deck layer: Modern Field UI, clipped home RX status, newest-first chat ordering, stronger node-name fallbacks, map/cache changes with SD-first map pages, GPS/compass refresh work, clearer TX/RX message chips, fixed I2S ringtone playback, screen correction tools, USB API recovery behavior, SD-card prep tools with visible setup progress, SD settings backup/restore, an SD-card message journal, and an app-only Wi-Fi updater under System &gt; Updates.</p>
-        <p class="warning">SD files are plaintext local storage. The settings backup contains Meshtastic config, channels, PSKs, owner data, and security keys; treat the card as private.</p>
-        <code>/zdeck/backups/preferences.proto</code>
-        <code>/itsz/history/messages.jsonl</code>
-      </div>
-      <div>
-        <p class="eyebrow">github history</p>
-        <h2>Recent Changes</h2>
+    <section class="release-grid">
+      <article class="info-panel">
+        <p class="eyebrow">Release notes</p>
+        <h2>Z-Deck 0.2.15-public</h2>
+        <p>Firmware 2.8.0.zdeck16 adds SD settings backup/restore and verifies that backup before app-only Wi-Fi updates. The bundle keeps the home RX overlap fix, saved map pages, newest-first chats, SD setup progress, Modern Field UI, public LongFast defaults, and disabled USB SD mass storage.</p>
+      </article>
+      <article class="info-panel">
+        <p class="eyebrow">GitHub history</p>
+        <h2>Recent changes</h2>
         <ul id="commitList" class="commit-list">
           <li>Loading GitHub change history...</li>
         </ul>
-      </div>
+      </article>
     </section>
   </main>
-  <script src="app.js?v=20260606-zdeck16"></script>
+  <script src="app.js?v=20260606-layout2"></script>
 </body>
 </html>
