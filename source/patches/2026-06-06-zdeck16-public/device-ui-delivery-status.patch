@@ -1,0 +1,264 @@
+diff --git a/include/graphics/common/MeshtasticView.h b/include/graphics/common/MeshtasticView.h
+index 70a4709..bff9504 100644
+--- a/include/graphics/common/MeshtasticView.h
++++ b/include/graphics/common/MeshtasticView.h
+@@ -135,7 +135,10 @@ class MeshtasticView : public DeviceGUI
+     virtual void handleResponse(uint32_t from, uint32_t id, const meshtastic_RouteDiscovery &route) {}
+     virtual void handlePositionResponse(uint32_t from, uint32_t request_id, int32_t rx_rssi, float rx_snr, bool isNeighbor) {}
+     virtual void packetReceived(const meshtastic_MeshPacket &p);
+-    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false) {}
++    virtual void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = false,
++                            int8_t hopsUsed = -1)
++    {
++    }
+     virtual void restoreMessage(const LogMessage &msg) {}
+
+     virtual void notifyRestoreMessages(int32_t percentage) {}
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 71847fe..d8c87f0 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -82,7 +82,8 @@ class TFTView_320x240 : public MeshtasticView
+     void blankScreen(bool enable) override;
+     void screenSaving(bool enabled) override;
+     bool isScreenLocked(void) override;
+-    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true) override;
++    void newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgtime, bool restore = true,
++                    int8_t hopsUsed = -1) override;
+     void restoreMessage(const LogMessage &msg) override;
+     void removeNode(uint32_t nodeNum) override;
+
+@@ -159,9 +160,10 @@ class TFTView_320x240 : public MeshtasticView
+     // own chat message
+     virtual void handleAddMessage(char *msg);
+     // add own message to current chat
+-    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status);
++    virtual void addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg, LogMessage::MsgStatus status,
++                            uint8_t hopLimit = 0, bool ackExpected = false, bool isChannel = false);
+     // add new message to container
+-    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg);
++    virtual void newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t channel, const char *msg, int8_t hopsUsed = -1);
+     // create empty message container for node or group channel
+     virtual lv_obj_t *newMessageContainer(uint32_t from, uint32_t to, uint8_t ch);
+     // filter or highlight node
+@@ -169,7 +171,7 @@ class TFTView_320x240 : public MeshtasticView
+     // display message alert popup
+     virtual void messageAlert(const char *alert, bool show);
+     // mark sent message as received
+-    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err);
++    virtual void handleTextMessageResponse(uint32_t channelOrNode, uint32_t id, bool ack, bool err, int8_t hopsUsed = -1);
+     // set node image based on role
+     virtual void setNodeImage(uint32_t nodeNum, eRole role, bool unmessagable, lv_obj_t *img);
+     // apply filter and count number of filtered nodes
+diff --git a/source/graphics/common/ViewController.cpp b/source/graphics/common/ViewController.cpp
+index 8918efa..3c06202 100644
+--- a/source/graphics/common/ViewController.cpp
++++ b/source/graphics/common/ViewController.cpp
+@@ -1040,8 +1040,12 @@ bool ViewController::packetReceived(const meshtastic_MeshPacket &p)
+             ILOG_WARN("ignoring message with invalid channel %d", (int)p.channel);
+             break;
+         }
+-        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time);
++        int8_t hopsUsed = -1;
++        if (p.hop_start > 0 && p.hop_limit <= p.hop_start) {
++            hopsUsed = p.hop_start - p.hop_limit;
++        }
++        view->newMessage(p.from, p.to, p.channel, (const char *)p.decoded.payload.bytes, time, false, hopsUsed);
+         log.write(LogMessageEnv(p.from, p.to, p.channel, time, LogMessage::eDefault, false, p.decoded.payload.size,
+                                 (const uint8_t *)p.decoded.payload.bytes));
+         itszAppendSdMessageJournal("received", p.from, p.to, p.channel, time, p.decoded.payload.size,
+                                    (const uint8_t *)p.decoded.payload.bytes);
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 4370ac8..fc5cc78 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -138,7 +138,7 @@ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingReq
+     case LogMessage::eDeleted:
+         return "DELETED";
+     default:
+-        return pendingRequest ? "TX QUEUED" : "TX SENT";
++        return pendingRequest ? "WAIT ACK" : "TX SENT";
+     }
+ }
+
+@@ -166,6 +166,13 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
+     lv_obj_set_style_text_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+ }
++
++int8_t itszPacketHops(const meshtastic_MeshPacket &p)
++{
++    if (p.hop_start > 0 && p.hop_limit <= p.hop_start)
++        return p.hop_start - p.hop_limit;
++    return -1;
++}
+ } // namespace
+
+ TFTView_320x240 *TFTView_320x240::instance(void)
+@@ -5015,14 +5022,15 @@ void TFTView_320x240::handleAddMessage(char *msg)
+             msg[i] = '\n';
+
+     controller->sendTextMessage(to, ch, hopLimit, actTime, requestId, usePkc, msg);
+-    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone);
++    addMessage(activeMsgContainer, actTime, requestId, msg, LogMessage::eNone, hopLimit, channelOrNode >= c_max_channels,
++               channelOrNode < c_max_channels);
+ }
+
+ /**
+  * display message that has just been written and sent out
+  */
+ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t requestId, char *msg,
+-                                 LogMessage::MsgStatus status)
++                                 LogMessage::MsgStatus status, uint8_t hopLimit, bool ackExpected, bool isChannel)
+ {
+     lv_obj_t *hiddenPanel = lv_obj_create(container);
+     lv_obj_set_width(hiddenPanel, lv_pct(100));
+@@ -5069,11 +5077,24 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
+     lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    statusLabel->user_data = (void *)(uintptr_t)hopLimit;
+     char statusBuf[52];
+     if (requestId) {
+-        lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
+-                    (unsigned int)(requestId & 0xffff));
++        if (isChannel && hopLimit > 0) {
++            lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST TTL%u SENT #%04x", (unsigned int)hopLimit,
++                        (unsigned int)(requestId & 0xffff));
++        } else if (ackExpected && hopLimit > 0) {
++            lv_snprintf(statusBuf, sizeof(statusBuf), "WAIT ACK TTL%u #%04x", (unsigned int)hopLimit,
++                        (unsigned int)(requestId & 0xffff));
++        } else if (hopLimit > 0) {
++            lv_snprintf(statusBuf, sizeof(statusBuf), "%s TTL%u #%04x",
++                        itszOutgoingStatusText(status, status == LogMessage::eNone), (unsigned int)hopLimit,
++                        (unsigned int)(requestId & 0xffff));
++        } else {
++            lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
++                        (unsigned int)(requestId & 0xffff));
++        }
+     } else {
+         lv_snprintf(statusBuf, sizeof(statusBuf), "%s", itszOutgoingStatusText(status, false));
+     }
+@@ -5800,7 +5825,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
+             if (req.type == ResponseHandler::TraceRouteRequest) {
+                 handleTraceRouteResponse(routing);
+             } else if (req.type == ResponseHandler::TextMessageRequest) {
+-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false);
++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, false, itszPacketHops(p));
+             } else if (req.type == ResponseHandler::PositionRequest) {
+                 handlePositionResponse(from, id, p.rx_rssi, p.rx_snr, p.hop_limit == p.hop_start);
+             }
+@@ -5811,7 +5836,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
+             if (req.type == ResponseHandler::TraceRouteRequest) {
+                 handleTraceRouteResponse(routing);
+             } else if (req.type == ResponseHandler::TextMessageRequest) {
+-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true, itszPacketHops(p));
+             }
+         } else if (routing.error_reason == meshtastic_Routing_Error_NO_RESPONSE) {
+             if (req.type == ResponseHandler::PositionRequest) {
+@@ -5821,7 +5846,7 @@ void TFTView_320x240::handleResponse(uint32_t from, const uint32_t id, const mes
+                    routing.error_reason == meshtastic_Routing_Error_PKI_UNKNOWN_PUBKEY) {
+             if (req.type == ResponseHandler::TextMessageRequest) {
+-                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true);
++                handleTextMessageResponse((unsigned long)req.cookie, id, ack, true, itszPacketHops(p));
+                 // we probably have a wrong key; mark it as bad and don't use in future
+                 if ((unsigned long)nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data == 1) {
+                     ILOG_DEBUG("public key mismatch");
+                     nodes[from]->LV_OBJ_IDX(node_bat_idx)->user_data = (void *)2;
+@@ -6272,7 +6297,7 @@ void TFTView_320x240::messageAlert(const char *alert, bool show)
+  * @param id
+  * @param ack
+  */
+-void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err)
++void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const uint32_t id, bool ack, bool err, int8_t hopsUsed)
+ {
+     lv_obj_t *msgContainer;
+     const bool isChannel = channelOrNode < c_max_channels;
+@@ -6295,20 +6320,34 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
+         if (requestId == id) {
+             // now give the textlabel border another color
+             lv_obj_t *textLabel = panel->spec_attr->children[0];
++            lv_obj_t *statusLabel = panel->spec_attr->child_cnt > 1 ? panel->spec_attr->children[1] : nullptr;
++            uint8_t hopLimit = statusLabel ? (uint8_t)(uintptr_t)statusLabel->user_data : 0;
+             lv_obj_set_style_border_color(textLabel,
+-                                          err   ? colorRed
++                                          isChannel ? colorMesh
++                                          : err   ? colorRed
+                                           : ack ? colorBlueGreen
+                                                 : colorYellow,
+                                           LV_PART_MAIN | LV_STATE_DEFAULT);
+-            itszSetOutgoingStatus(panel,
+-                                  err       ? "TX FAIL"
+-                                  : isChannel ? "TX SENT (NO READ)"
+-                                  : ack       ? "TX ACK"
+-                                              : "TX HEARD",
+-                                  err       ? colorRed
+-                                  : isChannel ? colorMesh
+-                                  : ack       ? colorBlueGreen
+-                                              : colorYellow);
++            char statusBuf[52];
++            if (isChannel) {
++                if (hopLimit > 0)
++                    lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST TTL%u SENT", (unsigned int)hopLimit);
++                else
++                    lv_snprintf(statusBuf, sizeof(statusBuf), "BCAST SENT");
++            } else if (hopsUsed >= 0) {
++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H%d", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD",
++                            (int)hopsUsed);
++            } else if (hopLimit > 0) {
++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H? TTL%u", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD",
++                            (unsigned int)hopLimit);
++            } else {
++                lv_snprintf(statusBuf, sizeof(statusBuf), "%s H?", err ? "NO ACK" : ack ? "TX ACK" : "TX HEARD");
++            }
++            itszSetOutgoingStatus(panel, statusBuf,
++                                  isChannel ? colorMesh
++                                  : err     ? colorRed
++                                  : ack     ? colorBlueGreen
++                                            : colorYellow);
+
+             // store message
+             break;
+@@ -6983,7 +7023,8 @@ lv_obj_t *TFTView_320x240::newMessageContainer(uint32_t from, uint32_t to, uint8
+  * @param time in/out: message time (maybe overwritten when 0)
+  * @param restore if restoring then skip banners and highlight
+  */
+-void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore)
++void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const char *msg, uint32_t &msgTime, bool restore,
++                                 int8_t hopsUsed)
+ {
+     ILOG_DEBUG("newMessage: from:0x%08x, to:0x%08x, ch:%d, time:%d", from, to, ch, msgTime);
+     int pos = 0;
+@@ -7012,7 +7053,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
+     sprintf(&buf[pos], "%s", msg);
+
+     // place message into container
+-    newMessage(from, container, ch, buf);
++    newMessage(from, container, ch, buf, hopsUsed);
+
+     if (!restore) {
+         // display msg popup if not already viewing the messages
+@@ -7044,7 +7085,7 @@ void TFTView_320x240::newMessage(uint32_t from, uint32_t to, uint8_t ch, const c
+  * @param ch
+  * @param msg
+  */
+-void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg)
++void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t ch, const char *msg, int8_t hopsUsed)
+ {
+     lv_obj_t *hiddenPanel = lv_obj_create(container);
+     lv_obj_set_width(hiddenPanel, lv_pct(100));
+@@ -7081,7 +7122,11 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
+     lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
++    if (hopsUsed >= 0) {
++        lv_label_set_text_fmt(statusLabel, "RX CH %u H%d", (unsigned int)ch, (int)hopsUsed);
++    } else {
++        lv_label_set_text_fmt(statusLabel, "RX CH %u H?", (unsigned int)ch);
++    }
+
+     if (state == MeshtasticView::eRunning) {
+         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);

@@ -14,10 +14,20 @@ Entries include message direction, sender, destination, channel number, time, an
 
 The journal is plaintext local history. Anyone with access to the SD card may be able to read it. Remove or encrypt the SD card if the message history is sensitive.
 
+## SD Settings Backup
+
+In `0.2.15-public`, Z-Deck can back up and restore Meshtastic preferences from:
+
+```text
+/zdeck/backups/preferences.proto
+```
+
+The backup file includes Meshtastic config, module config, channels/PSKs, owner data, and security keys. It is local plaintext storage on the SD card. Do not publish it, upload it to public issues, or share it with anyone you do not want to have access to your mesh settings.
+
 ## USB SD Access
 
-In `0.2.14-public`, Z-Deck does not expose the SD card as USB mass storage by default. Treat the SD card as plaintext local storage: files, maps, logs, ringtone assets, and message history may be visible if the card is removed or mounted by another build.
+In `0.2.15-public`, Z-Deck does not expose the SD card as USB mass storage by default. Treat the SD card as plaintext local storage: files, maps, logs, ringtone assets, settings backups, and message history may be visible if the card is removed or mounted by another build.
 
 ## On-Device Updates
 
-The Wi-Fi updater uses the hosted `update.json` manifest and applies only app firmware updates marked `app-only`. That update mode does not erase NVS config, Meshtastic channels, keys, owner settings, or SD-card files. A future update that intentionally changes config or data must declare a different update mode before the device will accept it.
+The Wi-Fi updater uses the hosted `update.json` manifest and applies only app firmware updates marked `app-only`. In `0.2.15-public`, Apply Update writes and verifies the SD settings backup before downloading firmware. The update mode does not erase NVS config, Meshtastic channels, keys, owner settings, or SD-card files. A future update that intentionally changes config or data must declare a different update mode before the device will accept it.

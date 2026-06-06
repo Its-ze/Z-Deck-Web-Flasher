@@ -1,10 +1,11 @@
 # Known Issues
 
 - This is beta firmware. Treat it as experimental.
-- The firmware base reports `2.8.0.zdeck15`; the public release label is `0.2.14-public`.
+- The firmware base reports `2.8.0.zdeck16`; the public release label is `0.2.15-public`.
 - The SD-card message journal stores message text locally in plaintext.
+- The SD settings backup at `/zdeck/backups/preferences.proto` stores Meshtastic config, channels/PSKs, owner data, and security keys locally in plaintext.
 - SD-card behavior depends on the card mounting correctly at runtime.
-- USB SD mass storage is disabled in `0.2.14-public` because the CDC serial + MSC composite path was unstable on Windows during API sessions.
+- USB SD mass storage is disabled in `0.2.15-public` because the CDC serial + MSC composite path was unstable on Windows during API sessions.
 - The on-device updater requires Wi-Fi to be configured and connected before checking or applying updates.
 - Avoid editing the same SD-card files from the host computer and the T-Deck UI at the same time.
 - GPS and map behavior depends on sky view, valid GPS wiring, and available/cached map tiles. Z-Deck creates SD map folders for offline/preloaded tiles, but it does not bundle third-party map imagery.

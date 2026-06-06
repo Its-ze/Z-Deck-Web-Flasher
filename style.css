@@ -53,6 +53,7 @@ body::before {
 
 .terminal,
 .panel,
+.feature-list,
 .grid article,
 .release-panel,
 .wiki-grid article {
@@ -720,6 +721,7 @@ pre {
 }
 
 .panel p,
+.feature-list p,
 .grid p,
 .release-panel p {
   color: var(--muted);
@@ -741,6 +743,56 @@ pre {
 .action:hover {
   background: var(--cyan);
   border-color: var(--cyan);
+}
+
+.feature-list {
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.section-head p {
+  margin: 0;
+}
+
+.feature-list ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-list li {
+  min-width: 0;
+  border-left: 2px solid var(--green);
+  padding: 2px 0 2px 12px;
+}
+
+.feature-list strong,
+.feature-list span {
+  display: block;
+}
+
+.feature-list strong {
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.feature-list span {
+  color: var(--muted);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .grid {
@@ -890,6 +942,7 @@ input,
 @media (max-width: 920px) {
   .hero,
   .grid,
+  .feature-list ul,
   .wiki-grid,
   .release-panel {
     grid-template-columns: 1fr;

@@ -1,5 +1,17 @@
 # Changelog
 
+## Z-Deck 0.2.15-public - 2026-06-06
+
+SD settings backup/restore and safer app-only Wi-Fi updates for the public build.
+
+- Rebuilt bundled firmware from `20260606-zdeck16-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck16` and pack label to `0.2.15-public`.
+- Added `System > Updates > Backup Settings` and `Restore Settings` for SD-card Meshtastic preference backups.
+- `Apply Update` now writes and verifies `/zdeck/backups/preferences.proto` before downloading firmware.
+- The SD backup includes Meshtastic config, module config, channels/PSKs, owner data, and security keys, so the SD card must be treated as private.
+- Kept the home RX overlap fix, saved map pages, SD/offline map folder prep, newest-first chat pickers, stable node-name fallbacks, clearer send status, app-only Wi-Fi updates, Modern Field UI, public LongFast defaults, and disabled USB SD mass storage from 0.2.14.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.14-public - 2026-06-05
 
 Physical T-Deck home-screen row-wrap fix for the public build.
