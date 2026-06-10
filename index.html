@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Z-Deck Firmware Pack Public</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260609-zdeck24">
+  <link rel="stylesheet" href="style.css?v=20260610-recovery1">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
 </head>
 <body>
@@ -121,6 +121,37 @@
       </article>
     </section>
 
+    <section class="section-block recovery-assistant" aria-labelledby="recoveryTitle">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Recovery assistant</p>
+          <h2 id="recoveryTitle">When the device stays in programming mode</h2>
+        </div>
+        <p class="section-note">Use this when flashing completes but the board still shows the ESP32-S3 ROM loader or never reaches the Meshtastic app.</p>
+      </div>
+      <div class="recovery-grid">
+        <article>
+          <h3>Pick the state you see</h3>
+          <p>If the flash log says verified but the same USB serial port stays available for flashing, the BOOT/trackball/GPIO0 line is probably still held low.</p>
+          <div class="mode-actions" aria-label="Recovery mode choices">
+            <button class="mode-button active" type="button" data-recovery="normal" aria-pressed="true">Normal boot</button>
+            <button class="mode-button" type="button" data-recovery="bootloader" aria-pressed="false">Enter bootloader</button>
+            <button class="mode-button" type="button" data-recovery="verify" aria-pressed="false">Verify app mode</button>
+          </div>
+        </article>
+        <article class="mode-readout" aria-live="polite">
+          <p id="recoveryModeLabel" class="eyebrow">Normal boot</p>
+          <ol id="recoverySteps">
+            <li>Release the center trackball / BOOT control completely.</li>
+            <li>Tap RESET once, or unplug and reconnect USB normally.</li>
+            <li>Wait for the Z-Deck screen instead of selecting the port again.</li>
+            <li>Use the Meshtastic app or CLI only after the app-side port appears.</li>
+          </ol>
+          <p id="recoveryHint" class="muted">Do not reflash just because the ROM loader still answers; a verified flash usually means the bytes are already on the board.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="section-block" aria-labelledby="featuresTitle">
       <div class="section-heading">
         <p class="eyebrow">Feature set</p>
@@ -211,6 +242,6 @@
       </article>
     </section>
   </main>
-  <script src="app.js?v=20260609-zdeck24"></script>
+  <script src="app.js?v=20260610-recovery1"></script>
 </body>
 </html>

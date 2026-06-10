@@ -29,6 +29,8 @@ Bootloader mode:
 3. Tap RESET, then release RESET.
 4. Release BOOT after the serial port appears.
 
+If the flash verifies but the device keeps showing the ESP32-S3 programming/ROM-loader port, use the page's Recovery assistant. Choose **Normal boot**, release BOOT/trackball/GPIO0 completely, then tap RESET or unplug/replug normally before trying Meshtastic API or private setup.
+
 ## Custom Firmware
 
 The page defaults to `manifest.json`. The advanced field can point to another HTTPS ESP Web Tools manifest if you want to flash a different hosted build.

@@ -1,5 +1,14 @@
 # Changelog
 
+## Web flasher recovery assistant - 2026-06-10
+
+Programming-mode recovery helper for post-flash support.
+
+- Added a visible Recovery assistant to the public flasher page.
+- Added Normal boot, Enter bootloader, and Verify app mode flows for devices that flash successfully but keep presenting the ESP32-S3 ROM loader.
+- Updates the status ticker when a recovery mode is selected.
+- No firmware payload, private channel data, PSKs, channel URLs, private keys, Wi-Fi credentials, admin keys, or private setup data changed.
+
 ## Z-Deck 0.2.23-cyberdeck - 2026-06-09
 
 Sidebar placement and zdeck24 public-safe release package.

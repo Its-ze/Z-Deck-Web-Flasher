@@ -8,6 +8,17 @@
 4. Release BOOT after the serial port appears.
 5. Flash again from the web flasher or from a trusted local tool.
 
+## If It Stays In Programming Mode
+
+A verified flash usually means the firmware bytes are already written. If the same ESP32-S3 ROM loader port remains after reset, do not keep reflashing first.
+
+1. Release center trackball / BOOT completely.
+2. Tap RESET once, or unplug/replug USB normally.
+3. Wait for the Z-Deck/Meshtastic app screen.
+4. Use Meshtastic app/CLI only after the app-side serial port appears.
+
+If `esptool --before no-reset` still connects immediately, the board is still in programming mode.
+
 ## Roll Back To Stock Meshtastic
 
 1. Download a stock Meshtastic T-Deck release from the official Meshtastic project.
