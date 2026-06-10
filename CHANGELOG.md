@@ -1,5 +1,69 @@
 # Changelog
 
+## Z-Deck 0.2.23-cyberdeck - 2026-06-09
+
+Sidebar placement and zdeck24 public-safe release package.
+
+- Rebuilt bundled firmware from `20260609-zdeck24-sidebar-right-cyberdeck-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck24` and pack label to `0.2.23-cyberdeck`.
+- Added a System setting for sidebar placement, defaulted to the right side for one-handed T-Deck use.
+- Persisted sidebar placement in the device UI filesystem at `/zdeck_sidebar.cfg`.
+- Kept Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, map page switching, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, Wi-Fi credentials, or admin keys are bundled.
+
+## Z-Deck 0.2.20-public - 2026-06-07
+
+On-device Wi-Fi scan and select setup for the public build.
+
+- Rebuilt bundled firmware from `20260607-zdeck21-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck21` and pack label to `0.2.20-public`.
+- Added a Scan button to the T-Deck Wi-Fi popup so the device can search nearby networks instead of requiring manual SSID typing.
+- Added a network dropdown that shows SSID, signal strength, and open/locked status, then fills the selected SSID into the Wi-Fi settings form.
+- Open networks can now save with a blank password; locked networks still focus the password field after selection.
+- Manual SSID/password entry remains available for hidden networks or unusual setups.
+- Kept zdeck20 map Center and late GPS/node auto-center recovery, zdeck19 page/tile-style separation, compact map status, app-only Wi-Fi updates, SD settings backup/restore, fresh GPS startup defaults, home RX overlap fixes, newest-first chats, stable node names, clearer send status, Modern Field UI, public LongFast defaults, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
+## Z-Deck 0.2.19-public - 2026-06-07
+
+Physical T-Deck map usability fix for the public build.
+
+- Rebuilt bundled firmware from `20260607-zdeck20-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck20` and pack label to `0.2.19-public`.
+- Added a `CENTER` control to the map menu; it centers on GPS first, saved map area second, and positioned mesh nodes third.
+- Fixed the case where the map was opened before GPS or peer coordinates were ready and stayed on the default world view.
+- Added one-shot auto-recenter when the first GPS fix or positioned mesh node arrives after opening the map.
+- Manual pan, zoom, and Home now disable pending auto-center so the map does not pull away after you move it.
+- Kept zdeck19 map page/tile-style separation, compact map status, app-only Wi-Fi updates, SD settings backup/restore, fresh GPS startup defaults, home RX overlap fixes, newest-first chats, stable node names, clearer send status, Modern Field UI, public LongFast defaults, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
+## Z-Deck 0.2.18-public - 2026-06-06
+
+Physical T-Deck map/menu fix for the public build.
+
+- Rebuilt bundled firmware from `20260606-zdeck19-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck19` and pack label to `0.2.18-public`.
+- Fixed Z-Deck map page switching so Mesh map, Live compass, DF/Radar, and Distance alert no longer overwrite the real map tile style.
+- Pressing the Map tab while already on the map now cycles to the next Z-Deck map page.
+- Enlarged the map menu's Next View and Remember controls to make switching and saving easier on the physical T-Deck.
+- Kept the real tile loader on `zdeck-mesh` by default and filtered non-tile Z-Deck page folders from the map style dropdown.
+- Moved map readiness/status text to a compact bottom-left overlay so it does not block the map view.
+- Kept visible Home Action and System Z-Deck Updates, SD settings backup/restore, fresh GPS startup defaults, home RX overlap fixes, newest-first chats, stable node names, clearer send status, Modern Field UI, public LongFast defaults, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
+## Z-Deck 0.2.17-public - 2026-06-06
+
+Visible on-device OTA entry plus the fresh T-Deck GPS startup fix for the public build.
+
+- Rebuilt bundled firmware from `20260606-zdeck18-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck18` and pack label to `0.2.17-public`.
+- Added `Z-Deck Updates` directly to the Home Action menu so update controls are not hidden in the nested System menu.
+- Kept `System > Z-Deck Updates` for the same Check, Apply, Backup, Restore, and Status actions.
+- Disabled the inherited T-Deck power-saving default for fresh Z-Deck installs so GPS stays active.
+- Kept GPS enabled on RX44/TX43 with 5-second GPS updates for supported T-Deck/T-Deck Plus hardware.
+- Kept SD settings backup/restore, pre-update SD backup verification, app-only Wi-Fi updates, home RX overlap fixes, saved map pages, newest-first chats, stable node names, clearer send status, Modern Field UI, public LongFast defaults, and disabled USB SD mass storage from 0.2.15.
+- No private channel data, PSKs, channel URLs, private keys, or admin keys are bundled.
+
 ## Z-Deck 0.2.15-public - 2026-06-06
 
 SD settings backup/restore and safer app-only Wi-Fi updates for the public build.

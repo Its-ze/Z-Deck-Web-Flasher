@@ -5,10 +5,10 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.15-public",
-                   "packVersion":  "0.2.15-public",
-                   "firmwareVersion":  "2.8.0.zdeck16",
-                   "released":  "2026-06-06",
+                   "title":  "Z-Deck 0.2.23-cyberdeck",
+                   "packVersion":  "0.2.23-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck24",
+                   "released":  "2026-06-09",
                    "updateMode":  "app-only",
                    "preserves":  [
                                      "meshtastic_config",
@@ -16,7 +16,8 @@
                                      "keys",
                                      "owner_settings",
                                      "sd_chat_journal",
-                                     "sd_settings_backup"
+                                     "sd_settings_backup",
+                                     "sidebar_layout"
                                  ],
                    "preUpdateBackup":  {
                                            "enabled":  true,
@@ -31,12 +32,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck16-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck16-public/zdeck-firmware.bin",
-                                    "size":  3675280,
-                                    "sha256":  "df94b60db3a767fb263c8d07e3e5b962dcc84bf2e542fcb691d8a8e0e097f665",
-                                    "md5":  "5137d7adef0792193a36933aab509f4d"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck24-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck24-public/zdeck-firmware.bin",
+                                    "size":  3685616,
+                                    "sha256":  "c6292d8eb15dff108c294cd4ae0b76d9aa06d88af2605775efe3d2cc41d507cd",
+                                    "md5":  "c81c629bc614a03d71d428a30a4a36a1"
                                 },
-                   "notes":  "Adds SD settings backup and restore under System \u003e Updates. Apply Update writes and verifies /zdeck/backups/preferences.proto before downloading firmware. The backup contains Meshtastic config, module config, channels/PSKs, owner data, and security keys, so treat the SD card as private. Keeps home RX overlap fixes, map pages, newest-first chats, stable node names, clearer send status, and app-only Wi-Fi updates."
+                   "notes":  "Adds a System setting for sidebar placement with right-side default and persistent /zdeck_sidebar.cfg storage. Keeps on-device WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, map page switching, newest-first chats, stable node names, clearer send status, hop counter work, and public-safe labels."
                }
 }

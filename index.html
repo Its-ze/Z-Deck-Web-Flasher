@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Z-Deck Firmware Pack Public</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260606-layout2">
+  <link rel="stylesheet" href="style.css?v=20260609-zdeck24">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
 </head>
 <body>
@@ -29,12 +29,12 @@
     <section class="flash-grid" aria-label="Z-Deck flasher">
       <div class="flash-panel">
         <p class="eyebrow">Current public build</p>
-        <h1>Flash Z-Deck 0.2.15</h1>
-        <p class="lead">Browser-based installer for the LILYGO T-Deck/T-Deck Plus t-deck-tft build. First install by USB, then use on-device Wi-Fi updates from System &gt; Updates.</p>
+        <h1>Flash Z-Deck 0.2.23</h1>
+        <p class="lead">Browser-based installer for the LILYGO T-Deck/T-Deck Plus t-deck-tft build. First install by USB, scan for Wi-Fi from the device settings, then update from Home Action &gt; Z-Deck Updates.</p>
 
         <div class="release-badges" aria-label="Release summary">
-          <span>2.8.0.zdeck16</span>
-          <span>0.2.15-public</span>
+          <span>2.8.0.zdeck24</span>
+          <span>0.2.23-cyberdeck</span>
           <span>ESP32-S3</span>
           <span>LongFast public</span>
         </div>
@@ -71,7 +71,7 @@
             <path class="screen-frame" d="M65 96h190l10 10v118l-10 10H65l-10-10V106z"/>
             <rect class="screen" x="75" y="112" width="170" height="92" rx="4"/>
             <text class="screen-title" x="90" y="139">Z-DECK</text>
-            <text class="screen-subtitle" x="90" y="160">0.2.15 PUBLIC</text>
+            <text class="screen-subtitle" x="90" y="160">0.2.23 Z24</text>
             <path class="screen-line" d="M90 182h42l17-15 23 11 33-27 29 22"/>
             <path class="control-rail" d="M61 262h198l15 16-15 36H61l-15-36z"/>
             <path class="chev-left" d="M82 277h31l-15 18 15 18H82l15-18zm39 0h31l-15 18 15 18h-31l15-18z"/>
@@ -92,7 +92,7 @@
           <dl>
             <div><dt>Update mode</dt><dd>App-only OTA</dd></div>
             <div><dt>Backup path</dt><dd>/zdeck/backups/preferences.proto</dd></div>
-            <div><dt>Firmware SHA256</dt><dd>df94b60d...e097f665</dd></div>
+            <div><dt>Firmware SHA256</dt><dd>c6292d8e...41d507cd</dd></div>
           </dl>
         </div>
       </aside>
@@ -112,7 +112,7 @@
       <article>
         <span>3</span>
         <strong>Back up to SD</strong>
-        <p>Use System &gt; Updates to write a local settings backup before updating.</p>
+        <p>Use Home Action &gt; Z-Deck Updates to check, apply, or write a local settings backup.</p>
       </article>
       <article>
         <span>4</span>
@@ -128,6 +128,10 @@
       </div>
       <div class="feature-matrix">
         <article>
+          <h3>Right-side sidebar</h3>
+          <p>System setting controls sidebar placement, defaults to the right side, and persists in /zdeck_sidebar.cfg.</p>
+        </article>
+        <article>
           <h3>SD settings backup</h3>
           <p>Backup and restore Meshtastic preferences from /zdeck/backups/preferences.proto on the SD card.</p>
         </article>
@@ -136,12 +140,20 @@
           <p>Apply Update writes and verifies the SD backup before downloading app-only firmware.</p>
         </article>
         <article>
+          <h3>Wi-Fi scan setup</h3>
+          <p>The T-Deck Wi-Fi popup can scan nearby networks, show signal strength and open/locked status, and fill the selected SSID for you.</p>
+        </article>
+        <article>
           <h3>Cleaner home screen</h3>
           <p>Modern Field UI, clipped LoRa RX text, clearer TX/RX chips, and fixed front-page spacing.</p>
         </article>
         <article>
           <h3>Map pages</h3>
-          <p>Mesh map, Live compass, DF/Radar, and Distance alert pages with saved defaults.</p>
+          <p>Mesh map, Live compass, DF/Radar, and Distance alert views with Center, late GPS recovery, and stable SD tile loading.</p>
+        </article>
+        <article>
+          <h3>GPS startup</h3>
+          <p>Fresh T-Deck installs keep GPS active on RX44/TX43 instead of inheriting power-save mode.</p>
         </article>
         <article>
           <h3>SD field storage</h3>
@@ -187,8 +199,8 @@
     <section class="release-grid">
       <article class="info-panel">
         <p class="eyebrow">Release notes</p>
-        <h2>Z-Deck 0.2.15-public</h2>
-        <p>Firmware 2.8.0.zdeck16 adds SD settings backup/restore and verifies that backup before app-only Wi-Fi updates. The bundle keeps the home RX overlap fix, saved map pages, newest-first chats, SD setup progress, Modern Field UI, public LongFast defaults, and disabled USB SD mass storage.</p>
+        <h2>Z-Deck 0.2.23-cyberdeck</h2>
+        <p>Firmware 2.8.0.zdeck24 adds the System sidebar placement setting, defaults it to the right side, and persists the choice in /zdeck_sidebar.cfg. The bundle keeps Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, map page switching, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.</p>
       </article>
       <article class="info-panel">
         <p class="eyebrow">GitHub history</p>
@@ -199,6 +211,6 @@
       </article>
     </section>
   </main>
-  <script src="app.js?v=20260606-layout2"></script>
+  <script src="app.js?v=20260609-zdeck24"></script>
 </body>
 </html>
