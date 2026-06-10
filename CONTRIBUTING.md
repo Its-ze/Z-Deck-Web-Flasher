@@ -16,7 +16,7 @@ Use the [bug report issue template](https://github.com/Its-ze/Z-Deck-Web-Flasher
 
 When reporting a bug, please include:
 - Your device (T-Deck, T-Deck Plus, or other hardware)
-- The Z-Deck firmware version (e.g. `0.2.26-cyberdeck`)
+- The Z-Deck firmware version (e.g. `0.2.27-cyberdeck`)
 - What happened vs. what you expected
 - Steps to reproduce
 - Non-sensitive logs or screenshots if available

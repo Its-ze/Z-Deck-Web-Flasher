@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.27-cyberdeck - 2026-06-10
+
+Battery/header overlap fix for the physical T-Deck UI.
+
+- Rebuilt bundled firmware from `20260610-zdeck28-header-battery-safe-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck28` and pack label to `0.2.27-cyberdeck`.
+- Clips the configured owner title into the safe lane between the left battery/percent block and the right-side time/status icons.
+- Keeps real battery percent visible when a full or USB-powered T-Deck reports charge value 101 by clamping the displayed percent to `100%` instead of switching to USB-only status.
+- Kept zdeck27 owner-name header behavior, fixed sidebar gutter, safe top-panel placement, map UI, Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, Wi-Fi credentials, or admin keys are bundled.
+
 ## Z-Deck 0.2.26-cyberdeck - 2026-06-10
 
 Owner-name home header fix for the physical T-Deck UI.
