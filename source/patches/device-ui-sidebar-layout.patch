@@ -1,0 +1,177 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 6394b29..7900c63 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -208,6 +208,11 @@ class TFTView_320x240 : public MeshtasticView
+     void cycleZDeckMapPage(int direction = 1);
+     void setupZDeckHealthTool(void);
+     void updateZDeckHealthPanel(void);
++    void loadZDeckSidebarPreference(void);
++    void setupZDeckSidebarControl(void);
++    void updateZDeckSidebarLabel(void);
++    void applyZDeckSidebarPlacement(void);
++    void setZDeckSidebarRight(bool enabled, bool persist = true);
+     void setupZDeckSDTool(void);
+     void updateZDeckSDPanel(const char *status = nullptr);
+     bool prepareZDeckSDCard(void);
+@@ -341,6 +346,7 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_wifi_button(lv_event_t *e);
+     static void ui_event_wifi_scan_button(lv_event_t *e);
+     static void ui_event_wifi_network_dropdown(lv_event_t *e);
++    static void ui_event_zdeckSidebarButton(lv_event_t *e);
+     static void ui_event_language_button(lv_event_t *e);
+     static void ui_event_channel_button(lv_event_t *e);
+     static void ui_event_brightness_button(lv_event_t *e);
+@@ -490,6 +496,9 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *zDeckHealthButtonLabel = nullptr;
+     lv_obj_t *zDeckHealthPanel = nullptr;                   // public Z-Deck status summary
+     lv_obj_t *zDeckHealthLabel = nullptr;
++    lv_obj_t *zDeckSidebarButton = nullptr;                 // move the main navigation rail left/right
++    lv_obj_t *zDeckSidebarButtonLabel = nullptr;
++    bool zDeckSidebarRight = true;
+     lv_obj_t *zDeckSdButton = nullptr;                       // SD prepare/reset button
+     lv_obj_t *zDeckSdButtonLabel = nullptr;
+     lv_obj_t *zDeckSdPanel = nullptr;                        // SD warning/status panel
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index bd78048..35ba9a2 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -156,6 +156,7 @@ struct ZDeckMapPage {
+ };
+ 
+ constexpr const char *zDeckDefaultTileStyle = "zdeck-mesh";
++constexpr const char *zDeckSidebarPreferencePath = "/zdeck_sidebar.cfg";
+ constexpr ZDeckMapPage zDeckMapPages[] = {
+     {"zdeck-mesh", "Mesh map", "MESH"},
+     {"zdeck-compass", "Live compass", "COMPASS"},
+@@ -202,7 +203,37 @@ const ZDeckMapPage &zDeckCurrentMapPage(uint8_t pageIndex)
+ {
+     return zDeckMapPages[pageIndex % zDeckMapPageCount()];
+ }
++bool zDeckLoadSidebarRightPreference(bool defaultValue)
++{
++    File file = fileSystem.open(zDeckSidebarPreferencePath, FILE_READ);
++    if (file) {
++        int value = file.read();
++        file.close();
++        if (value == '0')
++            return false;
++        if (value == '1')
++            return true;
++    }
++    return defaultValue;
++}
++
++void zDeckSaveSidebarRightPreference(bool value)
++{
++    File file = fileSystem.open(zDeckSidebarPreferencePath, FILE_WRITE);
++    if (file) {
++        const uint8_t byteValue = value ? '1' : '0';
++        file.write(&byteValue, 1);
++        file.close();
++    }
++}
+ 
++void zDeckPlaceMainContent(lv_obj_t *obj, bool sidebarRight)
++{
++    if (!obj)
++        return;
++    lv_obj_set_x(obj, sidebarRight ? 0 : LV_PCT(12));
++    lv_obj_set_width(obj, LV_PCT(88));
++}
+ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingRequest)
+ {
+     switch (status) {
+@@ -530,6 +561,9 @@ void TFTView_320x240::init_screens(void)
+     state = MeshtasticView::eInitScreens;
+     ui_init();
+     apply_hotfix();
++    loadZDeckSidebarPreference();
++    setupZDeckSidebarControl();
++    applyZDeckSidebarPlacement();
+ 
+     activeMsgContainer = objects.messages_container;
+     // setup the two channel label panels with arrays that allow indexing
+@@ -3253,6 +3287,82 @@ void TFTView_320x240::setupZDeckHealthTool(void)
+     updateZDeckHealthPanel();
+ }
+ 
++void TFTView_320x240::loadZDeckSidebarPreference(void)
++{
++    zDeckSidebarRight = zDeckLoadSidebarRightPreference(true);
++}
++
++void TFTView_320x240::setupZDeckSidebarControl(void)
++{
++    if (zDeckSidebarButton || !objects.tab_page_basic_settings)
++        return;
++
++    zDeckSidebarButton = lv_btn_create(objects.tab_page_basic_settings);
++    lv_obj_set_size(zDeckSidebarButton, LV_PCT(95), 30);
++    add_style_settings_button_style(zDeckSidebarButton);
++    lv_obj_set_style_align(zDeckSidebarButton, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_shadow_width(zDeckSidebarButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(zDeckSidebarButton, lv_color_hex(0xff4db270), LV_PART_MAIN | LV_STATE_PRESSED);
++    lv_obj_set_style_text_color(zDeckSidebarButton, lv_color_hex(0xff015114), LV_PART_MAIN | LV_STATE_PRESSED);
++    lv_obj_add_event_cb(zDeckSidebarButton, ui_event_zdeckSidebarButton, LV_EVENT_CLICKED, NULL);
++
++    zDeckSidebarButtonLabel = lv_label_create(zDeckSidebarButton);
++    lv_obj_set_size(zDeckSidebarButtonLabel, LV_PCT(100), LV_SIZE_CONTENT);
++    lv_label_set_long_mode(zDeckSidebarButtonLabel, LV_LABEL_LONG_DOT);
++    lv_obj_set_style_align(zDeckSidebarButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++    updateZDeckSidebarLabel();
++}
++
++void TFTView_320x240::updateZDeckSidebarLabel(void)
++{
++    if (zDeckSidebarButtonLabel)
++        lv_label_set_text(zDeckSidebarButtonLabel, zDeckSidebarRight ? _("Sidebar: right") : _("Sidebar: left"));
++}
++
++void TFTView_320x240::applyZDeckSidebarPlacement(void)
++{
++    if (objects.button_panel) {
++        lv_obj_set_x(objects.button_panel, zDeckSidebarRight ? LV_PCT(88) : 0);
++        lv_obj_set_width(objects.button_panel, LV_PCT(12));
++        lv_obj_move_foreground(objects.button_panel);
++    }
++
++    lv_obj_t *contentPanels[] = {
++        objects.home_panel,       objects.nodes_panel,          objects.node_options_panel,  objects.groups_panel,
++        objects.messages_panel,   objects.chats_panel,          objects.map_panel,           objects.controller_panel,
++        ui_AdvancedSettingsPanel, objects.mesh_detector_panel,  objects.signal_scanner_panel, objects.trace_route_panel,
++        objects.details_panel,    objects.tools_statistics_panel, objects.tools_packet_log_panel,
++    };
++    for (lv_obj_t *panel : contentPanels)
++        zDeckPlaceMainContent(panel, zDeckSidebarRight);
++
++    lv_obj_t *topPanels[] = {
++        objects.top_panel,          objects.top_nodes_panel,        objects.top_node_options_panel, objects.top_groups_panel,
++        objects.top_group_chat_panel, objects.top_chats_panel,      objects.top_messages_panel,     objects.top_map_panel,
++        objects.top_settings_panel, objects.top_advanced_settings_panel, objects.top_mesh_detector_panel,
++        objects.top_signal_scanner_panel, objects.top_trace_route_panel, objects.top_statistics_panel, objects.top_packet_log_panel,
++    };
++    for (lv_obj_t *panel : topPanels)
++        zDeckPlaceMainContent(panel, zDeckSidebarRight);
++
++    updateZDeckSidebarLabel();
++    lv_obj_invalidate(objects.main_screen);
++}
++
++void TFTView_320x240::setZDeckSidebarRight(bool enabled, bool persist)
++{
++    zDeckSidebarRight = enabled;
++    if (persist)
++        zDeckSaveSidebarRightPreference(enabled);
++    applyZDeckSidebarPlacement();
++}
++
++void TFTView_320x240::ui_event_zdeckSidebarButton(lv_event_t *e)
++{
++    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
++        return;
++    THIS->setZDeckSidebarRight(!THIS->zDeckSidebarRight);
++}
+ void TFTView_320x240::updateZDeckHealthPanel(void)
+ {
+     if (!zDeckHealthLabel)

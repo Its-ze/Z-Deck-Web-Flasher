@@ -1,5 +1,5 @@
 diff --git a/bin/platformio-custom.py b/bin/platformio-custom.py
-index b75c66624..ab43ae836 100644
+index b75c66624..74c5adcff 100644
 --- a/bin/platformio-custom.py
 +++ b/bin/platformio-custom.py
 @@ -7,6 +7,7 @@ import subprocess
@@ -58,7 +58,7 @@ index b75c66624..ab43ae836 100644
          "-DAPP_ENV=" + env.get("PIOENV"),
          "-DAPP_REPO=" + repo_owner,
          "-DBUILD_EPOCH=" + str(build_epoch),
-@@ -255,9 +283,172 @@ projenv.Append(
+@@ -255,9 +283,184 @@ projenv.Append(
      CCFLAGS=flags,
  )
  
@@ -85,6 +85,8 @@ index b75c66624..ab43ae836 100644
 +        project_dir / "itsz" / "device-ui-wifi-scan.patch",
 +        project_dir / "itsz" / "device-ui-home-status.patch",
 +        project_dir / "itsz" / "device-ui-home-layout-fix.patch",
++        project_dir / "itsz" / "device-ui-sidebar-layout.patch",
++        project_dir / "itsz" / "device-ui-map-fullscreen.patch",
 +    ]
 +    for patch_path in patch_paths:
 +        if not patch_path.exists():
@@ -149,13 +151,18 @@ index b75c66624..ab43ae836 100644
 +            ],
 +            "device-ui-map-switching-fix.patch": [
 +                ("source/graphics/TFT/TFTView_320x240.cpp", "zDeckDefaultTileStyle"),
-+                ("source/graphics/TFT/TFTView_320x240.cpp", "NEXT VIEW"),
++                ("source/graphics/TFT/TFTView_320x240.cpp", "zDeckCurrentMapPage(zDeckMapPage)"),
 +                ("include/graphics/view/TFT/TFTView_320x240.h", "setZDeckMapPage"),
 +            ],
 +            "device-ui-map-autocenter.patch": [
 +                ("source/graphics/TFT/TFTView_320x240.cpp", "centerMapBestEffort"),
 +                ("source/graphics/TFT/TFTView_320x240.cpp", "Centered on GPS"),
 +                ("include/graphics/view/TFT/TFTView_320x240.h", "zDeckMapAutoCenterPending"),
++            ],
++            "device-ui-map-fullscreen.patch": [
++                ("source/graphics/TFT/TFTView_320x240.cpp", "zDeckMapPagePreferencePath"),
++                ("source/graphics/TFT/TFTView_320x240.cpp", "DISTANCE WARN"),
++                ("include/graphics/map/MapPanel.h", "getMissingTiles"),
 +            ],
 +            "device-ui-wifi-scan.patch": [
 +                ("source/graphics/TFT/TFTView_320x240.cpp", "scanWifiNetworks"),
@@ -171,6 +178,11 @@ index b75c66624..ab43ae836 100644
 +                ("generated/ui_320x240/screens.c", "lv_obj_set_pos(obj, 42, 42)"),
 +                ("generated/ui_320x240/screens.c", "lv_obj_set_size(obj, LV_PCT(80), 30)"),
 +                ("generated/ui_240x320/screens.c", "ui_font_montserrat_12"),
++            ],
++            "device-ui-sidebar-layout.patch": [
++                ("source/graphics/TFT/TFTView_320x240.cpp", "setupZDeckSidebarControl"),
++                ("source/graphics/TFT/TFTView_320x240.cpp", "zdeck_sidebar.cfg"),
++                ("include/graphics/view/TFT/TFTView_320x240.h", "zDeckSidebarRight"),
 +            ],
 +        }.get(patch_name, [])
 +
@@ -590,7 +602,7 @@ index 044db3637..c74412129 100644
          if (showingNormalScreen && nodeStatus->getLastNumTotal() != nodeStatus->getNumTotal()) {
              setFrames(FOCUS_PRESERVE); // Regen the list of screen frames (returning to same frame, if possible)
 diff --git a/src/graphics/TFTColorRegions.cpp b/src/graphics/TFTColorRegions.cpp
-index 877835ea6..4ab2f7183 100644
+index 877835ea6..eee6b3583 100644
 --- a/src/graphics/TFTColorRegions.cpp
 +++ b/src/graphics/TFTColorRegions.cpp
 @@ -50,12 +50,21 @@ static inline bool isBodyColorRole(TFTColorRole role)
@@ -667,11 +679,86 @@ index 877835ea6..4ab2f7183 100644
          false,              // fullFrameInvert
          true,               // visible
      },
+@@ -367,6 +404,35 @@ static const TFTThemeDef kThemes[] = {
+         true,              // fullFrameInvert
+         true,              // visible
+     },
++
++    // Q10 Classic (ThemeID::Q10Classic = 9) compact black-glass theme
++    {
++        ThemeID::Q10Classic, // id
++        "Q10 Classic",       // name
++        9,                   // uniqueIdentifier
++        {
++            {TFTPalette::Q10Panel, TFTPalette::Q10Black},   // HeaderBackground
++            {TFTPalette::Q10Panel, TFTPalette::Q10Text},    // HeaderTitle
++            {TFTPalette::Q10Panel, TFTPalette::Q10Muted},   // HeaderStatus
++            {TFTPalette::Q10Focus, TFTPalette::Q10Black},   // SignalBars
++            {TFTPalette::Q10Focus, TFTPalette::Q10Black},   // ConnectionIcon
++            {TFTPalette::Q10Focus, TFTPalette::Q10Black},   // UtilizationFill
++            {TFTPalette::Q10Focus, TFTPalette::Q10Black},   // FavoriteNode
++            {TFTPalette::Q10Divider, TFTPalette::Q10Black}, // ActionMenuBorder
++            {TFTPalette::Q10Text, TFTPalette::Q10Black},    // ActionMenuBody
++            {TFTPalette::Q10Divider, TFTPalette::Q10Text},  // ActionMenuTitle
++            {TFTPalette::Q10Black, TFTPalette::Q10Text},    // FrameMono
++            {TFTPalette::Q10Text, TFTPalette::Q10Black},    // BootSplash
++            {TFTPalette::Q10Text, TFTPalette::Q10Focus},    // FavoriteNodeBGHighlight
++            {TFTPalette::Q10Text, TFTPalette::Q10Panel},    // NavigationBar
++            {TFTPalette::Q10Focus, TFTPalette::Q10Black},   // NavigationArrow
++        },
++        TFTPalette::Good,   // batteryFillGood
++        TFTPalette::Medium, // batteryFillMedium
++        TFTPalette::Bad,    // batteryFillBad
++        false,              // fullFrameInvert
++        true,               // visible
++    },
+ };
+ 
+ static constexpr size_t kInternalThemeCount = sizeof(kThemes) / sizeof(kThemes[0]);
+@@ -659,6 +725,14 @@ void setTFTColorRole(TFTColorRole role, uint16_t onColor, uint16_t offColor)
+                 replaceColor(offColor, TFTPalette::Black, TFTPalette::Navy);
+             }
+             break;
++        case ThemeID::Q10Classic:
++            if (isHighlightRole || isBodyRole) {
++                replaceColor(onColor, TFTPalette::Yellow, TFTPalette::Q10Focus);
++                replaceColor(onColor, TFTPalette::White, TFTPalette::Q10Text);
++                replaceColor(onColor, TFTPalette::DarkGray, TFTPalette::Q10Divider);
++                replaceColor(offColor, TFTPalette::Black, TFTPalette::Q10Black);
++            }
++            break;
+         default:
+             break;
+         }
+diff --git a/src/graphics/TFTColorRegions.h b/src/graphics/TFTColorRegions.h
+index fd35bdb1a..a250d962c 100644
+--- a/src/graphics/TFTColorRegions.h
++++ b/src/graphics/TFTColorRegions.h
+@@ -109,6 +109,7 @@ constexpr uint32_t Creamsicle = 5;
+ constexpr uint32_t MeshtasticGreen = 6;
+ constexpr uint32_t ClassicRed = 7;
+ constexpr uint32_t MonochromeWhite = 8;
++constexpr uint32_t Q10Classic = 9;
+ } // namespace ThemeID
+ 
+ // Per-role color pair stored in native (little-endian) RGB565 format.
 diff --git a/src/graphics/TFTPalette.h b/src/graphics/TFTPalette.h
-index 516a9f057..c7952cd2f 100644
+index 516a9f057..954aeabfa 100644
 --- a/src/graphics/TFTPalette.h
 +++ b/src/graphics/TFTPalette.h
-@@ -58,12 +58,14 @@ constexpr uint16_t ClassicRed = rgb565(255, 64, 64);
+@@ -55,15 +55,26 @@ constexpr uint16_t Cream = rgb565(255, 248, 235);
+ constexpr uint16_t MeshtasticGreen = rgb565(0x67, 0xEA, 0x94);
+ constexpr uint16_t ClassicRed = rgb565(255, 64, 64);
+ // Monochrome White reuses TFTPalette::White above.
++// Q10 Classic theme colors (BlackBerry Q10-inspired, no logo/brand assets).
++constexpr uint16_t Q10Black = rgb565(5, 6, 7);
++constexpr uint16_t Q10Panel = rgb565(11, 13, 15);
++constexpr uint16_t Q10Key = rgb565(21, 24, 27);
++constexpr uint16_t Q10Screen = rgb565(5, 9, 11);
++constexpr uint16_t Q10Divider = rgb565(86, 96, 106);
++constexpr uint16_t Q10Text = rgb565(244, 247, 248);
++constexpr uint16_t Q10Muted = rgb565(168, 176, 181);
++constexpr uint16_t Q10Focus = rgb565(49, 167, 215);
  
  // Fast contrast picker for monochrome glyph overlays on arbitrary RGB565 backgrounds.
  // Uses channel-sum brightness approximation to keep code size small.
@@ -709,7 +796,7 @@ index 67136437a..0ce4a642a 100644
          char uptimeStr[32] = "";
          getUptimeStr(millis(), "Up: ", uptimeStr, sizeof(uptimeStr));
 diff --git a/src/graphics/draw/MenuHandler.cpp b/src/graphics/draw/MenuHandler.cpp
-index 386a4c077..3352b4748 100644
+index 386a4c077..ca354fa18 100644
 --- a/src/graphics/draw/MenuHandler.cpp
 +++ b/src/graphics/draw/MenuHandler.cpp
 @@ -25,10 +25,15 @@
@@ -892,14 +979,19 @@ index 386a4c077..3352b4748 100644
  void menuHandler::homeBaseMenu()
  {
 -    enum optionsNumbers { Back, Mute, Backlight, Position, Preset, Freetext, Sleep, enumEnd };
-+    enum optionsNumbers { Back, Mute, Backlight, Position, Updates, Preset, Freetext, Sleep, enumEnd };
++    enum optionsNumbers { Back, Mute, Backlight, Position, CyberDeck, Updates, Preset, Freetext, Sleep, enumEnd };
  
      static const char *optionsArray[enumEnd] = {"Back"};
      static int optionsEnumArray[enumEnd] = {Back};
-@@ -1001,6 +1061,11 @@ void menuHandler::homeBaseMenu()
+@@ -1001,6 +1061,16 @@ void menuHandler::homeBaseMenu()
      }
      optionsEnumArray[options++] = Position;
  
++#if defined(ITSZ_CYBERDECK)
++    optionsArray[options] = "CyberDeck";
++    optionsEnumArray[options++] = CyberDeck;
++#endif
++
 +#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
 +    optionsArray[options] = "Z-Deck Updates";
 +    optionsEnumArray[options++] = Updates;
@@ -908,10 +1000,15 @@ index 386a4c077..3352b4748 100644
      BannerOverlayOptions bannerOptions;
      bannerOptions.message = "Home Action";
      if (currentResolution == ScreenResolution::UltraLow) {
-@@ -1045,6 +1110,11 @@ void menuHandler::homeBaseMenu()
+@@ -1045,6 +1115,16 @@ void menuHandler::homeBaseMenu()
              } else {
                  IF_SCREEN(screen->showSimpleBanner("Node Info\nSent", 3000));
              }
++#if defined(ITSZ_CYBERDECK)
++        } else if (selected == CyberDeck) {
++            menuQueue = CyberDeckMenu;
++            screen->runNow();
++#endif
 +#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
 +        } else if (selected == Updates) {
 +            menuQueue = UpdateMenu;
@@ -920,7 +1017,109 @@ index 386a4c077..3352b4748 100644
          } else if (selected == Preset) {
              cannedMessageModule->LaunchWithDestination(NODENUM_BROADCAST);
          } else if (selected == Freetext) {
-@@ -1090,7 +1160,7 @@ void menuHandler::textMessageBaseMenu()
+@@ -1054,6 +1134,101 @@ void menuHandler::homeBaseMenu()
+     screen->showOverlayBanner(bannerOptions);
+ }
+ 
++void menuHandler::cyberDeckMenu()
++{
++    enum optionsNumbers {
++        Back,
++        MeshSystem,
++        KeyboardBridge,
++        DongleConsole,
++        DongleLifecycle,
++        DongleAutoPair,
++        RemotePayloads,
++        NodeTools,
++        ControlPanel,
++        Q10ClassicTheme,
++        SdCard,
++        DongleFlasher,
++        SignalRadar,
++        BambuControl,
++        enumEnd
++    };
++
++    static const char *optionsArray[enumEnd] = {
++        "Back",
++        "Mesh System",
++        "Keyboard Bridge",
++        "Dongle Console",
++        "Dongle Lifecycle",
++        "Dongle Auto Pair",
++        "Remote Payloads",
++        "Node Tools",
++        "Control Panel",
++        "Q10 Classic Theme",
++        "SD Card",
++        "Dongle Flasher",
++        "Signal Radar",
++        "Bambu Control",
++    };
++    static int optionsEnumArray[enumEnd] = {
++        Back,
++        MeshSystem,
++        KeyboardBridge,
++        DongleConsole,
++        DongleLifecycle,
++        DongleAutoPair,
++        RemotePayloads,
++        NodeTools,
++        ControlPanel,
++        Q10ClassicTheme,
++        SdCard,
++        DongleFlasher,
++        SignalRadar,
++        BambuControl,
++    };
++
++    BannerOverlayOptions bannerOptions;
++    bannerOptions.message = "ITSZ CyberDeck";
++    bannerOptions.optionsArrayPtr = optionsArray;
++    bannerOptions.optionsEnumPtr = optionsEnumArray;
++    bannerOptions.optionsCount = enumEnd;
++    bannerOptions.bannerCallback = [](int selected) -> void {
++        if (selected == MeshSystem) {
++            screen->showSimpleBanner("Mesh System\nTDK US LongFast\nPrivate ready\nGPS 5s", 4500);
++            menuQueue = MessageResponseMenu;
++            screen->runNow();
++        } else if (selected == KeyboardBridge) {
++            screen->showSimpleBanner("Keyboard Bridge\nT-Dongle AP\n192.168.4.1", 4500);
++        } else if (selected == DongleConsole) {
++            screen->showSimpleBanner("Dongle Console\nCyberDeck-Link\nAPI ready", 4500);
++        } else if (selected == DongleLifecycle) {
++            screen->showSimpleBanner("Dongle Lifecycle\nPair Save Write\nOTA needs WRITE_APP", 4500);
++        } else if (selected == DongleAutoPair) {
++            screen->showSimpleBanner("T-Dongle Found\nPair for remote use?\nEnter=Pair Esc=Skip", 4500);
++        } else if (selected == RemotePayloads) {
++            screen->showSimpleBanner("Remote Payloads\nD Ready A Auto\nM Mesh S SD B Backup", 4500);
++        } else if (selected == NodeTools) {
++            menuQueue = NodeBaseMenu;
++            screen->runNow();
++        } else if (selected == ControlPanel) {
++            menuQueue = SystemBaseMenu;
++            screen->runNow();
++        } else if (selected == Q10ClassicTheme) {
++            menuQueue = ThemeMenu;
++            screen->runNow();
++        } else if (selected == SdCard) {
++            screen->showSimpleBanner("SD Card\nSafe Browser\nLogs Notes Maps", 3000);
++        } else if (selected == DongleFlasher) {
++            screen->showSimpleBanner("Dongle Flasher\nStatus + Boot Help\nUse backup first", 4500);
++        } else if (selected == SignalRadar) {
++            screen->showSimpleBanner("Signal Radar\nPlanned", 3000);
++        } else if (selected == BambuControl) {
++            screen->showSimpleBanner("Bambu Control\nPlanned", 3000);
++        }
++    };
++    screen->showOverlayBanner(bannerOptions);
++}
++
+ void menuHandler::textMessageMenu()
+ {
+     cannedMessageModule->LaunchWithDestination(NODENUM_BROADCAST);
+@@ -1090,7 +1265,7 @@ void menuHandler::textMessageBaseMenu()
  
  void menuHandler::systemBaseMenu()
  {
@@ -929,7 +1128,7 @@ index 386a4c077..3352b4748 100644
      static const char *optionsArray[enumEnd] = {"Back"};
      static int optionsEnumArray[enumEnd] = {Back};
      int options = 1;
-@@ -1112,6 +1182,11 @@ void menuHandler::systemBaseMenu()
+@@ -1112,6 +1287,11 @@ void menuHandler::systemBaseMenu()
      optionsEnumArray[options++] = WiFiToggle;
  #endif
  
@@ -941,7 +1140,7 @@ index 386a4c077..3352b4748 100644
      if (currentResolution == ScreenResolution::UltraLow) {
          optionsArray[options] = "Power";
      } else {
-@@ -1152,6 +1227,11 @@ void menuHandler::systemBaseMenu()
+@@ -1152,6 +1332,11 @@ void menuHandler::systemBaseMenu()
          } else if (selected == WiFiToggle) {
              menuQueue = WifiToggleMenu;
              screen->runNow();
@@ -953,7 +1152,7 @@ index 386a4c077..3352b4748 100644
  #endif
          } else if (selected == Back && !test_enabled) {
              test_count++;
-@@ -2249,6 +2329,65 @@ void menuHandler::wifiToggleMenu()
+@@ -2249,6 +2434,65 @@ void menuHandler::wifiToggleMenu()
      screen->showOverlayBanner(bannerOptions);
  }
  
@@ -1019,35 +1218,40 @@ index 386a4c077..3352b4748 100644
  void menuHandler::screenOptionsMenu()
  {
      // Check if brightness is supported
-@@ -2787,6 +2926,9 @@ void menuHandler::handleMenuSwitch(OLEDDisplay *display)
+@@ -2787,6 +3031,12 @@ void menuHandler::handleMenuSwitch(OLEDDisplay *display)
      case ThemeMenu:
          themeMenu();
          break;
 +    case UpdateMenu:
 +        updateMenu();
 +        break;
++    case CyberDeckMenu:
++        cyberDeckMenu();
++        break;
      }
      menuQueue = MenuNone;
  }
 diff --git a/src/graphics/draw/MenuHandler.h b/src/graphics/draw/MenuHandler.h
-index 3ac9e606e..664a82c15 100644
+index 3ac9e606e..762d78386 100644
 --- a/src/graphics/draw/MenuHandler.h
 +++ b/src/graphics/draw/MenuHandler.h
-@@ -55,7 +55,8 @@ class menuHandler
+@@ -55,7 +55,9 @@ class menuHandler
          FrameToggles,
          DisplayUnits,
          MessageBubblesMenu,
 -        ThemeMenu
 +        ThemeMenu,
-+        UpdateMenu
++        UpdateMenu,
++        CyberDeckMenu
      };
      static screenMenus menuQueue;
      static uint32_t pickedNodeNum; // node selected by NodePicker for ManageNodeMenu
-@@ -110,6 +111,7 @@ class menuHandler
+@@ -110,6 +112,8 @@ class menuHandler
      static void displayUnitsMenu();
      static void messageBubblesMenu();
      static void themeMenu();
 +    static void updateMenu();
++    static void cyberDeckMenu();
      static void textMessageMenu();
  
    private:
@@ -1184,10 +1388,46 @@ index a42ef1e08..c8e96bbe7 100644
          if (availWidth < 0)
              availWidth = 0;
 diff --git a/src/graphics/draw/UIRenderer.cpp b/src/graphics/draw/UIRenderer.cpp
-index cfde10124..3ebdc085d 100644
+index cfde10124..6bb9334b0 100644
 --- a/src/graphics/draw/UIRenderer.cpp
 +++ b/src/graphics/draw/UIRenderer.cpp
-@@ -1498,7 +1498,8 @@ void UIRenderer::drawIconScreen(const char *upperMsg, OLEDDisplay *display, OLED
+@@ -1132,7 +1132,11 @@ void UIRenderer::drawDeviceFocused(OLEDDisplay *display, OLEDDisplayUiState *sta
+     if (currentResolution == ScreenResolution::UltraLow) {
+         graphics::drawCommonHeader(display, x, y, "Home");
+     } else {
++#if defined(ITSZ_CYBERDECK)
++        graphics::drawCommonHeader(display, x, y, "ITSZ CyberDeck");
++#else
+         graphics::drawCommonHeader(display, x, y, "");
++#endif
+     }
+ 
+     // === Content below header ===
+@@ -1141,6 +1145,23 @@ void UIRenderer::drawDeviceFocused(OLEDDisplay *display, OLEDDisplayUiState *sta
+     bool origBold = config.display.heading_bold;
+     config.display.heading_bold = false;
+ 
++#if defined(ITSZ_CYBERDECK)
++    if (currentResolution != ScreenResolution::UltraLow) {
++        const int badgeY = getTextPositions(display)[line];
++        const int badgeH = (currentResolution == ScreenResolution::High) ? FONT_HEIGHT_SMALL - 2 : FONT_HEIGHT_SMALL - 5;
++        const char *leftBadge = "Q10 FIELD";
++        const char *rightBadge = "Mesh + Dongle";
++        display->setColor(WHITE);
++        display->drawRect(0, badgeY + 1, SCREEN_WIDTH, badgeH);
++        display->drawString(4, badgeY, leftBadge);
++        display->drawString(SCREEN_WIDTH - display->getStringWidth(rightBadge) - 4, badgeY, rightBadge);
++#if GRAPHICS_TFT_COLORING_ENABLED
++        registerTFTColorRegionDirect(0, badgeY + 1, SCREEN_WIDTH, badgeH, TFTPalette::Q10Focus, TFTPalette::Q10Black);
++#endif
++        line += 1;
++    }
++#endif
++
+     // Display Region and Channel Utilization
+     if (currentResolution == ScreenResolution::UltraLow) {
+         drawNodes(display, x, getTextPositions(display)[line] + 2, nodeStatus, -1, false, "online");
+@@ -1498,7 +1519,8 @@ void UIRenderer::drawIconScreen(const char *upperMsg, OLEDDisplay *display, OLED
  
      display->setFont(FONT_MEDIUM);
      display->setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1197,7 +1437,7 @@ index cfde10124..3ebdc085d 100644
      display->drawString(x + getStringCenteredX(title), y + SCREEN_HEIGHT - FONT_HEIGHT_MEDIUM - 5, title);
      if (gBootSplashBoldPass) {
          display->drawString(x + getStringCenteredX(title) + 1, y + SCREEN_HEIGHT - FONT_HEIGHT_MEDIUM - 5, title);
-@@ -1538,9 +1539,13 @@ void UIRenderer::drawIconScreen(const char *upperMsg, OLEDDisplay *display, OLED
+@@ -1538,9 +1560,13 @@ void UIRenderer::drawIconScreen(const char *upperMsg, OLEDDisplay *display, OLED
  void UIRenderer::drawBootIconScreen(const char *upperMsg, OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
  {
  #if GRAPHICS_TFT_COLORING_ENABLED
@@ -1211,7 +1451,7 @@ index cfde10124..3ebdc085d 100644
      gBootSplashBoldPass = true;
  #endif
      drawIconScreen(upperMsg, display, state, x, y);
-@@ -1598,11 +1603,15 @@ void UIRenderer::drawCompassAndLocationScreen(OLEDDisplay *display, OLEDDisplayU
+@@ -1598,11 +1624,15 @@ void UIRenderer::drawCompassAndLocationScreen(OLEDDisplay *display, OLEDDisplayU
      const bool hasLiveGpsFix =
          (gpsStatus && gpsStatus->getHasLock() && (gpsStatus->getLatitude() != 0 || gpsStatus->getLongitude() != 0));
      const bool hasSensorHeading = screen->hasHeading();
@@ -1738,7 +1978,7 @@ index dbc573c95..a4b6900ca 100644
  {
      /*
 diff --git a/variants/esp32s3/t-deck/platformio.ini b/variants/esp32s3/t-deck/platformio.ini
-index a7701549f..5538e8917 100644
+index a7701549f..c4937341c 100644
 --- a/variants/esp32s3/t-deck/platformio.ini
 +++ b/variants/esp32s3/t-deck/platformio.ini
 @@ -25,6 +25,9 @@ build_src_filter =
@@ -1751,20 +1991,21 @@ index a7701549f..5538e8917 100644
    -I variants/esp32s3/t-deck
  
  lib_deps = ${esp32s3_base.lib_deps}
-@@ -38,9 +41,20 @@ lib_deps = ${esp32s3_base.lib_deps}
+@@ -38,9 +41,21 @@ lib_deps = ${esp32s3_base.lib_deps}
  [env:t-deck-tft]
  extends = env:t-deck
  board_level = pr
 +custom_meshtastic_display_name = Z-Deck T-Deck
-+custom_meshtastic_version_suffix = zdeck21
++custom_meshtastic_version_suffix = zdeck25
 +custom_meshtastic_build_name = Z-Deck Pack
-+custom_zdeck_pack_version = 0.2.20-public
-+custom_zdeck_build_folder = 20260607-zdeck21-t-deck-tft
++custom_zdeck_pack_version = 0.2.24-cyberdeck
++custom_zdeck_build_folder = 20260610-zdeck25-map-ui-cyberdeck-t-deck-tft
 +custom_zdeck_usb_sd_msc = 0
  
  build_flags =
    ${env:t-deck.build_flags}
 +  -D ITSZ_CLASSIC_UI=1
++  -D ITSZ_CYBERDECK=1
 +  -D ITSZ_TDECK_GPS_DEFAULTS=1
 +  -D ITSZ_TDECK_DISABLE_FRESH_POWERSAVE=1
 +  -D USERPREFS_CONFIG_GPS_MODE=meshtastic_Config_PositionConfig_GpsMode_ENABLED
@@ -5805,6 +6046,408 @@ index 000000000..58c7926c1
 +                 updateMapStatusOverlay(map->getObjectsOnMap());
 +             }
 +         }
+diff --git a/itsz/device-ui-map-fullscreen.patch b/itsz/device-ui-map-fullscreen.patch
+new file mode 100644
+index 000000000..0bd297c51
+--- /dev/null
++++ b/itsz/device-ui-map-fullscreen.patch
+@@ -0,0 +1,396 @@
++diff --git a/include/graphics/map/MapPanel.h b/include/graphics/map/MapPanel.h
++index 08c593e..51c4cee 100644
++--- a/include/graphics/map/MapPanel.h
+++++ b/include/graphics/map/MapPanel.h
++@@ -51,6 +51,9 @@ class MapPanel
++     void update(uint32_t id, bool filtered);
++     void remove(uint32_t id);
++     uint32_t getObjectsOnMap(void) { return objectsOnMap; }
+++    uint16_t getTileSlots(void) const { return tileSlots; }
+++    uint16_t getLoadedTiles(void) const { return loadedTiles; }
+++    uint16_t getMissingTiles(void) const { return missingTiles; }
++     // images
++     void setHomeLocationImage(lv_obj_t *img);
++     void setGpsPositionImage(lv_obj_t *img);
++@@ -79,6 +82,9 @@ class MapPanel
++     bool needsRedraw = false;
++     bool redrawCompleted = true;
++     bool locked = false; // map follows GPS location
+++    uint16_t tileSlots = 0;
+++    uint16_t loadedTiles = 0;
+++    uint16_t missingTiles = 0;
++ 
++     int16_t widthPixel;  // visible panel width
++     int16_t heightPixel; // visible panel height
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++index 136749f..a7493b1 100644
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -153,15 +153,17 @@ struct ZDeckMapPage {
++     const char *style;
++     const char *name;
++     const char *button;
+++    const char *summary;
++ };
++ 
++ constexpr const char *zDeckDefaultTileStyle = "zdeck-mesh";
+++constexpr const char *zDeckMapPagePreferencePath = "/zdeck_map_page.cfg";
++ constexpr const char *zDeckSidebarPreferencePath = "/zdeck_sidebar.cfg";
++ constexpr ZDeckMapPage zDeckMapPages[] = {
++-    {"zdeck-mesh", "Mesh map", "MESH"},
++-    {"zdeck-compass", "Live compass", "COMPASS"},
++-    {"zdeck-radar", "DF/Radar", "RADAR"},
++-    {"zdeck-alert", "Distance alert", "ALERT"},
+++    {"zdeck-mesh", "Mesh map", "MESH", "Tile map with mesh nodes and GPS"},
+++    {"zdeck-compass", "Live compass", "COMPASS", "GPS fix and nearest node bearing"},
+++    {"zdeck-radar", "DF/Radar", "RADAR", "Positioned nodes, nearest range, and scan status"},
+++    {"zdeck-alert", "Distance alert", "ALERT", "Closest-node warning view"},
++ };
++ 
++ constexpr size_t zDeckMapPageCount()
++@@ -228,6 +230,27 @@ void zDeckSaveSidebarRightPreference(bool value)
++     }
++ }
++ 
+++uint8_t zDeckLoadMapPagePreference(uint8_t defaultValue)
+++{
+++    File file = fileSystem.open(zDeckMapPagePreferencePath, FILE_READ);
+++    if (file) {
+++        int value = file.read();
+++        file.close();
+++        if (value >= '0' && value < '0' + (int)zDeckMapPageCount())
+++            return (uint8_t)(value - '0');
+++    }
+++    return defaultValue % zDeckMapPageCount();
+++}
+++
+++void zDeckSaveMapPagePreference(uint8_t pageIndex)
+++{
+++    File file = fileSystem.open(zDeckMapPagePreferencePath, FILE_WRITE);
+++    if (!file)
+++        return;
+++    file.write((uint8_t)('0' + (pageIndex % zDeckMapPageCount())));
+++    file.close();
+++}
+++
++ void zDeckPlaceMainContent(lv_obj_t *obj, bool sidebarRight)
++ {
++     if (!obj)
++@@ -2824,22 +2847,25 @@ void TFTView_320x240::setupDynamicMapMenu(void)
++     const bool migratedManagedStyle = zDeckMapStyleIsManaged(db.uiConfig.map_data.style);
++     if (migratedManagedStyle)
++         zDeckMapPage = (uint8_t)zDeckMapPageIndex(db.uiConfig.map_data.style);
+++    else
+++        zDeckMapPage = zDeckLoadMapPagePreference(zDeckMapPage);
++     zDeckEnsureMapStyle(db.uiConfig.map_data);
++     if (migratedManagedStyle) {
++         db.uiConfig.has_map_data = true;
+++        zDeckSaveMapPagePreference(zDeckMapPage);
++         controller->storeUIConfig(db.uiConfig);
++     }
++ 
++-    lv_obj_set_height(objects.map_osd_panel, 212);
+++    lv_obj_set_height(objects.map_osd_panel, 218);
++ 
++     mapInternetStatusLabel = lv_label_create(objects.map_osd_panel);
++-    lv_obj_set_pos(mapInternetStatusLabel, 7, 104);
+++    lv_obj_set_pos(mapInternetStatusLabel, 7, 100);
++     lv_obj_set_width(mapInternetStatusLabel, lv_pct(94));
++     lv_label_set_long_mode(mapInternetStatusLabel, LV_LABEL_LONG_DOT);
++ 
++     mapCenterButton = lv_btn_create(objects.map_osd_panel);
++-    lv_obj_set_pos(mapCenterButton, 7, 130);
++-    lv_obj_set_size(mapCenterButton, 76, 30);
+++    lv_obj_set_pos(mapCenterButton, 7, 124);
+++    lv_obj_set_size(mapCenterButton, 74, 34);
++     lv_obj_set_style_bg_color(mapCenterButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_color(mapCenterButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_width(mapCenterButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++@@ -2849,19 +2875,22 @@ void TFTView_320x240::setupDynamicMapMenu(void)
++     lv_obj_center(mapCenterButtonLabel);
++ 
++     mapModeButton = lv_btn_create(objects.map_osd_panel);
++-    lv_obj_set_pos(mapModeButton, 89, 130);
++-    lv_obj_set_size(mapModeButton, 76, 30);
+++    lv_obj_set_pos(mapModeButton, 87, 124);
+++    lv_obj_set_size(mapModeButton, 92, 34);
++     lv_obj_set_style_bg_color(mapModeButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_color(mapModeButton, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_width(mapModeButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_add_event_cb(mapModeButton, ui_event_mapModeButton, LV_EVENT_CLICKED, NULL);
++     mapModeButtonLabel = lv_label_create(mapModeButton);
++-    lv_label_set_text(mapModeButtonLabel, "NEXT VIEW");
+++    lv_label_set_long_mode(mapModeButtonLabel, LV_LABEL_LONG_DOT);
+++    lv_obj_set_width(mapModeButtonLabel, 84);
+++    lv_obj_set_style_text_align(mapModeButtonLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_label_set_text(mapModeButtonLabel, zDeckCurrentMapPage(zDeckMapPage).button);
++     lv_obj_center(mapModeButtonLabel);
++ 
++     mapCacheButton = lv_btn_create(objects.map_osd_panel);
++-    lv_obj_set_pos(mapCacheButton, 171, 130);
++-    lv_obj_set_size(mapCacheButton, 76, 30);
+++    lv_obj_set_pos(mapCacheButton, 185, 124);
+++    lv_obj_set_size(mapCacheButton, 62, 34);
++     lv_obj_set_style_bg_color(mapCacheButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_color(mapCacheButton, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_width(mapCacheButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++@@ -2872,7 +2901,7 @@ void TFTView_320x240::setupDynamicMapMenu(void)
++ 
++     mapInternetButton = lv_btn_create(objects.map_osd_panel);
++     lv_obj_set_pos(mapInternetButton, 7, 166);
++-    lv_obj_set_size(mapInternetButton, 86, 26);
+++    lv_obj_set_size(mapInternetButton, 78, 30);
++     lv_obj_set_style_bg_color(mapInternetButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_color(mapInternetButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_border_width(mapInternetButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++@@ -2882,8 +2911,8 @@ void TFTView_320x240::setupDynamicMapMenu(void)
++     lv_obj_center(mapInternetButtonLabel);
++ 
++     mapCacheStatusLabel = lv_label_create(objects.map_osd_panel);
++-    lv_obj_set_pos(mapCacheStatusLabel, 100, 168);
++-    lv_obj_set_width(mapCacheStatusLabel, 148);
+++    lv_obj_set_pos(mapCacheStatusLabel, 92, 166);
+++    lv_obj_set_width(mapCacheStatusLabel, 156);
++     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
++ 
++     mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
++@@ -2944,13 +2973,20 @@ void TFTView_320x240::updateDynamicMapMenu(void)
++     }
++ 
++     if (mapModeButtonLabel)
++-        lv_label_set_text(mapModeButtonLabel, "NEXT VIEW");
+++        lv_label_set_text(mapModeButtonLabel, page.button);
++     if (mapCenterButtonLabel)
++         lv_label_set_text(mapCenterButtonLabel, "CENTER");
++ 
+++    const bool mapReady = !map || map->redrawComplete();
+++    const uint16_t missingTiles = map ? map->getMissingTiles() : 0;
++     if (MapTileSettings::saveOK()) {
++-        lv_snprintf(buf, sizeof(buf), "%s | SD z%d %s", page.name, MapTileSettings::getZoomLevel(),
+++        lv_snprintf(buf, sizeof(buf), "%s | SD z%d %s%s", page.name, MapTileSettings::getZoomLevel(),
+++                    missingTiles ? "partial " : "",
++                     MapTileSettings::getTileStyle()[0] ? MapTileSettings::getTileStyle() : "default");
+++    } else if (!mapReady) {
+++        lv_snprintf(buf, sizeof(buf), "%s | drawing tiles", page.name);
+++    } else if (missingTiles) {
+++        lv_snprintf(buf, sizeof(buf), "%s | %u tiles missing", page.name, (unsigned int)missingTiles);
++     } else if (cardDetected && wifiConnected) {
++         lv_snprintf(buf, sizeof(buf), "%s | WiFi fetch", page.name);
++     } else if (cardDetected) {
++@@ -2989,26 +3025,93 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
++         lv_snprintf(gps, sizeof(gps), "GPS off");
++     }
++ 
++-    const char *tiles = wifiConnected ? "WiFi tiles" : cardDetected ? "SD tiles" : "no tiles";
++-    const char *locs = objectsOnMap > 0 ? "nodes located" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
+++    uint32_t positionedNodes = 0;
+++    uint32_t nearestNode = 0;
+++    float nearestKm = 0.0f;
+++    const char *nearestName = "none";
+++    for (auto &it : nodes) {
+++        if (it.first == ownNode || !it.second)
+++            continue;
+++        int32_t lat = (long)it.second->LV_OBJ_IDX(node_pos1_idx)->user_data;
+++        int32_t lon = (long)it.second->LV_OBJ_IDX(node_pos2_idx)->user_data;
+++        if (!lat || !lon)
+++            continue;
+++        positionedNodes++;
+++        if (gpsReady) {
+++            float dx = 71.5f * 1e-7f * (myLongitude - lon);
+++            float dy = 111.3f * 1e-7f * (myLatitude - lat);
+++            float dist = sqrt(dx * dx + dy * dy);
+++            if (!nearestNode || dist < nearestKm) {
+++                nearestNode = it.first;
+++                nearestKm = dist;
+++                nearestName = lv_label_get_text(it.second->LV_OBJ_IDX(node_lbl_idx));
+++            }
+++        }
+++    }
++ 
++-    lv_obj_set_size(mapStatusOverlayLabel, 212, 38);
++-    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
++-    lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
+++    char tileState[48];
+++    if (!map) {
+++        lv_snprintf(tileState, sizeof(tileState), "map not open");
+++    } else if (!map->redrawComplete()) {
+++        lv_snprintf(tileState, sizeof(tileState), "drawing %u/%u tiles", (unsigned int)map->getLoadedTiles(),
+++                    (unsigned int)map->getTileSlots());
+++    } else if (map->getMissingTiles() > 0) {
+++        lv_snprintf(tileState, sizeof(tileState), "ready, %u tiles missing", (unsigned int)map->getMissingTiles());
+++    } else if (map->getTileSlots() > 0) {
+++        lv_snprintf(tileState, sizeof(tileState), "tiles ready");
+++    } else if (wifiConnected) {
+++        lv_snprintf(tileState, sizeof(tileState), "WiFi tiles");
+++    } else {
+++        lv_snprintf(tileState, sizeof(tileState), "%s", cardDetected ? "SD tiles" : "grid only");
+++    }
+++
+++    char nearest[56];
+++    if (nearestNode) {
+++        if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
+++            if (nearestKm >= 1.0f)
+++                lv_snprintf(nearest, sizeof(nearest), "Nearest %.18s %.1fkm", nearestName, nearestKm);
+++            else
+++                lv_snprintf(nearest, sizeof(nearest), "Nearest %.18s %um", nearestName,
+++                            (unsigned int)round(nearestKm * 1000.0f));
+++        } else {
+++            float miles = nearestKm * 0.621371f;
+++            if (miles >= 0.1f)
+++                lv_snprintf(nearest, sizeof(nearest), "Nearest %.18s %.1fmi", nearestName, miles);
+++            else
+++                lv_snprintf(nearest, sizeof(nearest), "Nearest %.18s %uft", nearestName,
+++                            (unsigned int)round(nearestKm * 3280.84f));
+++        }
+++    } else if (gpsReady && positionedNodes == 0) {
+++        lv_snprintf(nearest, sizeof(nearest), "No peer GPS yet");
+++    } else if (!gpsReady && positionedNodes > 0) {
+++        lv_snprintf(nearest, sizeof(nearest), "Need own GPS for range");
+++    } else {
+++        lv_snprintf(nearest, sizeof(nearest), "Waiting for positions");
+++    }
+++
+++    const bool nearAlert = zDeckMapPage == 3 && nearestNode && nearestKm <= 0.5f;
+++    lv_obj_set_size(mapStatusOverlayLabel, offlineToolPage ? 218 : 212, offlineToolPage ? 92 : 42);
+++    lv_obj_set_align(mapStatusOverlayLabel, offlineToolPage ? LV_ALIGN_TOP_LEFT : LV_ALIGN_BOTTOM_LEFT);
+++    lv_obj_set_pos(mapStatusOverlayLabel, 4, offlineToolPage ? 4 : -4);
++     lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_border_color(mapStatusOverlayLabel, gpsReady || offlineToolPage ? colorBlueGreen : colorYellow,
+++    lv_obj_set_style_border_color(mapStatusOverlayLabel, nearAlert ? colorRed : gpsReady || offlineToolPage ? colorBlueGreen : colorYellow,
++                                   LV_PART_MAIN | LV_STATE_DEFAULT);
++     lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
++-    lv_obj_set_style_text_color(mapStatusOverlayLabel, gpsReady || offlineToolPage ? colorLightGray : colorYellow,
+++    lv_obj_set_style_text_color(mapStatusOverlayLabel, nearAlert ? colorRed : gpsReady || offlineToolPage ? colorLightGray : colorYellow,
++                                 LV_PART_MAIN | LV_STATE_DEFAULT);
++ 
++-    char buf[128];
++-    if (offlineToolPage) {
++-        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", page.name, gps, (unsigned int)objectsOnMap,
++-                    (unsigned int)nodeCount, locs);
+++    char buf[160];
+++    if (zDeckMapPage == 1) {
+++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", page.name, gps, nearest, tileState);
+++    } else if (zDeckMapPage == 2) {
+++        lv_snprintf(buf, sizeof(buf), "%s | %u/%u positioned\n%s\n%s", page.name, (unsigned int)positionedNodes,
+++                    (unsigned int)nodeCount, nearest, tileState);
+++    } else if (zDeckMapPage == 3) {
+++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", nearAlert ? "DISTANCE WARN" : page.name, gps, nearest, tileState);
++     } else {
++-        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
++-                    locs);
+++        const char *locs = objectsOnMap > 0 ? "nodes on map" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
+++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tileState, (unsigned int)objectsOnMap,
+++                    (unsigned int)nodeCount, locs);
++     }
++     lv_label_set_text(mapStatusOverlayLabel, buf);
++     lv_obj_move_foreground(mapStatusOverlayLabel);
++@@ -3153,6 +3256,7 @@ void TFTView_320x240::setZDeckMapPage(uint8_t pageIndex, bool showAlert)
++     db.uiConfig.has_map_data = true;
++     MapTileSettings::setPrefix("/maps");
++     MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
+++    zDeckSaveMapPagePreference(zDeckMapPage);
++     if (cardDetected)
++         MapTileSettings::setSaveOK(true);
++     controller->storeUIConfig(db.uiConfig);
++@@ -3160,8 +3264,8 @@ void TFTView_320x240::setZDeckMapPage(uint8_t pageIndex, bool showAlert)
++         map->forceRedraw();
++     updateDynamicMapMenu();
++     if (showAlert) {
++-        char msg[48];
++-        lv_snprintf(msg, sizeof(msg), "Map view: %s", zDeckCurrentMapPage(zDeckMapPage).name);
+++        char msg[64];
+++        lv_snprintf(msg, sizeof(msg), "Default view: %s", zDeckCurrentMapPage(zDeckMapPage).name);
++         messageAlert(msg, true);
++     }
++ }
++diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
++index 435f4f9..7680a2c 100644
++--- a/source/graphics/map/MapPanel.cpp
+++++ b/source/graphics/map/MapPanel.cpp
++@@ -43,6 +43,14 @@ void MapPanel::redraw(void)
++     };
++ 
++     auto clearRetry = [&](uint32_t hash) { failedTilesRetryAt.erase(hash); };
+++    auto recordTileLoad = [&](bool ok) {
+++        if (ok) {
+++            if (loadedTiles < UINT16_MAX)
+++                loadedTiles++;
+++        } else if (missingTiles < UINT16_MAX) {
+++            missingTiles++;
+++        }
+++    };
++ 
++     // retry one failed tile per redraw() call
++     auto retryFailedTile = [&]() {
++@@ -64,6 +72,10 @@ void MapPanel::redraw(void)
++             MapTile &tile = *tileIt->second;
++             bool ok = tile.load(panel, tile.getX(), tile.getY(), noTileImage);
++             if (ok) {
+++                if (missingTiles > 0)
+++                    missingTiles--;
+++                if (loadedTiles < tileSlots)
+++                    loadedTiles++;
++                 failedTilesRetryAt.erase(it);
++             } else {
++                 it->second = now + RETRY_MS;
++@@ -79,6 +91,9 @@ void MapPanel::redraw(void)
++         y = 0;
++         tiles.clear();
++         failedTilesRetryAt.clear();
+++        tileSlots = tilesX * tilesY;
+++        loadedTiles = 0;
+++        missingTiles = 0;
++     }
++ 
++     if (redrawCompleted) {
++@@ -97,7 +112,9 @@ void MapPanel::redraw(void)
++                 return;
++             }
++             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
++-            if (tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage))
+++            bool ok = tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
+++            recordTileLoad(ok);
+++            if (ok)
++                 clearRetry(hash);
++             else
++                 scheduleRetry(hash);
++@@ -111,7 +128,9 @@ void MapPanel::redraw(void)
++         if (x < tilesX && y < tilesY) {
++             uint32_t hash = HASH(xStart + x, yStart + y);
++             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
++-            if (tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage))
+++            bool ok = tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
+++            recordTileLoad(ok);
+++            if (ok)
++                 clearRetry(hash);
++             else
++                 scheduleRetry(hash);
++@@ -447,7 +466,11 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
++                     yOffset -= size;
++                 }
++                 tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
++-                tiles[hash]->load(panel, xpos, ypos, noTileImage);
+++                bool ok = tiles[hash]->load(panel, xpos, ypos, noTileImage);
+++                if (ok && loadedTiles < UINT16_MAX)
+++                    loadedTiles++;
+++                else if (!ok && missingTiles < UINT16_MAX)
+++                    missingTiles++;
++             } else {
++                 // check if tile is still visible after scrolling
++                 MapTile &tile = *tiles[hash];
++@@ -493,6 +516,7 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
++     if (changeYtiles)
++         tilesY--;
++ 
+++    tileSlots = tilesX * tilesY;
++     scrolled.move(scrollX, scrollY);
++     drawLocation();
++     drawObjects();
++@@ -603,4 +627,4 @@ void MapPanel::printTiles(void)
++     }
++     ILOG_DEBUG("tiles: %d\n%s", tiles.size(), ss.str().c_str());
++ }
++-#endif
++\ No newline at end of file
+++#endif
++
 diff --git a/itsz/device-ui-wifi-scan.patch b/itsz/device-ui-wifi-scan.patch
 new file mode 100644
 index 000000000..463d03b9b
@@ -6420,6 +7063,189 @@ index 000000000..4b0d4c433
 +                                 }
 +                             }
 +                         }
+diff --git a/itsz/device-ui-sidebar-layout.patch b/itsz/device-ui-sidebar-layout.patch
+new file mode 100644
+index 000000000..15a071cd3
+--- /dev/null
++++ b/itsz/device-ui-sidebar-layout.patch
+@@ -0,0 +1,177 @@
++diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
++index 6394b29..7900c63 100644
++--- a/include/graphics/view/TFT/TFTView_320x240.h
+++++ b/include/graphics/view/TFT/TFTView_320x240.h
++@@ -208,6 +208,11 @@ class TFTView_320x240 : public MeshtasticView
++     void cycleZDeckMapPage(int direction = 1);
++     void setupZDeckHealthTool(void);
++     void updateZDeckHealthPanel(void);
+++    void loadZDeckSidebarPreference(void);
+++    void setupZDeckSidebarControl(void);
+++    void updateZDeckSidebarLabel(void);
+++    void applyZDeckSidebarPlacement(void);
+++    void setZDeckSidebarRight(bool enabled, bool persist = true);
++     void setupZDeckSDTool(void);
++     void updateZDeckSDPanel(const char *status = nullptr);
++     bool prepareZDeckSDCard(void);
++@@ -341,6 +346,7 @@ class TFTView_320x240 : public MeshtasticView
++     static void ui_event_wifi_button(lv_event_t *e);
++     static void ui_event_wifi_scan_button(lv_event_t *e);
++     static void ui_event_wifi_network_dropdown(lv_event_t *e);
+++    static void ui_event_zdeckSidebarButton(lv_event_t *e);
++     static void ui_event_language_button(lv_event_t *e);
++     static void ui_event_channel_button(lv_event_t *e);
++     static void ui_event_brightness_button(lv_event_t *e);
++@@ -490,6 +496,9 @@ class TFTView_320x240 : public MeshtasticView
++     lv_obj_t *zDeckHealthButtonLabel = nullptr;
++     lv_obj_t *zDeckHealthPanel = nullptr;                   // public Z-Deck status summary
++     lv_obj_t *zDeckHealthLabel = nullptr;
+++    lv_obj_t *zDeckSidebarButton = nullptr;                 // move the main navigation rail left/right
+++    lv_obj_t *zDeckSidebarButtonLabel = nullptr;
+++    bool zDeckSidebarRight = true;
++     lv_obj_t *zDeckSdButton = nullptr;                       // SD prepare/reset button
++     lv_obj_t *zDeckSdButtonLabel = nullptr;
++     lv_obj_t *zDeckSdPanel = nullptr;                        // SD warning/status panel
++diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
++index bd78048..35ba9a2 100644
++--- a/source/graphics/TFT/TFTView_320x240.cpp
+++++ b/source/graphics/TFT/TFTView_320x240.cpp
++@@ -156,6 +156,7 @@ struct ZDeckMapPage {
++ };
++ 
++ constexpr const char *zDeckDefaultTileStyle = "zdeck-mesh";
+++constexpr const char *zDeckSidebarPreferencePath = "/zdeck_sidebar.cfg";
++ constexpr ZDeckMapPage zDeckMapPages[] = {
++     {"zdeck-mesh", "Mesh map", "MESH"},
++     {"zdeck-compass", "Live compass", "COMPASS"},
++@@ -202,7 +203,37 @@ const ZDeckMapPage &zDeckCurrentMapPage(uint8_t pageIndex)
++ {
++     return zDeckMapPages[pageIndex % zDeckMapPageCount()];
++ }
+++bool zDeckLoadSidebarRightPreference(bool defaultValue)
+++{
+++    File file = fileSystem.open(zDeckSidebarPreferencePath, FILE_READ);
+++    if (file) {
+++        int value = file.read();
+++        file.close();
+++        if (value == '0')
+++            return false;
+++        if (value == '1')
+++            return true;
+++    }
+++    return defaultValue;
+++}
+++
+++void zDeckSaveSidebarRightPreference(bool value)
+++{
+++    File file = fileSystem.open(zDeckSidebarPreferencePath, FILE_WRITE);
+++    if (file) {
+++        const uint8_t byteValue = value ? '1' : '0';
+++        file.write(&byteValue, 1);
+++        file.close();
+++    }
+++}
++ 
+++void zDeckPlaceMainContent(lv_obj_t *obj, bool sidebarRight)
+++{
+++    if (!obj)
+++        return;
+++    lv_obj_set_x(obj, sidebarRight ? 0 : LV_PCT(12));
+++    lv_obj_set_width(obj, LV_PCT(88));
+++}
++ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingRequest)
++ {
++     switch (status) {
++@@ -530,6 +561,9 @@ void TFTView_320x240::init_screens(void)
++     state = MeshtasticView::eInitScreens;
++     ui_init();
++     apply_hotfix();
+++    loadZDeckSidebarPreference();
+++    setupZDeckSidebarControl();
+++    applyZDeckSidebarPlacement();
++ 
++     activeMsgContainer = objects.messages_container;
++     // setup the two channel label panels with arrays that allow indexing
++@@ -3253,6 +3287,82 @@ void TFTView_320x240::setupZDeckHealthTool(void)
++     updateZDeckHealthPanel();
++ }
++ 
+++void TFTView_320x240::loadZDeckSidebarPreference(void)
+++{
+++    zDeckSidebarRight = zDeckLoadSidebarRightPreference(true);
+++}
+++
+++void TFTView_320x240::setupZDeckSidebarControl(void)
+++{
+++    if (zDeckSidebarButton || !objects.tab_page_basic_settings)
+++        return;
+++
+++    zDeckSidebarButton = lv_btn_create(objects.tab_page_basic_settings);
+++    lv_obj_set_size(zDeckSidebarButton, LV_PCT(95), 30);
+++    add_style_settings_button_style(zDeckSidebarButton);
+++    lv_obj_set_style_align(zDeckSidebarButton, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_shadow_width(zDeckSidebarButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    lv_obj_set_style_bg_color(zDeckSidebarButton, lv_color_hex(0xff4db270), LV_PART_MAIN | LV_STATE_PRESSED);
+++    lv_obj_set_style_text_color(zDeckSidebarButton, lv_color_hex(0xff015114), LV_PART_MAIN | LV_STATE_PRESSED);
+++    lv_obj_add_event_cb(zDeckSidebarButton, ui_event_zdeckSidebarButton, LV_EVENT_CLICKED, NULL);
+++
+++    zDeckSidebarButtonLabel = lv_label_create(zDeckSidebarButton);
+++    lv_obj_set_size(zDeckSidebarButtonLabel, LV_PCT(100), LV_SIZE_CONTENT);
+++    lv_label_set_long_mode(zDeckSidebarButtonLabel, LV_LABEL_LONG_DOT);
+++    lv_obj_set_style_align(zDeckSidebarButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+++    updateZDeckSidebarLabel();
+++}
+++
+++void TFTView_320x240::updateZDeckSidebarLabel(void)
+++{
+++    if (zDeckSidebarButtonLabel)
+++        lv_label_set_text(zDeckSidebarButtonLabel, zDeckSidebarRight ? _("Sidebar: right") : _("Sidebar: left"));
+++}
+++
+++void TFTView_320x240::applyZDeckSidebarPlacement(void)
+++{
+++    if (objects.button_panel) {
+++        lv_obj_set_x(objects.button_panel, zDeckSidebarRight ? LV_PCT(88) : 0);
+++        lv_obj_set_width(objects.button_panel, LV_PCT(12));
+++        lv_obj_move_foreground(objects.button_panel);
+++    }
+++
+++    lv_obj_t *contentPanels[] = {
+++        objects.home_panel,       objects.nodes_panel,          objects.node_options_panel,  objects.groups_panel,
+++        objects.messages_panel,   objects.chats_panel,          objects.map_panel,           objects.controller_panel,
+++        ui_AdvancedSettingsPanel, objects.mesh_detector_panel,  objects.signal_scanner_panel, objects.trace_route_panel,
+++        objects.details_panel,    objects.tools_statistics_panel, objects.tools_packet_log_panel,
+++    };
+++    for (lv_obj_t *panel : contentPanels)
+++        zDeckPlaceMainContent(panel, zDeckSidebarRight);
+++
+++    lv_obj_t *topPanels[] = {
+++        objects.top_panel,          objects.top_nodes_panel,        objects.top_node_options_panel, objects.top_groups_panel,
+++        objects.top_group_chat_panel, objects.top_chats_panel,      objects.top_messages_panel,     objects.top_map_panel,
+++        objects.top_settings_panel, objects.top_advanced_settings_panel, objects.top_mesh_detector_panel,
+++        objects.top_signal_scanner_panel, objects.top_trace_route_panel, objects.top_statistics_panel, objects.top_packet_log_panel,
+++    };
+++    for (lv_obj_t *panel : topPanels)
+++        zDeckPlaceMainContent(panel, zDeckSidebarRight);
+++
+++    updateZDeckSidebarLabel();
+++    lv_obj_invalidate(objects.main_screen);
+++}
+++
+++void TFTView_320x240::setZDeckSidebarRight(bool enabled, bool persist)
+++{
+++    zDeckSidebarRight = enabled;
+++    if (persist)
+++        zDeckSaveSidebarRightPreference(enabled);
+++    applyZDeckSidebarPlacement();
+++}
+++
+++void TFTView_320x240::ui_event_zdeckSidebarButton(lv_event_t *e)
+++{
+++    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
+++        return;
+++    THIS->setZDeckSidebarRight(!THIS->zDeckSidebarRight);
+++}
++ void TFTView_320x240::updateZDeckHealthPanel(void)
++ {
++     if (!zDeckHealthLabel)
 diff --git a/src/itsz/ZDeckUpdateService.cpp b/src/itsz/ZDeckUpdateService.cpp
 new file mode 100644
 index 000000000..e107077c9
