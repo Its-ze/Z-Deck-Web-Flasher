@@ -1,5 +1,19 @@
 # Changelog
 
+## Z-Deck 0.2.24-cyberdeck - 2026-06-10
+
+Map UI and zdeck25 public-safe release package.
+
+- Rebuilt bundled firmware from `20260610-zdeck25-map-ui-cyberdeck-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck25` and pack label to `0.2.24-cyberdeck`.
+- Tightened the T-Deck map menu so controls fit the physical 320 x 240 screen without overlapping.
+- Added persistent default map page storage for Mesh map, Live compass, DF/Radar, and Distance alert.
+- Added tile slots, loaded-tile, and missing-tile counters so the map reports real progress/readiness.
+- Updated map overlays with compact Mesh/Compass/DF/Distance status, nearest-node range, and distance warning text.
+- Fixed the PlatformIO device-ui patch marker so repeated build hook passes do not fail after later map-label changes.
+- Kept sidebar placement, Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, Wi-Fi credentials, or admin keys are bundled.
+
 ## Web flasher recovery assistant - 2026-06-10
 
 Programming-mode recovery helper for post-flash support.

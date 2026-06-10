@@ -5,10 +5,10 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.23-cyberdeck",
-                   "packVersion":  "0.2.23-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck24",
-                   "released":  "2026-06-09",
+                   "title":  "Z-Deck 0.2.24-cyberdeck",
+                   "packVersion":  "0.2.24-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck25",
+                   "released":  "2026-06-10",
                    "updateMode":  "app-only",
                    "preserves":  [
                                      "meshtastic_config",
@@ -17,7 +17,8 @@
                                      "owner_settings",
                                      "sd_chat_journal",
                                      "sd_settings_backup",
-                                     "sidebar_layout"
+                                     "sidebar_layout",
+                                     "map_page_default"
                                  ],
                    "preUpdateBackup":  {
                                            "enabled":  true,
@@ -32,12 +33,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck24-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck24-public/zdeck-firmware.bin",
-                                    "size":  3685616,
-                                    "sha256":  "c6292d8eb15dff108c294cd4ae0b76d9aa06d88af2605775efe3d2cc41d507cd",
-                                    "md5":  "c81c629bc614a03d71d428a30a4a36a1"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck25-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck25-public/zdeck-firmware.bin",
+                                    "size":  3687408,
+                                    "sha256":  "1a13b0045b5254ade43b45a7d4ac2e333039f80321806ec3e4158af5a0df9f46",
+                                    "md5":  "d888734bc86122d37aa095e980c33c21"
                                 },
-                   "notes":  "Adds a System setting for sidebar placement with right-side default and persistent /zdeck_sidebar.cfg storage. Keeps on-device WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, map page switching, newest-first chats, stable node names, clearer send status, hop counter work, and public-safe labels."
+                   "notes":  "Improves the T-Deck map UI with tighter controls, persistent default map page, tile progress counters, clearer missing-tile/readiness status, and compact Mesh/Compass/DF/Distance overlays. Keeps sidebar placement, WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, newest-first chats, stable node names, send status, hop counters, public-safe labels, and disabled USB SD mass storage."
                }
 }
