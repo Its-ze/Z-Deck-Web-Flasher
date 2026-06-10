@@ -5,9 +5,9 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.25-cyberdeck",
-                   "packVersion":  "0.2.25-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck26",
+                   "title":  "Z-Deck 0.2.26-cyberdeck",
+                   "packVersion":  "0.2.26-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck27",
                    "released":  "2026-06-10",
                    "updateMode":  "app-only",
                    "preserves":  [
@@ -18,7 +18,8 @@
                                      "sd_chat_journal",
                                      "sd_settings_backup",
                                      "sidebar_layout",
-                                     "map_page_default"
+                                     "map_page_default",
+                                     "owner_home_title"
                                  ],
                    "preUpdateBackup":  {
                                            "enabled":  true,
@@ -33,12 +34,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck26-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck26-public/zdeck-firmware.bin",
-                                    "size":  3687440,
-                                    "sha256":  "e85cd4237aacd8dd36166bec1a9c0f295e510f35527ad915df15968c174b553d",
-                                    "md5":  "8356ac8c148aeb0e0670f00cd2ca7960"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck27-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck27-public/zdeck-firmware.bin",
+                                    "size":  3687568,
+                                    "sha256":  "0ebca6366bf5d9a17de31ed84ca33dee3de03046a4c11c7b48492f9a53f80539",
+                                    "md5":  "55efafd0e2225bafb93b6f553ff6a880"
                                 },
-                   "notes":  "Fixes the T-Deck right-side sidebar/header overlap by reserving a fixed sidebar gutter and moving setup/search/neighbors/LoRa TX top panels into the safe content area. Keeps map UI progress/defaults, WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, newest-first chats, stable node names, send status, hop counters, public-safe labels, and disabled USB SD mass storage."
+                   "notes":  "Fixes the T-Deck home header so each unit shows its configured Meshtastic owner name instead of every CyberDeck build looking like the same device, with title clipping to avoid the top status area. Keeps the fixed sidebar gutter, safe top panels, map UI progress/defaults, WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, newest-first chats, stable node names, send status, hop counters, public-safe labels, and disabled USB SD mass storage."
                }
 }

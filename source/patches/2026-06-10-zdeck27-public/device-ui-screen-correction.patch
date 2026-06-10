@@ -1,0 +1,260 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 7ba7b9757..efc2c70e4 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -196,6 +196,10 @@ class TFTView_320x240 : public MeshtasticView
+     void updateDynamicMapMenu(void);
+     void openWifiSettingsFromMap(void);
+     void rememberCurrentMapArea(void);
++    void setupScreenCorrectionTool(void);
++    void startScreenCorrection(void);
++    void stopScreenCorrection(void);
++    void showScreenCorrectionStep(void);
+     // add objects on map
+     virtual void addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon);
+     // remove objects from map
+@@ -272,6 +276,7 @@ class TFTView_320x240 : public MeshtasticView
+     static void timer_event_reboot(lv_timer_t *timer);
+     static void timer_event_shutdown(lv_timer_t *timer);
+     static void timer_event_programming_mode(lv_timer_t *timer);
++    static void timer_event_screen_correction(lv_timer_t *timer);
+ 
+     // lvgl event callbacks
+     static void ui_event_LogoButton(lv_event_t *e);
+@@ -386,6 +391,7 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_positionButton(lv_event_t *e);
+     static void ui_event_mapInternetButton(lv_event_t *e);
+     static void ui_event_mapCacheButton(lv_event_t *e);
++    static void ui_event_screenCorrectionButton(lv_event_t *e);
+ 
+     // animations
+     static void ui_anim_node_panel_cb(void *var, int32_t v);
+@@ -442,6 +448,11 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *mapCacheButtonLabel = nullptr;
+     lv_obj_t *mapCacheStatusLabel = nullptr;
+     lv_obj_t *settingsDisabledPanel = nullptr;             // panel disabled while a settings popup is open
++    lv_obj_t *screenCorrectionButton = nullptr;             // screen burn-in/correction tool button
++    lv_obj_t *screenCorrectionButtonLabel = nullptr;
++    lv_obj_t *screenCorrectionOverlay = nullptr;            // full-screen correction overlay
++    lv_timer_t *screenCorrectionTimer = nullptr;
++    uint8_t screenCorrectionStep = 0;
+     std::unordered_map<uint32_t, lv_obj_t *> nodeObjects; // nodeObjects displayed on map
+     // extended default device profile struct with additional required data
+     struct meshtastic_DeviceProfile_ext : meshtastic_DeviceProfile {
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 8e60eba20..0fdd08d5f 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -883,6 +883,7 @@ void TFTView_320x240::ui_events_init(void)
+     lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+     setupDynamicMapMenu();
++    setupScreenCorrectionTool();
+ 
+     // tools buttons
+     lv_obj_add_event_cb(objects.tools_mesh_detector_button, ui_event_mesh_detector, LV_EVENT_CLICKED, 0);
+@@ -949,6 +950,21 @@ void TFTView_320x240::timer_event_programming_mode(lv_timer_t *timer)
+     lv_obj_remove_event_cb(objects.boot_logo_button, ui_event_LogoButton);
+ }
+ 
++void TFTView_320x240::timer_event_screen_correction(lv_timer_t *timer)
++{
++    if (!THIS->screenCorrectionOverlay || timer != THIS->screenCorrectionTimer)
++        return;
++
++    THIS->screenCorrectionStep++;
++    if (THIS->screenCorrectionStep > 15) {
++        THIS->stopScreenCorrection();
++        THIS->messageAlert(_("Screen correction done"), true);
++        return;
++    }
++
++    THIS->showScreenCorrectionStep();
++}
++
+ void TFTView_320x240::ui_event_LogoButton(lv_event_t *e)
+ {
+ 
+@@ -2533,6 +2549,182 @@ void TFTView_320x240::ui_event_mapCacheButton(lv_event_t *e)
+         THIS->rememberCurrentMapArea();
+ }
+ 
++void TFTView_320x240::setupScreenCorrectionTool(void)
++{
++    if (screenCorrectionButton || !objects.tab_page_tools)
++        return;
++
++    screenCorrectionButton = lv_btn_create(objects.tab_page_tools);
++    lv_obj_set_pos(screenCorrectionButton, 0, 0);
++    lv_obj_set_size(screenCorrectionButton, LV_PCT(95), 30);
++    add_style_settings_button_style(screenCorrectionButton);
++    lv_obj_set_style_align(screenCorrectionButton, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_shadow_width(screenCorrectionButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(screenCorrectionButton, lv_color_hex(0xff4db270), LV_PART_MAIN | LV_STATE_PRESSED);
++    lv_obj_set_style_text_color(screenCorrectionButton, lv_color_hex(0xff015114), LV_PART_MAIN | LV_STATE_PRESSED);
++    lv_obj_add_event_cb(screenCorrectionButton, ui_event_screenCorrectionButton, LV_EVENT_CLICKED, NULL);
++
++    screenCorrectionButtonLabel = lv_label_create(screenCorrectionButton);
++    lv_obj_set_pos(screenCorrectionButtonLabel, 0, 0);
++    lv_obj_set_size(screenCorrectionButtonLabel, LV_PCT(100), LV_SIZE_CONTENT);
++    lv_label_set_long_mode(screenCorrectionButtonLabel, LV_LABEL_LONG_DOT);
++    lv_label_set_text(screenCorrectionButtonLabel, _("Screen Correction"));
++    lv_obj_set_style_align(screenCorrectionButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
++void TFTView_320x240::startScreenCorrection(void)
++{
++    stopScreenCorrection();
++
++    screenCorrectionStep = 0;
++    if (displaydriver->hasLight())
++        displaydriver->setBrightness(255);
++
++    screenCorrectionOverlay = lv_obj_create(lv_screen_active());
++    lv_obj_remove_style_all(screenCorrectionOverlay);
++    lv_obj_set_pos(screenCorrectionOverlay, 0, 0);
++    lv_obj_set_size(screenCorrectionOverlay, LV_PCT(100), LV_PCT(100));
++    lv_obj_set_style_bg_opa(screenCorrectionOverlay, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_add_flag(screenCorrectionOverlay, LV_OBJ_FLAG_CLICKABLE);
++    lv_obj_add_event_cb(screenCorrectionOverlay, ui_event_screenCorrectionButton, LV_EVENT_CLICKED, NULL);
++    lv_obj_move_foreground(screenCorrectionOverlay);
++
++    showScreenCorrectionStep();
++    screenCorrectionTimer = lv_timer_create(timer_event_screen_correction, 850, NULL);
++}
++
++void TFTView_320x240::stopScreenCorrection(void)
++{
++    if (screenCorrectionTimer) {
++        lv_timer_delete(screenCorrectionTimer);
++        screenCorrectionTimer = nullptr;
++    }
++
++    if (screenCorrectionOverlay) {
++        lv_obj_delete(screenCorrectionOverlay);
++        screenCorrectionOverlay = nullptr;
++    }
++
++    if (displaydriver->hasLight())
++        displaydriver->setBrightness((uint8_t)db.uiConfig.screen_brightness);
++}
++
++void TFTView_320x240::showScreenCorrectionStep(void)
++{
++    if (!screenCorrectionOverlay)
++        return;
++
++    const int32_t width = lv_display_get_horizontal_resolution(displaydriver->getDisplay());
++    const int32_t height = lv_display_get_vertical_resolution(displaydriver->getDisplay());
++    const uint8_t step = screenCorrectionStep;
++    static const uint32_t colors[] = {0x000000, 0xffffff, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xff00ff, 0xffff00};
++    static const char *names[] = {"BLACK", "WHITE", "RED", "GREEN", "BLUE", "CYAN", "MAGENTA", "YELLOW", "RGB BARS",
++                                  "GRAY RAMP", "CHECKER", "SCANLINES", "CROSS GRID", "PIXEL SWEEP A",
++                                  "PIXEL SWEEP B", "PIXEL SWEEP C"};
++
++    lv_obj_clean(screenCorrectionOverlay);
++    lv_obj_set_style_bg_color(screenCorrectionOverlay, lv_color_hex(colors[step < 8 ? step : 0]), LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    if (step == 8) {
++        static const uint32_t bars[] = {0xff0000, 0xff7f00, 0xffff00, 0x00ff00, 0x00ffff, 0x0000ff, 0x8b00ff, 0xffffff};
++        for (uint8_t i = 0; i < 8; i++) {
++            lv_obj_t *bar = lv_obj_create(screenCorrectionOverlay);
++            lv_obj_remove_style_all(bar);
++            lv_obj_set_pos(bar, (width * i) / 8, 0);
++            lv_obj_set_size(bar, (width / 8) + 2, height);
++            lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
++            lv_obj_set_style_bg_color(bar, lv_color_hex(bars[i]), LV_PART_MAIN | LV_STATE_DEFAULT);
++        }
++    } else if (step == 9) {
++        for (uint8_t i = 0; i < 8; i++) {
++            const uint32_t v = 32 * i + 31;
++            lv_obj_t *bar = lv_obj_create(screenCorrectionOverlay);
++            lv_obj_remove_style_all(bar);
++            lv_obj_set_pos(bar, 0, (height * i) / 8);
++            lv_obj_set_size(bar, width, (height / 8) + 2);
++            lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
++            lv_obj_set_style_bg_color(bar, lv_color_hex((v << 16) | (v << 8) | v), LV_PART_MAIN | LV_STATE_DEFAULT);
++        }
++    } else if (step == 10) {
++        for (uint8_t y = 0; y < 6; y++) {
++            for (uint8_t x = 0; x < 8; x++) {
++                lv_obj_t *cell = lv_obj_create(screenCorrectionOverlay);
++                lv_obj_remove_style_all(cell);
++                lv_obj_set_pos(cell, (width * x) / 8, (height * y) / 6);
++                lv_obj_set_size(cell, (width / 8) + 2, (height / 6) + 2);
++                lv_obj_set_style_bg_opa(cell, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
++                lv_obj_set_style_bg_color(cell, lv_color_hex(((x + y) % 2) ? 0xffffff : 0x000000),
++                                          LV_PART_MAIN | LV_STATE_DEFAULT);
++            }
++        }
++    } else if (step == 11) {
++        lv_obj_set_style_bg_color(screenCorrectionOverlay, lv_color_hex(0x101010), LV_PART_MAIN | LV_STATE_DEFAULT);
++        for (uint8_t y = 0; y < 12; y++) {
++            lv_obj_t *line = lv_obj_create(screenCorrectionOverlay);
++            lv_obj_remove_style_all(line);
++            lv_obj_set_pos(line, 0, (height * y) / 12);
++            lv_obj_set_size(line, width, 3);
++            lv_obj_set_style_bg_opa(line, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
++            lv_obj_set_style_bg_color(line, lv_color_hex(y % 2 ? 0x67ea94 : 0x05f6cb), LV_PART_MAIN | LV_STATE_DEFAULT);
++        }
++    } else if (step == 12) {
++        lv_obj_set_style_bg_color(screenCorrectionOverlay, lv_color_hex(0xffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
++        for (uint8_t i = 0; i < 8; i++) {
++            lv_obj_t *line = lv_obj_create(screenCorrectionOverlay);
++            lv_obj_remove_style_all(line);
++            lv_obj_set_pos(line, (width * i) / 8, 0);
++            lv_obj_set_size(line, 2, height);
++            lv_obj_set_style_bg_opa(line, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
++            lv_obj_set_style_bg_color(line, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
++        }
++        for (uint8_t i = 0; i < 6; i++) {
++            lv_obj_t *line = lv_obj_create(screenCorrectionOverlay);
++            lv_obj_remove_style_all(line);
++            lv_obj_set_pos(line, 0, (height * i) / 6);
++            lv_obj_set_size(line, width, 2);
++            lv_obj_set_style_bg_opa(line, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
++            lv_obj_set_style_bg_color(line, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
++        }
++    } else if (step >= 13) {
++        lv_obj_set_style_bg_color(screenCorrectionOverlay, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
++        const uint32_t sweepColors[] = {0xff5555, 0x67ea94, 0x05f6cb};
++        for (uint8_t i = 0; i < 12; i++) {
++            lv_obj_t *block = lv_obj_create(screenCorrectionOverlay);
++            lv_obj_remove_style_all(block);
++            lv_obj_set_pos(block, ((width - 24) * ((i + step) % 12)) / 11, ((height - 24) * i) / 11);
++            lv_obj_set_size(block, 24, 24);
++            lv_obj_set_style_bg_opa(block, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
++            lv_obj_set_style_bg_color(block, lv_color_hex(sweepColors[(i + step) % 3]), LV_PART_MAIN | LV_STATE_DEFAULT);
++        }
++    }
++
++    lv_obj_t *label = lv_label_create(screenCorrectionOverlay);
++    lv_label_set_text_fmt(label, "SCREEN FIX %02u/16  %s\nTap to stop", step + 1, names[step]);
++    lv_obj_set_style_text_color(label, lv_color_hex((step == 1 || step == 5 || step == 7 || step == 9 || step == 12) ? 0x101010 : 0xffffff),
++                                LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(label, lv_color_hex((step == 1 || step == 5 || step == 7 || step == 9 || step == 12) ? 0xffffff : 0x000000),
++                              LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(label, LV_OPA_60, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_all(label, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_align(label, LV_ALIGN_BOTTOM_MID, 0, -8);
++}
++
++void TFTView_320x240::ui_event_screenCorrectionButton(lv_event_t *e)
++{
++    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
++        return;
++
++    lv_obj_t *target = (lv_obj_t *)lv_event_get_target(e);
++    if (target == THIS->screenCorrectionOverlay) {
++        THIS->stopScreenCorrection();
++        THIS->messageAlert(_("Screen correction stopped"), true);
++        return;
++    }
++
++    if (THIS->activeSettings == eNone)
++        THIS->startScreenCorrection();
++}
++
+ void TFTView_320x240::ui_event_mapNodeButton(lv_event_t *e)
+ {
+     // navigate to node in node list

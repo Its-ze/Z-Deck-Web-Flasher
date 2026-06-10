@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Z-Deck Firmware Pack Public</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260610-zdeck26">
+  <link rel="stylesheet" href="style.css?v=20260610-zdeck27">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
 </head>
 <body>
@@ -29,12 +29,12 @@
     <section class="flash-grid" aria-label="Z-Deck flasher">
       <div class="flash-panel">
         <p class="eyebrow">Current public build</p>
-        <h1>Flash Z-Deck 0.2.25</h1>
+        <h1>Flash Z-Deck 0.2.26</h1>
           <p class="lead">Browser-based installer for the LILYGO T-Deck/T-Deck Plus t-deck-tft build. First install by USB, scan for Wi-Fi from the device settings, then update from Home Action &gt; Z-Deck Updates.</p>
 
         <div class="release-badges" aria-label="Release summary">
-          <span>2.8.0.zdeck26</span>
-          <span>0.2.25-cyberdeck</span>
+          <span>2.8.0.zdeck27</span>
+          <span>0.2.26-cyberdeck</span>
           <span>ESP32-S3</span>
           <span>LongFast public</span>
         </div>
@@ -71,7 +71,7 @@
             <path class="screen-frame" d="M65 96h190l10 10v118l-10 10H65l-10-10V106z"/>
             <rect class="screen" x="75" y="112" width="170" height="92" rx="4"/>
             <text class="screen-title" x="90" y="139">Z-DECK</text>
-            <text class="screen-subtitle" x="90" y="160">0.2.25 Z26</text>
+            <text class="screen-subtitle" x="90" y="160">0.2.26 Z27</text>
             <path class="screen-line" d="M90 182h42l17-15 23 11 33-27 29 22"/>
             <path class="control-rail" d="M61 262h198l15 16-15 36H61l-15-36z"/>
             <path class="chev-left" d="M82 277h31l-15 18 15 18H82l15-18zm39 0h31l-15 18 15 18h-31l15-18z"/>
@@ -92,7 +92,7 @@
           <dl>
             <div><dt>Update mode</dt><dd>App-only OTA</dd></div>
             <div><dt>Backup path</dt><dd>/zdeck/backups/preferences.proto</dd></div>
-            <div><dt>Firmware SHA256</dt><dd>e85cd423...174b553d</dd></div>
+            <div><dt>Firmware SHA256</dt><dd>0ebca636...3f80539</dd></div>
           </dl>
         </div>
       </aside>
@@ -163,6 +163,10 @@
           <p>System setting controls sidebar placement, defaults to the right side, persists in /zdeck_sidebar.cfg, and keeps top panels clear of the rail.</p>
         </article>
         <article>
+          <h3>Owner home title</h3>
+          <p>The home header uses the configured Meshtastic owner name instead of a hard-coded CyberDeck label, with clipping before the top status area.</p>
+        </article>
+        <article>
           <h3>SD settings backup</h3>
           <p>Backup and restore Meshtastic preferences from /zdeck/backups/preferences.proto on the SD card.</p>
         </article>
@@ -230,8 +234,8 @@
     <section class="release-grid">
       <article class="info-panel">
         <p class="eyebrow">Release notes</p>
-        <h2>Z-Deck 0.2.25-cyberdeck</h2>
-        <p>Firmware 2.8.0.zdeck26 fixes the T-Deck right-side sidebar/header overlap with a fixed rail gutter and safe placement for setup, search, neighbors, LoRa TX, and initial setup panels. The bundle keeps map progress/defaults, Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.</p>
+        <h2>Z-Deck 0.2.26-cyberdeck</h2>
+        <p>Firmware 2.8.0.zdeck27 fixes the T-Deck home header so each unit shows its configured Meshtastic owner name instead of every CyberDeck build looking like the same device. It keeps the fixed sidebar gutter, safe top-panel placement, map progress/defaults, Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.</p>
       </article>
       <article class="info-panel">
         <p class="eyebrow">GitHub history</p>
@@ -242,6 +246,6 @@
       </article>
     </section>
   </main>
-  <script src="app.js?v=20260610-zdeck26"></script>
+  <script src="app.js?v=20260610-zdeck27"></script>
 </body>
 </html>

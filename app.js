@@ -1,8 +1,8 @@
 const idleLines = [
   "status: waiting for T-Deck",
-  "firmware: Z-Deck 0.2.25-cyberdeck / LongFast",
+  "firmware: Z-Deck 0.2.26-cyberdeck / LongFast",
   "target: ESP32-S3 / t-deck-tft",
-  "bundle: sidebar gutter + map UI + SD backup",
+  "bundle: owner title + sidebar gutter + SD backup",
   "ready: connect deck and authorize serial"
 ];
 
@@ -98,9 +98,9 @@ installButton.addEventListener("click", () => {
   setTicker([
     "status: serial action requested",
     "next: choose the T-Deck port in the browser prompt",
-    "firmware: Z-Deck 0.2.25-cyberdeck / LongFast",
+    "firmware: Z-Deck 0.2.26-cyberdeck / LongFast",
     "flash map: app0 + app1 + littlefs",
-    "features: sidebar gutter + safer OTA"
+    "features: owner title + safer OTA"
   ]);
 });
 

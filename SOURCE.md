@@ -14,11 +14,13 @@ The public beta includes the Z-Deck source patch set under [source/patches](sour
 - `zdeck-full-source.patch`
 - `device-ui-map.patch`
 - `device-ui-map-internet.patch`
+- `device-ui-map-pages.patch`
+- `device-ui-map-switching-fix.patch`
+- `device-ui-map-autocenter.patch`
 - `device-ui-map-fullscreen.patch`
 - `device-ui-screen-correction.patch`
 - `device-ui-sd-message-journal.patch`
 - `device-ui-sd-tools.patch`
-- `device-ui-map-pages.patch`
 - `device-ui-home-status.patch`
 - `device-ui-usability.patch`
 - `device-ui-polish.patch`
@@ -34,4 +36,4 @@ These patches document the custom changes layered on top of upstream Meshtastic 
 
 ## Rebuild Notes
 
-Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The current full source patch also includes the Z-Deck app-only Wi-Fi updater service, SD settings backup/restore support, sidebar placement with a fixed gutter/header overlap fix, Wi-Fi scan/select, map-page defaults, map tile progress status, and menu wiring. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.
+Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The current full source patch also includes the Z-Deck app-only Wi-Fi updater service, SD settings backup/restore support, sidebar placement with a fixed gutter/header overlap fix, owner-name home header behavior, Wi-Fi scan/select, map-page defaults, map tile progress status, and menu wiring. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.

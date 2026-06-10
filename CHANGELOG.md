@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.26-cyberdeck - 2026-06-10
+
+Owner-name home header fix for the physical T-Deck UI.
+
+- Rebuilt bundled firmware from `20260610-zdeck27-owner-home-title-cyberdeck-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck27` and pack label to `0.2.26-cyberdeck`.
+- Fixed the home screen header that made both T-Decks look like the same `ITSZ CyberDeck` device by showing the configured Meshtastic owner name instead.
+- Clips long owner names before they can run into the top status/battery area.
+- Kept zdeck26 fixed sidebar gutter, safe top-panel placement, map UI, Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, Wi-Fi credentials, or admin keys are bundled.
+
 ## Z-Deck 0.2.25-cyberdeck - 2026-06-10
 
 Sidebar gutter and header overlap fix for the physical T-Deck UI.
