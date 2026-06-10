@@ -59,9 +59,9 @@ jobs:
                       failed += 1
                       continue
 
-                  name = entry.get("Name")
-                  expected_hash = entry.get("SHA256")
-                  expected_length = entry.get("Length")
+                  name = entry.get("name") or entry.get("Name")
+                  expected_hash = entry.get("sha256") or entry.get("SHA256")
+                  expected_length = entry.get("length", entry.get("Length"))
 
                   if not name or not expected_hash:
                       print(f"ERROR: entry missing Name or SHA256 in {manifest_path}: {entry!r}")

@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.25-cyberdeck - 2026-06-10
+
+Sidebar gutter and header overlap fix for the physical T-Deck UI.
+
+- Rebuilt bundled firmware from `20260610-zdeck26-sidebar-gutter-cyberdeck-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck26` and pack label to `0.2.25-cyberdeck`.
+- Replaced percentage sidebar sizing with a fixed 36 px rail plus 4 px gutter so the right-side bar no longer covers content.
+- Moved setup, search, neighbors, LoRa TX, and initial setup panels into the safe content area when the sidebar is on either side.
+- Kept zdeck25 map UI progress/defaults, Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, Wi-Fi credentials, or admin keys are bundled.
+
 ## Z-Deck 0.2.24-cyberdeck - 2026-06-10
 
 Map UI and zdeck25 public-safe release package.

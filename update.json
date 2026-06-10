@@ -1,13 +1,13 @@
-{
+﻿{
     "schema":  1,
     "product":  "Z-Deck",
     "channel":  "public",
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.24-cyberdeck",
-                   "packVersion":  "0.2.24-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck25",
+                   "title":  "Z-Deck 0.2.25-cyberdeck",
+                   "packVersion":  "0.2.25-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck26",
                    "released":  "2026-06-10",
                    "updateMode":  "app-only",
                    "preserves":  [
@@ -33,12 +33,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck25-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck25-public/zdeck-firmware.bin",
-                                    "size":  3687408,
-                                    "sha256":  "1a13b0045b5254ade43b45a7d4ac2e333039f80321806ec3e4158af5a0df9f46",
-                                    "md5":  "d888734bc86122d37aa095e980c33c21"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck26-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck26-public/zdeck-firmware.bin",
+                                    "size":  3687440,
+                                    "sha256":  "e85cd4237aacd8dd36166bec1a9c0f295e510f35527ad915df15968c174b553d",
+                                    "md5":  "8356ac8c148aeb0e0670f00cd2ca7960"
                                 },
-                   "notes":  "Improves the T-Deck map UI with tighter controls, persistent default map page, tile progress counters, clearer missing-tile/readiness status, and compact Mesh/Compass/DF/Distance overlays. Keeps sidebar placement, WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, newest-first chats, stable node names, send status, hop counters, public-safe labels, and disabled USB SD mass storage."
+                   "notes":  "Fixes the T-Deck right-side sidebar/header overlap by reserving a fixed sidebar gutter and moving setup/search/neighbors/LoRa TX top panels into the safe content area. Keeps map UI progress/defaults, WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, newest-first chats, stable node names, send status, hop counters, public-safe labels, and disabled USB SD mass storage."
                }
 }

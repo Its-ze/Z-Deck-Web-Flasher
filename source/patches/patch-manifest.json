@@ -1,10 +1,10 @@
-{
+﻿{
     "name":  "zdeck-public-stack",
-    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced LongFast public default behavior, on-device WiFi scan/select, GPS/compass refresh fixes, map page switching, persistent map page defaults, offline/SD map prep, tile progress and missing-tile status, compact map/cache overlays, clearer message delivery labels, hop counters where packet route data exposes them, latest-activity chat ordering, node-name fallback cleanup, SD message journal support, SD settings backup/restore support, SD prepare/reset tools, SD setup detection/progress readouts, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, the Modern Field on-device theme/layout, a public on-device health panel, app-only Wi-Fi updates, home LoRa RX overlap fixes, and a persistent sidebar-left/right system setting defaulted to the right side.",
+    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced LongFast public default behavior, on-device WiFi scan/select, GPS/compass refresh fixes, map page switching, persistent map page defaults, offline/SD map prep, tile progress and missing-tile status, compact map/cache overlays, clearer message delivery labels, hop counters where packet route data exposes them, latest-activity chat ordering, node-name fallback cleanup, SD message journal support, SD settings backup/restore support, SD prepare/reset tools, SD setup detection/progress readouts, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, the Modern Field on-device theme/layout, a public on-device health panel, app-only Wi-Fi updates, home LoRa RX overlap fixes, and persistent sidebar-left/right placement with a fixed gutter that keeps top/header panels out from under the right rail.",
     "release":  {
-                    "label":  "Z-Deck 0.2.24-cyberdeck",
-                    "firmwareVersion":  "2.8.0.zdeck25",
-                    "packVersion":  "0.2.24-cyberdeck",
+                    "label":  "Z-Deck 0.2.25-cyberdeck",
+                    "firmwareVersion":  "2.8.0.zdeck26",
+                    "packVersion":  "0.2.25-cyberdeck",
                     "channelDefaults":  "LongFast public setup; users add private/admin channels after flashing",
                     "privateChannelsBundled":  false,
                     "privateKeysBundled":  false,
@@ -24,9 +24,9 @@
                    "patchBase":  "origin/2.8"
                },
     "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck25-public",
-                  "latestBuiltFrom":  "20260610-zdeck25-map-ui-cyberdeck-t-deck-tft",
-                  "status":  "WSL PlatformIO build completed successfully from the public patch stack. This public-safe zdeck25 build improves the T-Deck map UI with tighter controls, persistent default map page storage, tile progress counters, missing-tile/readiness status, and compact Mesh/Compass/DF/Distance overlays while keeping sidebar placement, Wi-Fi scan/select, app-only OTA, SD settings backup/restore, SD chat history, newest-first chats, stable names, send status, hop counters, and prior home fixes."
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck26-public",
+                  "latestBuiltFrom":  "20260610-zdeck26-sidebar-gutter-cyberdeck-t-deck-tft",
+                  "status":  "WSL PlatformIO build completed successfully from the public patch stack. This public-safe zdeck26 build fixes right-side sidebar/header overlap by using a fixed sidebar gutter and moving setup/search/neighbors/LoRa TX top panels into the content area while keeping map UI progress/defaults, Wi-Fi scan/select, app-only OTA, SD settings backup/restore, SD chat history, newest-first chats, stable names, send status, hop counters, and prior home fixes."
               },
     "patchFiles":  [
                        "device-ui-brand-version.patch",
@@ -44,12 +44,13 @@
                        "device-ui-sd-message-journal.patch",
                        "device-ui-sd-tools.patch",
                        "device-ui-sidebar-layout.patch",
+                       "device-ui-sidebar-overlap-fix.patch",
                        "device-ui-usability.patch",
                        "device-ui-wifi-scan.patch",
                        "device-ui-zdeck-public-stack.patch",
                        "zdeck-full-source.patch"
                    ],
-    "sourceArchive":  "source/patches/2026-06-10-zdeck25-public",
+    "sourceArchive":  "source/patches/2026-06-10-zdeck26-public",
     "publicSetup":  {
                         "ownerDefault":  "Z-Deck",
                         "shortNameDefault":  "ZDK",

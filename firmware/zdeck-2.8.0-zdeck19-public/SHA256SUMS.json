@@ -15,6 +15,11 @@
         "sha256":  "bd0f7954aca2ef7d925ee21aaa1f3dc8822d1d6ce5cbbd26a135e5886bfff6ce"
     },
     {
+        "name":  "README.md",
+        "length":  1826,
+        "sha256":  "2b5fc11abc4a65f7a9b148a76111a2359de15f18310c14ec1cbe546a5624c8ff"
+    },
+    {
         "name":  "zdeck-factory.bin",
         "length":  3740640,
         "sha256":  "dba088505f8c6e0f291d776ffbca660e763fed702dfba2cafdb32c07440a0896"

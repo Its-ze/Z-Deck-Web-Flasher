@@ -27,10 +27,11 @@ The public beta includes the Z-Deck source patch set under [source/patches](sour
 - `device-ui-home-layout-fix.patch`
 - `device-ui-zdeck-public-stack.patch`
 - `device-ui-sidebar-layout.patch`
+- `device-ui-sidebar-overlap-fix.patch`
 - `device-ui-wifi-scan.patch`
 
 These patches document the custom changes layered on top of upstream Meshtastic firmware. The shipped binaries should be treated as GPLv3 firmware derived from Meshtastic plus these Z-Deck changes.
 
 ## Rebuild Notes
 
-Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The current full source patch also includes the Z-Deck app-only Wi-Fi updater service, SD settings backup/restore support, sidebar placement, Wi-Fi scan/select, map-page defaults, map tile progress status, and menu wiring. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.
+Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The current full source patch also includes the Z-Deck app-only Wi-Fi updater service, SD settings backup/restore support, sidebar placement with a fixed gutter/header overlap fix, Wi-Fi scan/select, map-page defaults, map tile progress status, and menu wiring. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.
