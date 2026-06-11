@@ -1,5 +1,18 @@
 # Changelog
 
+## Z-Deck 0.2.29-cyberdeck - 2026-06-11
+
+Physical T-Deck map GPS recovery and zdeck30 public-safe release package.
+
+- Rebuilt bundled firmware from `20260611-zdeck30-map-gps-recovery-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck30` and pack label to `0.2.29-cyberdeck`.
+- Fixed map centering priority so live GPS and positioned mesh nodes recover the view before stale saved map-home data.
+- Kept automatic map centering pending until live GPS becomes usable, instead of stopping after a saved-home fallback.
+- Added coordinate-aware GPS text to the map overlay so the device shows the location it is actually using.
+- Published a new app-only OTA manifest that preserves Meshtastic config, channels, keys, owner settings, sidebar placement, map page default, and SD chat history.
+- Kept visible Settings OTA controls, Wi-Fi scan/select, SD settings backup/restore, battery/header fixes, sidebar gutter fixes, newest-first chats, stable node names, send status, hop counters, public-safe labels, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, Wi-Fi credentials, admin keys, or owner-specific settings are bundled.
+
 ## Z-Deck 0.2.28-cyberdeck - 2026-06-10
 
 Visible OTA controls for the physical T-Deck UI.
