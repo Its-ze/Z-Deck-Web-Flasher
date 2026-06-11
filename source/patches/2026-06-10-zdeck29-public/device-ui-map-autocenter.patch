@@ -1,0 +1,335 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 16e4cd7..2ce4d2c 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -198,6 +198,7 @@ class TFTView_320x240 : public MeshtasticView
+     void updateDynamicMapMenu(void);
+     void updateMapStatusOverlay(uint32_t objectsOnMap);
+     void openWifiSettingsFromMap(void);
++    bool centerMapBestEffort(bool showAlert = true);
+     void rememberCurrentMapArea(void);
+     void setZDeckMapPage(uint8_t pageIndex, bool showAlert = true);
+     void cycleZDeckMapPage(int direction = 1);
+@@ -400,6 +401,7 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_chatNodeButton(lv_event_t *e);
+     static void ui_event_positionButton(lv_event_t *e);
+     static void ui_event_mapInternetButton(lv_event_t *e);
++    static void ui_event_mapCenterButton(lv_event_t *e);
+     static void ui_event_mapCacheButton(lv_event_t *e);
+     static void ui_event_mapModeButton(lv_event_t *e);
+     static void ui_event_zdeckHealthButton(lv_event_t *e);
+@@ -458,6 +460,8 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *mapInternetStatusLabel = nullptr;           // dynamic map WiFi/cache status
+     lv_obj_t *mapInternetButton = nullptr;                 // dynamic map WiFi setup/toggle
+     lv_obj_t *mapInternetButtonLabel = nullptr;
++    lv_obj_t *mapCenterButton = nullptr;                   // center map on GPS, saved area, or node cluster
++    lv_obj_t *mapCenterButtonLabel = nullptr;
+     lv_obj_t *mapCacheButton = nullptr;                    // dynamic map area/cache action
+     lv_obj_t *mapCacheButtonLabel = nullptr;
+     lv_obj_t *mapModeButton = nullptr;                     // offline map page/default selector
+@@ -465,6 +469,7 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *mapCacheStatusLabel = nullptr;
+     lv_obj_t *mapStatusOverlayLabel = nullptr;             // map screen reason/status hint
+     uint8_t zDeckMapPage = 0;                              // UI-only page; map_data.style remains the tile style
++    bool zDeckMapAutoCenterPending = true;                 // first live GPS/node fix should recover from default map center
+     lv_obj_t *settingsDisabledPanel = nullptr;             // panel disabled while a settings popup is open
+     lv_obj_t *zDeckHealthButton = nullptr;                  // public Z-Deck system health button
+     lv_obj_t *zDeckHealthButtonLabel = nullptr;
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 3bbab3c..eeaf53a 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -2442,18 +2442,21 @@ void TFTView_320x240::ui_event_backup_restore_radio_button(lv_event_t *e)
+
+ void TFTView_320x240::ui_event_zoomSlider(lv_event_t *e)
+ {
++    THIS->zDeckMapAutoCenterPending = false;
+     THIS->map->setZoom(lv_slider_get_value(objects.zoom_slider));
+     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+ }
+
+ void TFTView_320x240::ui_event_zoomIn(lv_event_t *e)
+ {
++    THIS->zDeckMapAutoCenterPending = false;
+     THIS->map->setZoom(MapTileSettings::getZoomLevel() + 1);
+     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+ }
+
+ void TFTView_320x240::ui_event_zoomOut(lv_event_t *e)
+ {
++    THIS->zDeckMapAutoCenterPending = false;
+     THIS->map->setZoom(MapTileSettings::getZoomLevel() - 1);
+     THIS->updateLocationMap(THIS->map->getObjectsOnMap());
+ }
+@@ -2534,9 +2537,20 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_obj_set_width(mapInternetStatusLabel, lv_pct(94));
+     lv_label_set_long_mode(mapInternetStatusLabel, LV_LABEL_LONG_DOT);
+
++    mapCenterButton = lv_btn_create(objects.map_osd_panel);
++    lv_obj_set_pos(mapCenterButton, 7, 130);
++    lv_obj_set_size(mapCenterButton, 76, 30);
++    lv_obj_set_style_bg_color(mapCenterButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(mapCenterButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(mapCenterButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_add_event_cb(mapCenterButton, ui_event_mapCenterButton, LV_EVENT_CLICKED, NULL);
++    mapCenterButtonLabel = lv_label_create(mapCenterButton);
++    lv_label_set_text(mapCenterButtonLabel, "CENTER");
++    lv_obj_center(mapCenterButtonLabel);
++
+     mapModeButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapModeButton, 7, 130);
+-    lv_obj_set_size(mapModeButton, 116, 30);
++    lv_obj_set_pos(mapModeButton, 89, 130);
++    lv_obj_set_size(mapModeButton, 76, 30);
+     lv_obj_set_style_bg_color(mapModeButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapModeButton, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapModeButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -2546,14 +2560,14 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_obj_center(mapModeButtonLabel);
+
+     mapCacheButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapCacheButton, 131, 130);
+-    lv_obj_set_size(mapCacheButton, 116, 30);
++    lv_obj_set_pos(mapCacheButton, 171, 130);
++    lv_obj_set_size(mapCacheButton, 76, 30);
+     lv_obj_set_style_bg_color(mapCacheButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapCacheButton, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapCacheButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_add_event_cb(mapCacheButton, ui_event_mapCacheButton, LV_EVENT_CLICKED, NULL);
+     mapCacheButtonLabel = lv_label_create(mapCacheButton);
+-    lv_label_set_text(mapCacheButtonLabel, "REMEMBER");
++    lv_label_set_text(mapCacheButtonLabel, "SAVE");
+     lv_obj_center(mapCacheButtonLabel);
+
+     mapInternetButton = lv_btn_create(objects.map_osd_panel);
+@@ -2631,6 +2645,8 @@ void TFTView_320x240::updateDynamicMapMenu(void)
+
+     if (mapModeButtonLabel)
+         lv_label_set_text(mapModeButtonLabel, "NEXT VIEW");
++    if (mapCenterButtonLabel)
++        lv_label_set_text(mapCenterButtonLabel, "CENTER");
+
+     if (MapTileSettings::saveOK()) {
+         lv_snprintf(buf, sizeof(buf), "%s | SD z%d %s", page.name, MapTileSettings::getZoomLevel(),
+@@ -2645,7 +2661,7 @@ void TFTView_320x240::updateDynamicMapMenu(void)
+         lv_snprintf(buf, sizeof(buf), "%s | grid only", page.name);
+     }
+     lv_label_set_text(mapCacheStatusLabel, buf);
+-    lv_label_set_text(mapCacheButtonLabel, "REMEMBER");
++    lv_label_set_text(mapCacheButtonLabel, "SAVE");
+     updateMapStatusOverlay(map ? map->getObjectsOnMap() : 0);
+ }
+
+@@ -2709,6 +2725,101 @@ void TFTView_320x240::openWifiSettingsFromMap(void)
+     activeSettings = eWifi;
+ }
+
++bool TFTView_320x240::centerMapBestEffort(bool showAlert)
++{
++    if (!map)
++        return false;
++
++    const bool gpsReady = hasPosition && myLatitude != 0 && myLongitude != 0;
++    if (gpsReady) {
++        if (!db.uiConfig.map_data.has_home && MapTileSettings::getZoomLevel() <= 3)
++            map->setZoom(13);
++        map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
++        map->moveCurrent();
++        zDeckMapAutoCenterPending = false;
++        updateLocationMap(map->getObjectsOnMap());
++        updateDynamicMapMenu();
++        if (showAlert)
++            messageAlert(_("Centered on GPS"), true);
++        return true;
++    }
++
++    if (db.uiConfig.map_data.has_home) {
++        map->setZoom(db.uiConfig.map_data.home.zoom);
++        map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
++        zDeckMapAutoCenterPending = false;
++        updateLocationMap(map->getObjectsOnMap());
++        updateDynamicMapMenu();
++        if (showAlert)
++            messageAlert(_("Centered saved map"), true);
++        return true;
++    }
++
++    std::vector<int32_t> sortedLat;
++    std::vector<int32_t> sortedLon;
++    sortedLat.reserve(nodeObjects.size());
++    sortedLon.reserve(nodeObjects.size());
++    for (auto it : nodeObjects) {
++        auto nodeIt = nodes.find(it.first);
++        if (nodeIt == nodes.end() || !nodeIt->second)
++            continue;
++        lv_obj_t *p = nodeIt->second;
++        int32_t lat = (long)p->LV_OBJ_IDX(node_pos1_idx)->user_data;
++        int32_t lon = (long)p->LV_OBJ_IDX(node_pos2_idx)->user_data;
++        if (lat && lon) {
++            sortedLat.push_back(lat);
++            sortedLon.push_back(lon);
++        }
++    }
++    if (!sortedLat.empty()) {
++        std::sort(sortedLat.begin(), sortedLat.end());
++        std::sort(sortedLon.begin(), sortedLon.end());
++        int64_t latcenter = 0;
++        int64_t loncenter = 0;
++        int32_t count = 0;
++        size_t trim = sortedLat.size() / 5;
++        size_t end = sortedLat.size() - trim;
++        if (end <= trim) {
++            trim = 0;
++            end = sortedLat.size();
++        }
++        for (size_t i = trim; i < end; i++) {
++            latcenter += sortedLat[i];
++            loncenter += sortedLon[i];
++            count++;
++        }
++        latcenter /= count;
++        loncenter /= count;
++
++        lv_obj_update_layout(objects.raw_map_panel);
++        const float latRad = latcenter * 1e-7f * float(M_PI) / 180.0f;
++        const float latKm = std::max(0.05f, float(sortedLat.back() - sortedLat.front()) * 1e-7f * 111.32f);
++        const float latCos = std::max(0.1f, float(fabs(cos(latRad))));
++        const float lonKm = std::max(0.05f, float(sortedLon.back() - sortedLon.front()) * 1e-7f * 111.32f * latCos);
++        const float distanceKm = std::max(latKm, lonKm);
++        const float panelPixels = std::max(64, lv_obj_get_width(objects.raw_map_panel) - 64);
++        const float targetMpp = distanceKm * 1000.0f / panelPixels;
++        uint8_t zoom = 20;
++        while (zoom > 1 && (156543.034f * latCos / float(1UL << zoom)) < targetMpp)
++            zoom--;
++
++        map->setHomeLocation(latcenter * 1e-7, loncenter * 1e-7);
++        map->setZoom(zoom);
++        zDeckMapAutoCenterPending = false;
++        updateLocationMap(map->getObjectsOnMap());
++        updateDynamicMapMenu();
++        if (showAlert)
++            messageAlert(_("Centered on nodes"), true);
++        return true;
++    }
++
++    zDeckMapAutoCenterPending = true;
++    updateDynamicMapMenu();
++    if (showAlert)
++        messageAlert(_("Waiting for GPS or node positions"), true);
++    return false;
++}
++
+ void TFTView_320x240::rememberCurrentMapArea(void)
+ {
+     if (!map)
+@@ -2724,6 +2835,7 @@ void TFTView_320x240::rememberCurrentMapArea(void)
+     db.uiConfig.map_data.home.longitude = lon * 1e7f;
+     db.uiConfig.map_data.home.zoom = MapTileSettings::getZoomLevel();
+     controller->storeUIConfig(db.uiConfig);
++    zDeckMapAutoCenterPending = false;
+
+     if (cardDetected)
+         MapTileSettings::setSaveOK(true);
+@@ -2792,6 +2904,13 @@ void TFTView_320x240::ui_event_mapInternetButton(lv_event_t *e)
+     THIS->notifyReboot(true);
+ }
+
++void TFTView_320x240::ui_event_mapCenterButton(lv_event_t *e)
++{
++    lv_event_code_t event_code = lv_event_get_code(e);
++    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eNone)
++        THIS->centerMapBestEffort(true);
++}
++
+ void TFTView_320x240::ui_event_mapCacheButton(lv_event_t *e)
+ {
+     lv_event_code_t event_code = lv_event_get_code(e);
+@@ -2973,7 +3092,7 @@ void TFTView_320x240::updateZDeckSDPanel(const char *status)
+                     "WARNING: next press formats the SD card and rebuilds Z-Deck folders.\nBack up files first.\n%s",
+                     zDeckUsbSdMassStorageStatus());
+     } else {
+-        lv_snprintf(buf, sizeof(buf), "SD prep: TDECKSDCARD\nUSB drive: disabled in public build\n%s",
++        lv_snprintf(buf, sizeof(buf), "USB: TDECK SD CARD\nLabel after reset: TDECKSDCARD\n%s",
+                     zDeckUsbSdMassStorageStatus());
+     }
+     lv_label_set_text(zDeckSdLabel, buf);
+@@ -3322,6 +3441,7 @@ void TFTView_320x240::ui_event_arrow(lv_event_t *e)
+         default:
+             break;
+         };
++        THIS->zDeckMapAutoCenterPending = false;
+         if (!THIS->map->scroll(deltaX, deltaY))
+             THIS->map->forceRedraw();
+     }
+@@ -3337,6 +3457,7 @@ void TFTView_320x240::ui_event_navHome(lv_event_t *e)
+             ignoreClicked = false;
+             return;
+         }
++        THIS->zDeckMapAutoCenterPending = false;
+         THIS->map->moveHome();
+     } else if (event_code == LV_EVENT_LONG_PRESSED) {
+         ignoreClicked = true;
+@@ -3412,9 +3533,11 @@ void TFTView_320x240::loadMap(void)
+                 map->setZoom(13);
+             }
+             map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
++            zDeckMapAutoCenterPending = false;
+         } else if (db.uiConfig.map_data.has_home) {
+             map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
+             map->setZoom(db.uiConfig.map_data.home.zoom);
++            zDeckMapAutoCenterPending = false;
+         } else if (nodeObjects.size() >= 1) {
+             // no gps, no saved position; center on positioned nodes if any exist
+             std::vector<int32_t> sortedLat;
+@@ -3468,11 +3591,15 @@ void TFTView_320x240::loadMap(void)
+                 while (zoom > 1 && (156543.034f * latCos / float(1UL << zoom)) < targetMpp)
+                     zoom--;
+                 map->setZoom(zoom);
+-            } else
++                zDeckMapAutoCenterPending = false;
++            } else {
+                 map->setZoom(3);
++                zDeckMapAutoCenterPending = true;
++            }
+         } else {
+             // use default location @theBigBentern
+             map->setZoom(3);
++            zDeckMapAutoCenterPending = true;
+         }
+
+         if (db.uiConfig.map_data.follow_gps) {
+@@ -3616,13 +3743,19 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
+             map->add(nodeNum, lat * 1e-7, lon * 1e-7, drawObjectCB);
+             lv_obj_add_flag(img, LV_OBJ_FLAG_CLICKABLE);
+             lv_obj_add_event_cb(img, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
+-            updateLocationMap(map->getObjectsOnMap());
++            if (zDeckMapAutoCenterPending && !hasPosition && !db.uiConfig.map_data.has_home)
++                centerMapBestEffort(false);
++            else
++                updateLocationMap(map->getObjectsOnMap());
+         }
+     } else {
+         if (map) {
+             map->update(it->first, lat * 1e-7, lon * 1e-7);
+         }
+-        updateLocationMap(map ? map->getObjectsOnMap() : 0);
++        if (map && zDeckMapAutoCenterPending && !hasPosition && !db.uiConfig.map_data.has_home)
++            centerMapBestEffort(false);
++        else
++            updateLocationMap(map ? map->getObjectsOnMap() : 0);
+     }
+ }
+
+@@ -5852,7 +5985,11 @@ void TFTView_320x240::updatePosition(uint32_t nodeNum, int32_t lat, int32_t lon,
+             }
+             // update own location on map
+             if (map) {
+-                map->setGpsPosition(lat * 1e-7, lon * 1e-7);
++                if (zDeckMapAutoCenterPending || db.uiConfig.map_data.follow_gps) {
++                    centerMapBestEffort(false);
++                } else {
++                    map->setGpsPosition(lat * 1e-7, lon * 1e-7);
++                }
+                 updateMapStatusOverlay(map->getObjectsOnMap());
+             }
+         }

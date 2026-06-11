@@ -1,0 +1,405 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 2ce4d2c..6394b29 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -198,6 +198,10 @@ class TFTView_320x240 : public MeshtasticView
+     void updateDynamicMapMenu(void);
+     void updateMapStatusOverlay(uint32_t objectsOnMap);
+     void openWifiSettingsFromMap(void);
++    void setupWifiScanControls(void);
++    void resetWifiScanControls(void);
++    void updateWifiScanStatus(const char *status);
++    void scanWifiNetworks(void);
+     bool centerMapBestEffort(bool showAlert = true);
+     void rememberCurrentMapArea(void);
+     void setZDeckMapPage(uint8_t pageIndex, bool showAlert = true);
+@@ -335,6 +339,8 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_region_button(lv_event_t *e);
+     static void ui_event_preset_button(lv_event_t *e);
+     static void ui_event_wifi_button(lv_event_t *e);
++    static void ui_event_wifi_scan_button(lv_event_t *e);
++    static void ui_event_wifi_network_dropdown(lv_event_t *e);
+     static void ui_event_language_button(lv_event_t *e);
+     static void ui_event_channel_button(lv_event_t *e);
+     static void ui_event_brightness_button(lv_event_t *e);
+@@ -470,6 +476,15 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *mapStatusOverlayLabel = nullptr;             // map screen reason/status hint
+     uint8_t zDeckMapPage = 0;                              // UI-only page; map_data.style remains the tile style
+     bool zDeckMapAutoCenterPending = true;                 // first live GPS/node fix should recover from default map center
++    lv_obj_t *wifiScanButton = nullptr;                    // scan nearby WiFi networks from existing settings popup
++    lv_obj_t *wifiScanButtonLabel = nullptr;
++    lv_obj_t *wifiNetworkDropdown = nullptr;
++    lv_obj_t *wifiScanStatusLabel = nullptr;
++    enum { zDeckWifiScanMaxNetworks = 12, zDeckWifiScanOptionsSize = 768 };
++    char wifiScanSsids[zDeckWifiScanMaxNetworks][33] = {};
++    bool wifiScanOpen[zDeckWifiScanMaxNetworks] = {};
++    char wifiScanOptions[zDeckWifiScanOptionsSize] = {};
++    uint8_t wifiScanNetworkCount = 0;
+     lv_obj_t *settingsDisabledPanel = nullptr;             // panel disabled while a settings popup is open
+     lv_obj_t *zDeckHealthButton = nullptr;                  // public Z-Deck system health button
+     lv_obj_t *zDeckHealthButtonLabel = nullptr;
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index eeaf53a..bd78048 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -51,6 +51,10 @@ fs::FS &fileSystem = LittleFS;
+ #endif
+ #include "graphics/common/SdCard.h"
+
++#if defined(ARCH_ESP32)
++#include <WiFi.h>
++#endif
++
+ #ifndef MAX_NUM_NODES_VIEW
+ #define MAX_NUM_NODES_VIEW 250
+ #endif
+@@ -243,6 +247,36 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
+     lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+ }
+
++void zDeckCleanWifiSsid(char *out, size_t outSize, const char *ssid)
++{
++    if (!out || outSize == 0)
++        return;
++
++    size_t pos = 0;
++    if (ssid) {
++        for (size_t i = 0; ssid[i] != '\0' && pos + 1 < outSize; ++i) {
++            char c = ssid[i];
++            out[pos++] = (c == '\n' || c == '\r' || c == '\t') ? ' ' : c;
++        }
++    }
++    out[pos] = '\0';
++}
++
++void zDeckAppendWifiOption(char *options, size_t optionsSize, const char *line)
++{
++    if (!options || optionsSize == 0 || !line)
++        return;
++
++    size_t used = strlen(options);
++    if (used > 0 && used + 1 < optionsSize) {
++        options[used++] = '\n';
++        options[used] = '\0';
++    }
++
++    if (used + 1 < optionsSize)
++        strncat(options, line, optionsSize - used - 1);
++}
++
+ int8_t itszPacketHops(const meshtastic_MeshPacket &p)
+ {
+     if (p.hop_start > 0 && p.hop_limit <= p.hop_start)
+@@ -1017,6 +1051,7 @@ void TFTView_320x240::ui_events_init(void)
+     lv_obj_add_event_cb(objects.map_style_dropdown, ui_event_map_style_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+     setupDynamicMapMenu();
++    setupWifiScanControls();
+     setupZDeckHealthTool();
+     setupZDeckSDTool();
+     setupScreenCorrectionTool();
+@@ -1601,14 +1636,14 @@ void TFTView_320x240::ui_event_WLANButton(lv_event_t *e)
+ {
+     lv_event_code_t event_code = lv_event_get_code(e);
+     if (event_code == LV_EVENT_LONG_PRESSED && THIS->db.config.has_network) {
+-        if ((THIS->db.config.network.wifi_ssid[0] == '\0' || THIS->db.config.network.wifi_psk[0] == '\0') &&
+-            !THIS->db.connectionStatus.wifi.status.is_connected &&
++        if (THIS->db.config.network.wifi_ssid[0] == '\0' && !THIS->db.connectionStatus.wifi.status.is_connected &&
+             !THIS->db.config.network.eth_enabled) { // TODO: this is a workaround for bug in portduino layer
+             // open settings dialog
+             lv_textarea_set_text(objects.settings_wifi_ssid_textarea, THIS->db.config.network.wifi_ssid);
+             lv_textarea_set_text(objects.settings_wifi_password_textarea, THIS->db.config.network.wifi_psk);
++            THIS->resetWifiScanControls();
+             lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+-            lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
++            lv_group_focus_obj(THIS->wifiScanButton ? THIS->wifiScanButton : objects.settings_wifi_ssid_textarea);
+             THIS->disablePanel(objects.home_panel);
+             THIS->settingsDisabledPanel = objects.home_panel;
+             lv_obj_clear_state(objects.home_wlan_button, LV_STATE_PRESSED);
+@@ -1913,8 +1948,9 @@ void TFTView_320x240::ui_event_wifi_button(lv_event_t *e)
+     if (event_code == LV_EVENT_CLICKED && THIS->db.config.has_network && THIS->activeSettings == eNone) {
+         lv_textarea_set_text(objects.settings_wifi_ssid_textarea, THIS->db.config.network.wifi_ssid);
+         lv_textarea_set_text(objects.settings_wifi_password_textarea, THIS->db.config.network.wifi_psk);
++        THIS->resetWifiScanControls();
+         lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+-        lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
++        lv_group_focus_obj(THIS->wifiScanButton ? THIS->wifiScanButton : objects.settings_wifi_ssid_textarea);
+         THIS->disablePanel(objects.controller_panel);
+         THIS->disablePanel(objects.tab_page_basic_settings);
+         THIS->settingsDisabledPanel = objects.controller_panel;
+@@ -1922,6 +1958,234 @@ void TFTView_320x240::ui_event_wifi_button(lv_event_t *e)
+     }
+ }
+
++void TFTView_320x240::setupWifiScanControls(void)
++{
++    if (wifiScanButton || !objects.settings_wifi_panel)
++        return;
++
++    lv_obj_set_size(objects.settings_wifi_panel, 240, 205);
++
++    wifiScanButton = lv_btn_create(objects.settings_wifi_panel);
++    lv_obj_set_pos(wifiScanButton, 0, 106);
++    lv_obj_set_size(wifiScanButton, 66, 26);
++    add_style_settings_button_style(wifiScanButton);
++    lv_obj_set_style_border_color(wifiScanButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(wifiScanButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_shadow_width(wifiScanButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_add_event_cb(wifiScanButton, ui_event_wifi_scan_button, LV_EVENT_CLICKED, NULL);
++
++    wifiScanButtonLabel = lv_label_create(wifiScanButton);
++    lv_label_set_text(wifiScanButtonLabel, "SCAN");
++    lv_obj_set_style_text_font(wifiScanButtonLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_center(wifiScanButtonLabel);
++
++    wifiNetworkDropdown = lv_dropdown_create(objects.settings_wifi_panel);
++    lv_obj_set_pos(wifiNetworkDropdown, 72, 106);
++    lv_obj_set_size(wifiNetworkDropdown, 153, 26);
++    lv_dropdown_set_options(wifiNetworkDropdown, "Press Scan");
++    lv_obj_set_style_text_font(wifiNetworkDropdown, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_top(wifiNetworkDropdown, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_bottom(wifiNetworkDropdown, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(wifiNetworkDropdown, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(wifiNetworkDropdown, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_add_event_cb(wifiNetworkDropdown, ui_event_wifi_network_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
++
++    wifiScanStatusLabel = lv_label_create(objects.settings_wifi_panel);
++    lv_obj_set_pos(wifiScanStatusLabel, 0, 136);
++    lv_obj_set_size(wifiScanStatusLabel, 225, 14);
++    lv_label_set_long_mode(wifiScanStatusLabel, LV_LABEL_LONG_DOT);
++    lv_obj_set_style_text_font(wifiScanStatusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(wifiScanStatusLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    resetWifiScanControls();
++}
++
++void TFTView_320x240::resetWifiScanControls(void)
++{
++    setupWifiScanControls();
++    wifiScanNetworkCount = 0;
++    memset(wifiScanSsids, 0, sizeof(wifiScanSsids));
++    memset(wifiScanOpen, 0, sizeof(wifiScanOpen));
++    memset(wifiScanOptions, 0, sizeof(wifiScanOptions));
++
++    if (wifiNetworkDropdown) {
++        lv_dropdown_set_options(wifiNetworkDropdown, "Press Scan");
++        lv_dropdown_set_selected(wifiNetworkDropdown, 0);
++    }
++    if (wifiScanButtonLabel)
++        lv_label_set_text(wifiScanButtonLabel, "SCAN");
++    if (wifiScanButton)
++        lv_obj_clear_state(wifiScanButton, LV_STATE_DISABLED);
++
++    const char *ssid = lv_textarea_get_text(objects.settings_wifi_ssid_textarea);
++    char buf[96];
++    if (ssid && ssid[0]) {
++        char clean[33];
++        zDeckCleanWifiSsid(clean, sizeof(clean), ssid);
++        lv_snprintf(buf, sizeof(buf), "Saved: %s. Scan to change.", clean);
++        updateWifiScanStatus(buf);
++    } else {
++        updateWifiScanStatus("Scan nearby WiFi, or type SSID.");
++    }
++}
++
++void TFTView_320x240::updateWifiScanStatus(const char *status)
++{
++    if (wifiScanStatusLabel)
++        lv_label_set_text(wifiScanStatusLabel, status && status[0] ? status : "");
++}
++
++void TFTView_320x240::scanWifiNetworks(void)
++{
++    setupWifiScanControls();
++    if (!wifiNetworkDropdown || !wifiScanButton)
++        return;
++
++    wifiScanNetworkCount = 0;
++    memset(wifiScanSsids, 0, sizeof(wifiScanSsids));
++    memset(wifiScanOpen, 0, sizeof(wifiScanOpen));
++    memset(wifiScanOptions, 0, sizeof(wifiScanOptions));
++
++    updateWifiScanStatus("Scanning nearby WiFi...");
++    lv_dropdown_set_options(wifiNetworkDropdown, "Scanning...");
++    lv_label_set_text(wifiScanButtonLabel, "WAIT");
++    lv_obj_add_state(wifiScanButton, LV_STATE_DISABLED);
++    lv_timer_handler();
++
++#if defined(ARCH_ESP32)
++    struct WifiCandidate {
++        char ssid[33];
++        int32_t rssi;
++        bool open;
++    };
++
++    WifiCandidate candidates[zDeckWifiScanMaxNetworks] = {};
++    uint8_t candidateCount = 0;
++    wifi_mode_t previousMode = WiFiGenericClass::getMode();
++    bool changedMode = false;
++    if (previousMode == WIFI_MODE_NULL) {
++        WiFi.mode(WIFI_STA);
++        changedMode = true;
++    } else if (previousMode == WIFI_MODE_AP) {
++        WiFi.mode(WIFI_AP_STA);
++        changedMode = true;
++    }
++
++    int networkCount = WiFi.scanNetworks(false, true);
++    for (int i = 0; i < networkCount; ++i) {
++        char ssid[33];
++        String ssidString = WiFi.SSID(i);
++        zDeckCleanWifiSsid(ssid, sizeof(ssid), ssidString.c_str());
++        if (!ssid[0])
++            continue;
++
++        int duplicate = -1;
++        for (uint8_t j = 0; j < candidateCount; ++j) {
++            if (strcmp(candidates[j].ssid, ssid) == 0) {
++                duplicate = j;
++                break;
++            }
++        }
++
++        int32_t rssi = WiFi.RSSI(i);
++        bool open = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
++        if (duplicate >= 0) {
++            if (rssi > candidates[duplicate].rssi) {
++                candidates[duplicate].rssi = rssi;
++                candidates[duplicate].open = open;
++            }
++            continue;
++        }
++
++        uint8_t target = candidateCount;
++        if (candidateCount < zDeckWifiScanMaxNetworks) {
++            candidateCount++;
++        } else {
++            target = 0;
++            for (uint8_t j = 1; j < candidateCount; ++j) {
++                if (candidates[j].rssi < candidates[target].rssi)
++                    target = j;
++            }
++            if (rssi <= candidates[target].rssi)
++                continue;
++        }
++
++        strncpy(candidates[target].ssid, ssid, sizeof(candidates[target].ssid) - 1);
++        candidates[target].ssid[sizeof(candidates[target].ssid) - 1] = '\0';
++        candidates[target].rssi = rssi;
++        candidates[target].open = open;
++    }
++
++    std::sort(candidates, candidates + candidateCount, [](const WifiCandidate &a, const WifiCandidate &b) {
++        return a.rssi > b.rssi;
++    });
++
++    for (uint8_t i = 0; i < candidateCount; ++i) {
++        strncpy(wifiScanSsids[i], candidates[i].ssid, sizeof(wifiScanSsids[i]) - 1);
++        wifiScanOpen[i] = candidates[i].open;
++
++        char line[80];
++        lv_snprintf(line, sizeof(line), "%s  %lddBm %s", candidates[i].ssid, (long)candidates[i].rssi,
++                    candidates[i].open ? "open" : "lock");
++        zDeckAppendWifiOption(wifiScanOptions, sizeof(wifiScanOptions), line);
++    }
++
++    wifiScanNetworkCount = candidateCount;
++    if (wifiScanNetworkCount > 0) {
++        lv_dropdown_set_options(wifiNetworkDropdown, wifiScanOptions);
++        lv_dropdown_set_selected(wifiNetworkDropdown, 0);
++        char buf[80];
++        lv_snprintf(buf, sizeof(buf), "Found %u networks. Pick one.", (unsigned int)wifiScanNetworkCount);
++        updateWifiScanStatus(buf);
++    } else {
++        lv_dropdown_set_options(wifiNetworkDropdown, "No networks found");
++        updateWifiScanStatus("No WiFi networks found.");
++    }
++
++    WiFi.scanDelete();
++    if (changedMode) {
++        if (previousMode == WIFI_MODE_NULL && !db.config.network.wifi_enabled)
++            WiFi.mode(WIFI_MODE_NULL);
++        else if (previousMode == WIFI_MODE_AP)
++            WiFi.mode(WIFI_MODE_AP);
++    }
++#else
++    lv_dropdown_set_options(wifiNetworkDropdown, "Scan unavailable");
++    updateWifiScanStatus("WiFi scan is only available on ESP32.");
++#endif
++
++    lv_label_set_text(wifiScanButtonLabel, "SCAN");
++    lv_obj_clear_state(wifiScanButton, LV_STATE_DISABLED);
++}
++
++void TFTView_320x240::ui_event_wifi_scan_button(lv_event_t *e)
++{
++    lv_event_code_t event_code = lv_event_get_code(e);
++    if (event_code == LV_EVENT_CLICKED && THIS->activeSettings == eWifi)
++        THIS->scanWifiNetworks();
++}
++
++void TFTView_320x240::ui_event_wifi_network_dropdown(lv_event_t *e)
++{
++    lv_event_code_t event_code = lv_event_get_code(e);
++    if (event_code != LV_EVENT_VALUE_CHANGED || THIS->activeSettings != eWifi || !THIS->wifiNetworkDropdown)
++        return;
++
++    uint32_t selected = lv_dropdown_get_selected(THIS->wifiNetworkDropdown);
++    if (selected >= THIS->wifiScanNetworkCount || THIS->wifiScanSsids[selected][0] == '\0')
++        return;
++
++    lv_textarea_set_text(objects.settings_wifi_ssid_textarea, THIS->wifiScanSsids[selected]);
++    if (THIS->wifiScanOpen[selected]) {
++        lv_textarea_set_text(objects.settings_wifi_password_textarea, "");
++        THIS->updateWifiScanStatus("Open network selected. Press OK.");
++        lv_group_focus_obj(objects.obj8__ok_button_w);
++    } else {
++        THIS->updateWifiScanStatus("Network selected. Enter password, then OK.");
++        lv_group_focus_obj(objects.settings_wifi_password_textarea);
++    }
++}
++
+ void TFTView_320x240::ui_event_language_button(lv_event_t *e)
+ {
+     lv_event_code_t event_code = lv_event_get_code(e);
+@@ -2617,7 +2881,7 @@ void TFTView_320x240::updateDynamicMapMenu(void)
+     const bool hasNetwork = db.config.has_network;
+     const bool hasWifiStatus = db.connectionStatus.has_wifi && db.connectionStatus.wifi.has_status;
+     const bool wifiConnected = hasWifiStatus && db.connectionStatus.wifi.status.is_connected;
+-    const bool hasWifiConfig = db.config.network.wifi_ssid[0] != '\0' && db.config.network.wifi_psk[0] != '\0';
++    const bool hasWifiConfig = db.config.network.wifi_ssid[0] != '\0';
+     const char *ssid = db.connectionStatus.wifi.ssid[0] ? db.connectionStatus.wifi.ssid : db.config.network.wifi_ssid;
+
+     char buf[144];
+@@ -2718,8 +2982,9 @@ void TFTView_320x240::openWifiSettingsFromMap(void)
+ {
+     lv_textarea_set_text(objects.settings_wifi_ssid_textarea, db.config.network.wifi_ssid);
+     lv_textarea_set_text(objects.settings_wifi_password_textarea, db.config.network.wifi_psk);
++    resetWifiScanControls();
+     lv_obj_clear_flag(objects.settings_wifi_panel, LV_OBJ_FLAG_HIDDEN);
+-    lv_group_focus_obj(objects.settings_wifi_ssid_textarea);
++    lv_group_focus_obj(wifiScanButton ? wifiScanButton : objects.settings_wifi_ssid_textarea);
+     disablePanel(objects.map_panel);
+     settingsDisabledPanel = objects.map_panel;
+     activeSettings = eWifi;
+@@ -2885,7 +3150,7 @@ void TFTView_320x240::ui_event_mapInternetButton(lv_event_t *e)
+         return;
+     }
+
+-    if (THIS->db.config.network.wifi_ssid[0] == '\0' || THIS->db.config.network.wifi_psk[0] == '\0') {
++    if (THIS->db.config.network.wifi_ssid[0] == '\0') {
+         THIS->openWifiSettingsFromMap();
+         return;
+     }
+@@ -5006,8 +5271,10 @@ void TFTView_320x240::ui_event_ok(lv_event_t *e)
+             char buf[30];
+             const char *ssid = lv_textarea_get_text(objects.settings_wifi_ssid_textarea);
+             const char *psk = lv_textarea_get_text(objects.settings_wifi_password_textarea);
+-            if (strlen(ssid) == 0 || strlen(psk) == 0)
++            if (strlen(ssid) == 0) {
++                THIS->updateWifiScanStatus(_("Pick or type a WiFi name first"));
+                 return;
++            }
+             lv_snprintf(buf, sizeof(buf), _("WiFi: %s"), ssid[0] ? ssid : _("<not set>"));
+             lv_label_set_text(objects.basic_settings_wifi_label, buf);
+             if (strcmp(THIS->db.config.network.wifi_ssid, ssid) != 0 || strcmp(THIS->db.config.network.wifi_psk, psk) != 0) {

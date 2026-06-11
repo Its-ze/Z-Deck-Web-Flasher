@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.28-cyberdeck - 2026-06-10
+
+Visible OTA controls for the physical T-Deck UI.
+
+- Rebuilt bundled firmware from `20260610-zdeck29-ota-controls-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck29` and pack label to `0.2.28-cyberdeck`.
+- Added a visible `Z-Deck OTA` block to the active LVGL Settings screen with `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, and guarded `RESTORE SD` controls.
+- The OTA block shows a live readout from the updater service so checks, cached update status, app-only apply state, and SD backup/restore actions are visible on device.
+- Kept zdeck28 battery-safe owner header behavior, fixed sidebar gutter, safe top-panel placement, map UI, Wi-Fi scan/select, app-only Wi-Fi updates, SD settings backup/restore, SD chat history, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, home RX overlap fixes, and disabled USB SD mass storage.
+- No private channel data, PSKs, channel URLs, private keys, Wi-Fi credentials, or admin keys are bundled.
+
 ## Z-Deck 0.2.27-cyberdeck - 2026-06-10
 
 Battery/header overlap fix for the physical T-Deck UI.

@@ -1,0 +1,522 @@
+diff --git a/include/graphics/common/SdCard.h b/include/graphics/common/SdCard.h
+index 17214db..128ece0 100644
+--- a/include/graphics/common/SdCard.h
++++ b/include/graphics/common/SdCard.h
+@@ -122,4 +122,9 @@ class NoSdCard : public ISdCard
+     virtual ~NoSdCard(void) {}
+ };
+
+-extern ISdCard *sdCard;
+\ No newline at end of file
++extern ISdCard *sdCard;
++
++bool zDeckUsbSdMassStorageReady(void);
++const char *zDeckUsbSdMassStorageStatus(void);
++void zDeckUsbSdMassStorageRefresh(void);
++bool zDeckWriteSdVolumeLabel(const char *label);
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 8dba04b..37f2b62 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -201,6 +201,9 @@ class TFTView_320x240 : public MeshtasticView
+     void rememberCurrentMapArea(void);
+     void setupZDeckHealthTool(void);
+     void updateZDeckHealthPanel(void);
++    void setupZDeckSDTool(void);
++    void updateZDeckSDPanel(const char *status = nullptr);
++    bool prepareZDeckSDCard(void);
+     void setupScreenCorrectionTool(void);
+     void startScreenCorrection(void);
+     void stopScreenCorrection(void);
+@@ -397,6 +400,7 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_mapInternetButton(lv_event_t *e);
+     static void ui_event_mapCacheButton(lv_event_t *e);
+     static void ui_event_zdeckHealthButton(lv_event_t *e);
++    static void ui_event_zdeckSdButton(lv_event_t *e);
+     static void ui_event_screenCorrectionButton(lv_event_t *e);
+
+     // animations
+@@ -460,6 +464,11 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *zDeckHealthButtonLabel = nullptr;
+     lv_obj_t *zDeckHealthPanel = nullptr;                   // public Z-Deck status summary
+     lv_obj_t *zDeckHealthLabel = nullptr;
++    lv_obj_t *zDeckSdButton = nullptr;                       // SD prepare/reset button
++    lv_obj_t *zDeckSdButtonLabel = nullptr;
++    lv_obj_t *zDeckSdPanel = nullptr;                        // SD warning/status panel
++    lv_obj_t *zDeckSdLabel = nullptr;
++    bool zDeckSdResetArmed = false;
+     lv_obj_t *screenCorrectionButton = nullptr;             // screen burn-in/correction tool button
+     lv_obj_t *screenCorrectionButtonLabel = nullptr;
+     lv_obj_t *screenCorrectionOverlay = nullptr;            // full-screen correction overlay
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 1e0d239..3d78262 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -962,6 +962,7 @@ void TFTView_320x240::ui_events_init(void)
+     lv_obj_add_event_cb(objects.map_url_dropdown, ui_event_map_url_dropdown, LV_EVENT_VALUE_CHANGED, NULL);
+     setupDynamicMapMenu();
+     setupZDeckHealthTool();
++    setupZDeckSDTool();
+     setupScreenCorrectionTool();
+
+     // tools buttons
+@@ -2801,10 +2802,12 @@ void TFTView_320x240::updateZDeckHealthPanel(void)
+                 "Primary: %s | channels %u\n"
+                 "GPS: %s RX%u/TX%u sats %u\n"
+                 "SD: %s | WiFi %s | nodes %u\n"
++                "%s\n"
+                 "Add channels: Settings > Channel",
+                 ZDECK_PACK_VERSION, firmware_version, longFastDefault ? "LongFast only" : "custom channels", primary,
+                 (unsigned int)enabledChannels, gps, (unsigned int)db.config.position.rx_gpio,
+-                (unsigned int)db.config.position.tx_gpio, (unsigned int)gpsSatellites, sd, wifi, (unsigned int)nodeCount);
++                (unsigned int)db.config.position.tx_gpio, (unsigned int)gpsSatellites, sd, wifi, (unsigned int)nodeCount,
++                zDeckUsbSdMassStorageStatus());
+     lv_label_set_text(zDeckHealthLabel, buf);
+ }
+
+@@ -2818,6 +2821,148 @@ void TFTView_320x240::ui_event_zdeckHealthButton(lv_event_t *e)
+     THIS->messageAlert("Z-Deck health refreshed", true);
+ }
+
++void TFTView_320x240::setupZDeckSDTool(void)
++{
++    if (zDeckSdButton || !objects.tab_page_tools)
++        return;
++
++    zDeckSdButton = lv_btn_create(objects.tab_page_tools);
++    lv_obj_set_size(zDeckSdButton, LV_PCT(95), 30);
++    add_style_settings_button_style(zDeckSdButton);
++    lv_obj_set_style_align(zDeckSdButton, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_shadow_width(zDeckSdButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(zDeckSdButton, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(zDeckSdButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_add_event_cb(zDeckSdButton, ui_event_zdeckSdButton, LV_EVENT_CLICKED, NULL);
++
++    zDeckSdButtonLabel = lv_label_create(zDeckSdButton);
++    lv_obj_set_size(zDeckSdButtonLabel, LV_PCT(100), LV_SIZE_CONTENT);
++    lv_label_set_long_mode(zDeckSdButtonLabel, LV_LABEL_LONG_DOT);
++    lv_label_set_text(zDeckSdButtonLabel, "Prepare / Reset SD");
++    lv_obj_set_style_align(zDeckSdButtonLabel, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    zDeckSdPanel = lv_obj_create(objects.tab_page_tools);
++    lv_obj_set_size(zDeckSdPanel, LV_PCT(95), 86);
++    lv_obj_clear_flag(zDeckSdPanel, LV_OBJ_FLAG_SCROLLABLE);
++    lv_obj_set_style_bg_color(zDeckSdPanel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(zDeckSdPanel, 190, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(zDeckSdPanel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(zDeckSdPanel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_radius(zDeckSdPanel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_all(zDeckSdPanel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    zDeckSdLabel = lv_label_create(zDeckSdPanel);
++    lv_obj_set_width(zDeckSdLabel, LV_PCT(100));
++    lv_label_set_long_mode(zDeckSdLabel, LV_LABEL_LONG_WRAP);
++    lv_obj_set_style_text_font(zDeckSdLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(zDeckSdLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    updateZDeckSDPanel();
++}
++
++void TFTView_320x240::updateZDeckSDPanel(const char *status)
++{
++    if (!zDeckSdLabel)
++        return;
++
++    const char *sd = cardDetected ? "ready" : "missing";
++    char buf[260];
++    if (status && status[0]) {
++        lv_snprintf(buf, sizeof(buf), "%s\nSD: %s\n%s", status, sd, zDeckUsbSdMassStorageStatus());
++    } else if (zDeckSdResetArmed) {
++        lv_snprintf(buf, sizeof(buf),
++                    "WARNING: next press formats the SD card and rebuilds Z-Deck folders.\nBack up files first.\n%s",
++                    zDeckUsbSdMassStorageStatus());
++    } else {
++        lv_snprintf(buf, sizeof(buf), "SD prep: TDECKSDCARD\nUSB drive: disabled in public build\n%s",
++                    zDeckUsbSdMassStorageStatus());
++    }
++    lv_label_set_text(zDeckSdLabel, buf);
++}
++
++bool TFTView_320x240::prepareZDeckSDCard(void)
++{
++    updateZDeckSDPanel("Formatting SD card...");
++    updateSDCard();
++
++    if (!sdCard || sdCard->cardType() == ISdCard::eNone) {
++        updateZDeckSDPanel("No SD card found.");
++        return false;
++    }
++
++    if (!sdCard->format()) {
++        updateZDeckSDPanel("SD format failed.");
++        return false;
++    }
++
++    updateSDCard();
++    if (!cardDetected) {
++        updateZDeckSDPanel("Formatted, but remount failed.");
++        return false;
++    }
++
++    bool labelSet = false;
++#if defined(HAS_SDCARD)
++    labelSet = zDeckWriteSdVolumeLabel("TDECKSDCARD");
++
++    SDFs.mkdir("/zdeck");
++    SDFs.mkdir("/zdeck/maps");
++    SDFs.mkdir("/zdeck/maps/cache");
++    SDFs.mkdir("/zdeck/history");
++    SDFs.mkdir("/zdeck/ringtones");
++    SDFs.mkdir("/zdeck/logs");
++    SDFs.mkdir("/zdeck/exports");
++    SDFs.mkdir("/maps");
++    SDFs.mkdir("/maps/zdeck-mesh");
++    SDFs.mkdir("/maps/zdeck-compass");
++    SDFs.mkdir("/maps/zdeck-radar");
++    SDFs.mkdir("/maps/zdeck-alert");
++    SDFs.mkdir("/itsz");
++    SDFs.mkdir("/itsz/history");
++
++#if defined(HAS_SD_MMC) || defined(ARCH_PORTDUINO)
++    File readme = SDFs.open("/zdeck/README.TXT", FILE_WRITE);
++    if (readme) {
++        readme.print("T-Deck SD Card for Z-Deck firmware.\r\nMaps, message history, ringtones, logs, and exports live here.\r\n");
++        readme.print("Put preloaded map tiles under /maps/zdeck-mesh/<z>/<x>/<y>.png.\r\n");
++        readme.close();
++    }
++#else
++    FsFile readme = SDFs.open("/zdeck/README.TXT", O_RDWR | O_CREAT | O_TRUNC);
++    if (readme) {
++        readme.print("T-Deck SD Card for Z-Deck firmware.\r\nMaps, message history, ringtones, logs, and exports live here.\r\n");
++        readme.print("Put preloaded map tiles under /maps/zdeck-mesh/<z>/<x>/<y>.png.\r\n");
++        readme.close();
++    }
++#endif
++#endif
++
++    zDeckUsbSdMassStorageRefresh();
++    updateZDeckHealthPanel();
++    updateZDeckSDPanel(labelSet ? "SD card prepared. Label set." : "SD card prepared. Label not set.");
++    return true;
++}
++
++void TFTView_320x240::ui_event_zdeckSdButton(lv_event_t *e)
++{
++    lv_event_code_t event_code = lv_event_get_code(e);
++    if (event_code != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
++        return;
++
++    if (!THIS->zDeckSdResetArmed) {
++        THIS->zDeckSdResetArmed = true;
++        THIS->updateZDeckSDPanel();
++        THIS->messageAlert("Press again to reset SD card", true);
++        return;
++    }
++
++    THIS->zDeckSdResetArmed = false;
++    if (THIS->prepareZDeckSDCard())
++        THIS->messageAlert("SD card ready for Z-Deck", true);
++    else
++        THIS->messageAlert("SD card reset failed", true);
++}
++
+ void TFTView_320x240::startScreenCorrection(void)
+ {
+     stopScreenCorrection();
+@@ -7962,6 +8100,7 @@ bool TFTView_320x240::updateSDCard(void)
+     ISdCard::ErrorType err = ISdCard::ErrorType::eNoError;
+     if (sdCard->init() && sdCard->cardType() != ISdCard::eNone) {
+         ILOG_DEBUG("SdCard init successful, card type: %d", sdCard->cardType());
++        zDeckUsbSdMassStorageRefresh();
+         ISdCard::CardType cardType = sdCard->cardType();
+         ISdCard::FatType fatType = sdCard->fatType();
+         uint32_t usedSpace = sdCard->usedBytes() / (1024 * 1024);
+@@ -7989,6 +8128,7 @@ bool TFTView_320x240::updateSDCard(void)
+         err = sdCard->errorType();
+         delete sdCard;
+         sdCard = nullptr;
++        zDeckUsbSdMassStorageRefresh();
+     }
+
+     if (!cardDetected || err != ISdCard::ErrorType::eNoError) {
+diff --git a/source/graphics/common/SdCard.cpp b/source/graphics/common/SdCard.cpp
+index 9cda81f..35fe10c 100644
+--- a/source/graphics/common/SdCard.cpp
++++ b/source/graphics/common/SdCard.cpp
+@@ -1,5 +1,10 @@
+ #include "graphics/common/SdCard.h"
++#include "SPILock.h"
+ #include "util/ILog.h"
++#include "sdkconfig.h"
++#include <algorithm>
++#include <cstring>
++#include <cstdio>
+
+ #ifndef SD_SPI_FREQUENCY
+ #define SD_SPI_FREQUENCY 50000000
+@@ -24,6 +29,265 @@ using File = FsFile;
+
+ ISdCard *sdCard = nullptr;
+
++#if defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO)
++namespace
++{
++uint16_t zDeckLe16(const uint8_t *p)
++{
++    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
++}
++
++uint32_t zDeckLe32(const uint8_t *p)
++{
++    return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
++}
++
++bool zDeckLooksFatBootSector(const uint8_t *sector)
++{
++    return sector[510] == 0x55 && sector[511] == 0xAA && zDeckLe16(sector + 11) == 512 && sector[13] != 0 &&
++           zDeckLe16(sector + 14) != 0 && sector[16] != 0;
++}
++
++void zDeckMakeFatLabel(const char *label, uint8_t out[11])
++{
++    memset(out, ' ', 11);
++    if (!label)
++        return;
++
++    size_t pos = 0;
++    for (size_t i = 0; label[i] && pos < 11; i++) {
++        char c = label[i];
++        if (c >= 'a' && c <= 'z')
++            c = (char)(c - 'a' + 'A');
++        if (c == '.' || c == '/' || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' ||
++            c == '|')
++            continue;
++        out[pos++] = (uint8_t)c;
++    }
++}
++
++bool zDeckWriteRootVolumeLabel(uint32_t bootSector, const uint8_t boot[512], const uint8_t label[11])
++{
++    const uint16_t bytesPerSector = zDeckLe16(boot + 11);
++    const uint8_t sectorsPerCluster = boot[13];
++    const uint16_t reservedSectors = zDeckLe16(boot + 14);
++    const uint8_t fatCount = boot[16];
++    const uint16_t rootEntryCount = zDeckLe16(boot + 17);
++    const uint16_t fat16Sectors = zDeckLe16(boot + 22);
++    const uint32_t fatSectors = fat16Sectors ? fat16Sectors : zDeckLe32(boot + 36);
++
++    if (bytesPerSector != 512 || sectorsPerCluster == 0 || reservedSectors == 0 || fatCount == 0 || fatSectors == 0)
++        return false;
++
++    const uint32_t rootDirSectors = ((uint32_t)rootEntryCount * 32U + bytesPerSector - 1U) / bytesPerSector;
++    uint32_t rootSector = bootSector + reservedSectors + (uint32_t)fatCount * fatSectors;
++    uint32_t sectorsToScan = rootDirSectors;
++
++    if (fat16Sectors == 0 && rootEntryCount == 0) {
++        const uint32_t rootCluster = zDeckLe32(boot + 44);
++        if (rootCluster < 2)
++            return false;
++        const uint32_t firstDataSector = rootSector + rootDirSectors;
++        rootSector = firstDataSector + (rootCluster - 2U) * sectorsPerCluster;
++        sectorsToScan = sectorsPerCluster;
++    }
++
++    uint8_t sector[512];
++    for (uint32_t i = 0; i < sectorsToScan; i++) {
++        if (!SDFs.card()->readSector(rootSector + i, sector))
++            return false;
++
++        for (size_t entry = 0; entry < 512; entry += 32) {
++            const uint8_t first = sector[entry];
++            const uint8_t attr = sector[entry + 11];
++            if (first == 0x00 || first == 0xE5 || attr == 0x08) {
++                memset(sector + entry, 0, 32);
++                memcpy(sector + entry, label, 11);
++                sector[entry + 11] = 0x08;
++                return SDFs.card()->writeSector(rootSector + i, sector);
++            }
++        }
++    }
++
++    return false;
++}
++} // namespace
++
++bool zDeckWriteSdVolumeLabel(const char *label)
++{
++    if (!SDFs.card())
++        return false;
++
++    concurrency::LockGuard g(spiLock);
++    uint8_t sector[512];
++    if (!SDFs.card()->readSector(0, sector))
++        return false;
++
++    uint32_t bootSector = 0;
++    if (!zDeckLooksFatBootSector(sector)) {
++        if (sector[510] != 0x55 || sector[511] != 0xAA || sector[0x1BE + 4] == 0)
++            return false;
++        bootSector = zDeckLe32(sector + 0x1BE + 8);
++        if (bootSector == 0 || !SDFs.card()->readSector(bootSector, sector))
++            return false;
++    }
++
++    if (!zDeckLooksFatBootSector(sector))
++        return false;
++
++    uint8_t fatLabel[11];
++    zDeckMakeFatLabel(label, fatLabel);
++
++    const uint16_t fat16Sectors = zDeckLe16(sector + 22);
++    const uint16_t rootEntryCount = zDeckLe16(sector + 17);
++    const size_t labelOffset = (fat16Sectors == 0 && rootEntryCount == 0) ? 71 : 43;
++    memcpy(sector + labelOffset, fatLabel, 11);
++
++    const bool bootOk = SDFs.card()->writeSector(bootSector, sector);
++    const bool rootOk = zDeckWriteRootVolumeLabel(bootSector, sector, fatLabel);
++    SDFs.card()->syncDevice();
++    return bootOk && rootOk;
++}
++#else
++bool zDeckWriteSdVolumeLabel(const char *)
++{
++    return false;
++}
++#endif
++
++#if defined(ZDECK_USB_SD_MSC_ENABLED) && ZDECK_USB_SD_MSC_ENABLED == 1 && defined(HAS_SDCARD) && !defined(HAS_SD_MMC) && !defined(ARCH_PORTDUINO) &&                    \
++    defined(ARDUINO_ARCH_ESP32) && CONFIG_TINYUSB_MSC_ENABLED
++#include "USBMSC.h"
++
++namespace
++{
++USBMSC zDeckUsbMsc;
++bool zDeckUsbMscStarted = false;
++bool zDeckUsbMscReady = false;
++char zDeckUsbMscStatus[96] = "USB SD: waiting for card";
++
++int32_t zDeckMscRead(uint32_t lba, uint32_t offset, void *buffer, uint32_t bufsize)
++{
++    if (!SDFs.card() || !buffer || offset >= 512)
++        return -1;
++
++    concurrency::LockGuard g(spiLock);
++    uint8_t sector[512];
++    uint8_t *dst = static_cast<uint8_t *>(buffer);
++    uint32_t copied = 0;
++
++    while (copied < bufsize) {
++        if (!SDFs.card()->readSector(lba, sector))
++            return copied ? (int32_t)copied : -1;
++
++        const uint32_t chunk = std::min<uint32_t>(512 - offset, bufsize - copied);
++        memcpy(dst + copied, sector + offset, chunk);
++        copied += chunk;
++        lba++;
++        offset = 0;
++    }
++
++    return copied;
++}
++
++int32_t zDeckMscWrite(uint32_t lba, uint32_t offset, uint8_t *buffer, uint32_t bufsize)
++{
++    if (!SDFs.card() || !buffer || offset >= 512)
++        return -1;
++
++    concurrency::LockGuard g(spiLock);
++    uint8_t sector[512];
++    uint32_t written = 0;
++
++    while (written < bufsize) {
++        const uint32_t chunk = std::min<uint32_t>(512 - offset, bufsize - written);
++        if (chunk != 512 || offset != 0) {
++            if (!SDFs.card()->readSector(lba, sector))
++                return written ? (int32_t)written : -1;
++            memcpy(sector + offset, buffer + written, chunk);
++        } else {
++            memcpy(sector, buffer + written, 512);
++        }
++
++        if (!SDFs.card()->writeSector(lba, sector))
++            return written ? (int32_t)written : -1;
++
++        written += chunk;
++        lba++;
++        offset = 0;
++    }
++
++    SDFs.card()->syncDevice();
++    return written;
++}
++
++bool zDeckMscStartStop(uint8_t, bool start, bool loadEject)
++{
++    if (!start && loadEject) {
++        zDeckUsbMsc.mediaPresent(false);
++        zDeckUsbMscReady = false;
++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: ejected by host");
++    }
++    return true;
++}
++} // namespace
++
++bool zDeckUsbSdMassStorageReady(void)
++{
++    return zDeckUsbMscReady;
++}
++
++const char *zDeckUsbSdMassStorageStatus(void)
++{
++    return zDeckUsbMscStatus;
++}
++
++void zDeckUsbSdMassStorageRefresh(void)
++{
++    if (!SDFs.card()) {
++        zDeckUsbMsc.mediaPresent(false);
++        zDeckUsbMscReady = false;
++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: no card");
++        return;
++    }
++
++    const uint32_t sectors = SDFs.card()->sectorCount();
++    if (sectors == 0) {
++        zDeckUsbMsc.mediaPresent(false);
++        zDeckUsbMscReady = false;
++        snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: card size unknown");
++        return;
++    }
++
++    if (!zDeckUsbMscStarted) {
++        zDeckUsbMsc.vendorID("ZDECK");
++        zDeckUsbMsc.productID("TDECK SD CARD");
++        zDeckUsbMsc.productRevision("1.0");
++        zDeckUsbMsc.onStartStop(zDeckMscStartStop);
++        zDeckUsbMsc.onRead(zDeckMscRead);
++        zDeckUsbMsc.onWrite(zDeckMscWrite);
++        zDeckUsbMscStarted = zDeckUsbMsc.begin(sectors, 512);
++    }
++
++    zDeckUsbMsc.mediaPresent(zDeckUsbMscStarted);
++    zDeckUsbMscReady = zDeckUsbMscStarted;
++    snprintf(zDeckUsbMscStatus, sizeof(zDeckUsbMscStatus), "USB SD: %s, %.1f GB", zDeckUsbMscReady ? "mounted" : "not started",
++             sectors / 2097152.0f);
++}
++#else
++bool zDeckUsbSdMassStorageReady(void)
++{
++    return false;
++}
++
++const char *zDeckUsbSdMassStorageStatus(void)
++{
++    return "USB SD: disabled";
++}
++
++void zDeckUsbSdMassStorageRefresh(void) {}
++#endif
++
+ #if defined(ARCH_PORTDUINO)
+
+ bool SDCard::init(void)

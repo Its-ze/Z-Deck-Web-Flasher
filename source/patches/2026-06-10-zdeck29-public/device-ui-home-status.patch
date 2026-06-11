@@ -1,0 +1,122 @@
+diff --git a/generated/ui_240x320/screens.c b/generated/ui_240x320/screens.c
+index abe7221..6ec8e6b 100644
+--- a/generated/ui_240x320/screens.c
++++ b/generated/ui_240x320/screens.c
+@@ -660,20 +660,21 @@ void create_screen_main_screen() {
+                             lv_obj_t *obj = lv_label_create(parent_obj);
+                             objects.home_signal_label = obj;
+                             lv_obj_set_pos(obj, 105, 50);
+-                            lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
+-                            lv_label_set_text(obj, _("LoRa listening"));
++                            lv_obj_set_size(obj, 78, 30);
++                            lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
++                            lv_label_set_text(obj, _("LoRa RX"));
+                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+-                            lv_obj_set_style_text_line_space(obj, -4, LV_PART_MAIN | LV_STATE_DEFAULT);
++                            lv_obj_set_style_text_line_space(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                             {
+                                 lv_obj_t *parent_obj = obj;
+                                 {
+                                     // HomeSignalPctLabel
+                                     lv_obj_t *obj = lv_label_create(parent_obj);
+                                     objects.home_signal_pct_label = obj;
+-                                    lv_obj_set_pos(obj, 90, 0);
+-                                    lv_obj_set_size(obj, 60, LV_SIZE_CONTENT);
++                                    lv_obj_set_pos(obj, 0, 13);
++                                    lv_obj_set_size(obj, 78, 14);
+                                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
+-                                    lv_label_set_text(obj, "");
++                                    lv_label_set_text(obj, _("idle"));
+                                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+                                     lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                 }
+diff --git a/generated/ui_320x240/screens.c b/generated/ui_320x240/screens.c
+index e1c5d6c..5d4dde2 100644
+--- a/generated/ui_320x240/screens.c
++++ b/generated/ui_320x240/screens.c
+@@ -534,20 +534,21 @@ void create_screen_main_screen() {
+                             lv_obj_t *obj = lv_label_create(parent_obj);
+                             objects.home_signal_label = obj;
+                             lv_obj_set_pos(obj, 105, 50);
+-                            lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
+-                            lv_label_set_text(obj, _("LoRa listening"));
++                            lv_obj_set_size(obj, 78, 30);
++                            lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
++                            lv_label_set_text(obj, _("LoRa RX"));
+                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+-                            lv_obj_set_style_text_line_space(obj, -4, LV_PART_MAIN | LV_STATE_DEFAULT);
++                            lv_obj_set_style_text_line_space(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+                             {
+                                 lv_obj_t *parent_obj = obj;
+                                 {
+                                     // HomeSignalPctLabel
+                                     lv_obj_t *obj = lv_label_create(parent_obj);
+                                     objects.home_signal_pct_label = obj;
+-                                    lv_obj_set_pos(obj, 90, 0);
+-                                    lv_obj_set_size(obj, 60, LV_SIZE_CONTENT);
++                                    lv_obj_set_pos(obj, 0, 13);
++                                    lv_obj_set_size(obj, 78, 14);
+                                     lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
+-                                    lv_label_set_text(obj, "");
++                                    lv_label_set_text(obj, _("idle"));
+                                     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+                                     lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                 }
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 316564f..6869d10 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -6898,6 +6898,6 @@ void TFTView_320x240::showLoRaFrequency(const meshtastic_Config_LoRaConfig &cfg
+     char loraFreq[48];
+     if (!cfg.region) {
+-        strcpy(loraFreq, _("region unset"));
++        strcpy(loraFreq, _("LoRa US\nLongFast"));
+     } else if (cfg.use_preset) {
+         float frequency = LoRaPresets::getRadioFreq(cfg.region, cfg.modem_preset, cfg.channel_num) + cfg.frequency_offset;
+         sprintf(loraFreq, "LoRa %g MHz\n[%s kHz]", frequency, LoRaPresets::getBandwidthString(cfg.modem_preset));
+@@ -6948,18 +6948,17 @@ void TFTView_320x240::setChannelName(const meshtastic_Channel &ch)
+ {
+     char buf[40];
+     if (ch.role == meshtastic_Channel_Role_PRIMARY) {
+-        sprintf(buf, _("Channel: %s"),
+-                strlen(ch.settings.name) ? ch.settings.name
+-                : db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
+-                    ? ("<unset>")
+-                    : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
++        const char *primaryName = strlen(ch.settings.name) ? ch.settings.name : LoRaPresets::modemPresetToString(db.config.lora.modem_preset);
++#if defined(ZDECK_PUBLIC_BUILD)
++        if (!primaryName || primaryName[0] == '\0' || strcmp(primaryName, "<unset>") == 0 || strcmp(primaryName, "UNSET") == 0 ||
++            strcmp(primaryName, "Unset") == 0 || strcmp(primaryName, "unset") == 0) {
++            primaryName = "LongFast";
++        }
++#endif
++        sprintf(buf, _("Channel: %s"), primaryName);
+         lv_label_set_text(objects.basic_settings_channel_label, buf);
+
+-        sprintf(buf, "*%s",
+-                strlen(ch.settings.name) ? ch.settings.name
+-                : db.config.lora.region == meshtastic_Config_LoRaConfig_RegionCode_UNSET
+-                    ? ("<unset>")
+-                    : LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
++        sprintf(buf, "*%s", primaryName);
+     } else {
+         if (ch.settings.name[0] == '\0' && ch.settings.psk.size == 1 && ch.settings.psk.bytes[0] == 0x01) {
+             sprintf(buf, "%s", LoRaPresets::modemPresetToString(db.config.lora.modem_preset));
+@@ -8294,13 +8294,13 @@ void TFTView_320x240::task_handler(void)
+                     lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
+                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
+                     if (lastHeard == 0) {
+-                        lv_label_set_text(objects.home_signal_label, _("LoRa listening\nno mesh packets"));
+-                        lv_label_set_text(objects.home_signal_pct_label, _("RX idle"));
++                        lv_label_set_text(objects.home_signal_label, _("LoRa RX"));
++                        lv_label_set_text(objects.home_signal_pct_label, _("idle"));
+                     } else {
+                         char buf[48];
+-                        lv_snprintf(buf, sizeof(buf), _("LoRa idle\nlast >%dm"), (int)(secs_until_offline / 60));
++                        lv_snprintf(buf, sizeof(buf), _("Idle >%dm"), (int)(secs_until_offline / 60));
+                         lv_label_set_text(objects.home_signal_label, buf);
+-                        lv_label_set_text(objects.home_signal_pct_label, _("mesh quiet"));
++                        lv_label_set_text(objects.home_signal_pct_label, _("quiet"));
+                     }
+                 }
+             }

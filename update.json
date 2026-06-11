@@ -5,9 +5,9 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.27-cyberdeck",
-                   "packVersion":  "0.2.27-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck28",
+                   "title":  "Z-Deck 0.2.28-cyberdeck",
+                   "packVersion":  "0.2.28-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck29",
                    "released":  "2026-06-10",
                    "updateMode":  "app-only",
                    "preserves":  [
@@ -34,12 +34,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck28-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck28-public/zdeck-firmware.bin",
-                                    "size":  3687792,
-                                    "sha256":  "8de37d4d0375da72837b83eafcd2f1941fdef81e36d113bfd76ebb9519ae9ac8",
-                                    "md5":  "e2230e9485d87247374abcaa53039695"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck29-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck29-public/zdeck-firmware.bin",
+                                    "size":  3690144,
+                                    "sha256":  "467ea6cc6e5adca862e485f9dc5e5911321af85f94473d9824254a73411bbcf4",
+                                    "md5":  "8431a1a856391bbbc68b33748a978f2e"
                                 },
-                   "notes":  "Fixes the physical T-Deck header so the battery icon and percent stay visible. The title is clipped between left battery/USB status and right-side status icons, and a real battery now shows clamped percent instead of USB-only status. Keeps the fixed sidebar gutter, safe top panels, map UI progress/defaults, WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, newest-first chats, stable node names, send status, hop counters, public-safe labels, and disabled USB SD mass storage."
+                   "notes":  "Exposes OTA on the physical T-Deck Settings screen with a visible Z-Deck OTA block: CHECK, APPLY, STATUS, BACKUP SD, and RESTORE SD with live status readout. Keeps the battery-safe header, fixed sidebar gutter, safe top panels, map UI progress/defaults, WiFi scan/select, app-only Wi-Fi OTA updates, SD settings backup/restore, SD chat journal, newest-first chats, stable node names, send status, hop counters, public-safe labels, and disabled USB SD mass storage."
                }
 }
