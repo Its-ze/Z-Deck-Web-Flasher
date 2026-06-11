@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.30-cyberdeck - 2026-06-11
+
+OTA and SD backup button repaint hotfix.
+
+- Rebuilt bundled firmware from `20260611-zdeck31-ota-ui-progress-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck31` and pack label to `0.2.30-cyberdeck`.
+- Fixed CHECK, APPLY, BACKUP SD, STATUS, and RESTORE SD so the pressed state is cleared and the status label repaints before long Wi-Fi, flash, or SD work starts.
+- Added screen pumps during app-only OTA download/write progress so the device does not look frozen while the update is moving.
+- Kept zdeck30 map GPS recovery plus the existing Settings OTA, Wi-Fi scan/select, SD backup/restore, newest-first chats, node-name, hop counter, battery/header, and sidebar fixes.
+
 ## Z-Deck 0.2.29-cyberdeck - 2026-06-11
 
 Physical T-Deck map GPS recovery and zdeck30 public-safe release package.
