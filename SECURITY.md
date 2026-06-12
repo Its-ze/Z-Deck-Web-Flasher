@@ -6,7 +6,7 @@ Z-Deck Web Flasher follows a rolling release model. Only the latest public relea
 
 | Version | Supported |
 | ------- | --------- |
-| Latest (`0.2.30-cyberdeck`) | :white_check_mark: |
+| Latest (`0.2.31-cyberdeck`) | :white_check_mark: |
 | Older releases | :x: |
 
 If you are on an older build, please update to the latest release before reporting a security issue.

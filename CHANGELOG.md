@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.31-cyberdeck - 2026-06-11
+
+Compass and map-options hotfix for the physical T-Deck UI.
+
+- Rebuilt bundled firmware from `20260611-zdeck32-compass-map-menu-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck32` and pack label to `0.2.31-cyberdeck`.
+- Added a real LVGL compass/radar/alert panel for the non-map position pages so those pages no longer stay visually stuck on the map.
+- Compacted the map options overlay so page switching, Center, GPS status, Wi-Fi, and cache readouts fit on the T-Deck screen.
+- Kept zdeck31 OTA/backup repaint fixes plus GPS recovery, visible Settings OTA, Wi-Fi scan/select, SD backup/restore, newest-first chats, node-name, hop counter, battery/header, and sidebar fixes.
+
 ## Z-Deck 0.2.30-cyberdeck - 2026-06-11
 
 OTA and SD backup button repaint hotfix.

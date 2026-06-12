@@ -1,0 +1,246 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -210,6 +210,8 @@
+     void setupZDeckSDTool(void);
+     void updateZDeckSDPanel(const char *status = nullptr);
+     bool prepareZDeckSDCard(void);
++    void setupZDeckUpdateTool(void);
++    void updateZDeckUpdateStatusLabel(const char *status = nullptr);
+     void setupScreenCorrectionTool(void);
+     void startScreenCorrection(void);
+     void stopScreenCorrection(void);
+@@ -410,6 +412,11 @@
+     static void ui_event_mapModeButton(lv_event_t *e);
+     static void ui_event_zdeckHealthButton(lv_event_t *e);
+     static void ui_event_zdeckSdButton(lv_event_t *e);
++    static void ui_event_zdeckUpdateCheckButton(lv_event_t *e);
++    static void ui_event_zdeckUpdateApplyButton(lv_event_t *e);
++    static void ui_event_zdeckUpdateBackupButton(lv_event_t *e);
++    static void ui_event_zdeckUpdateRestoreButton(lv_event_t *e);
++    static void ui_event_zdeckUpdateStatusButton(lv_event_t *e);
+     static void ui_event_screenCorrectionButton(lv_event_t *e);
+ 
+     // animations
+@@ -485,6 +492,14 @@
+     lv_obj_t *zDeckSdPanel = nullptr;                        // SD warning/status panel
+     lv_obj_t *zDeckSdLabel = nullptr;
+     bool zDeckSdResetArmed = false;
++    lv_obj_t *zDeckUpdatePanel = nullptr;                    // visible OTA/update control block
++    lv_obj_t *zDeckUpdateStatusLabel = nullptr;
++    lv_obj_t *zDeckUpdateCheckButton = nullptr;
++    lv_obj_t *zDeckUpdateApplyButton = nullptr;
++    lv_obj_t *zDeckUpdateBackupButton = nullptr;
++    lv_obj_t *zDeckUpdateRestoreButton = nullptr;
++    lv_obj_t *zDeckUpdateStatusButton = nullptr;
++    bool zDeckUpdateRestoreArmed = false;
+     lv_obj_t *screenCorrectionButton = nullptr;             // screen burn-in/correction tool button
+     lv_obj_t *screenCorrectionButtonLabel = nullptr;
+     lv_obj_t *screenCorrectionOverlay = nullptr;            // full-screen correction overlay
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -43,6 +43,10 @@
+ #if defined(ARCH_ESP32)
+ #include <WiFi.h>
+ #endif
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++#include "NodeDB.h"
++#include "itsz/ZDeckUpdateService.h"
++#endif
+ 
+ #ifndef MAX_NUM_NODES_VIEW
+ #define MAX_NUM_NODES_VIEW 250
+@@ -1119,6 +1123,7 @@
+     setupWifiScanControls();
+     setupZDeckHealthTool();
+     setupZDeckSDTool();
++    setupZDeckUpdateTool();
+     setupScreenCorrectionTool();
+ 
+     // tools buttons
+@@ -3669,7 +3674,184 @@
+     else
+         THIS->messageAlert("SD card reset failed", true);
+ }
+ 
++static void zDeckReleaseUpdateButton(lv_obj_t *button)
++{
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++    if (button) {
++        lv_obj_clear_state(button, LV_STATE_PRESSED);
++        lv_obj_clear_state(button, LV_STATE_FOCUSED);
++        lv_obj_invalidate(button);
++    }
++    lv_timer_handler();
++    delay(20);
++    lv_timer_handler();
++#else
++    (void)button;
++#endif
++}
++
++void TFTView_320x240::setupZDeckUpdateTool(void)
++{
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++    if (zDeckUpdatePanel || !objects.tab_page_basic_settings)
++        return;
++
++    zDeckUpdatePanel = lv_obj_create(objects.tab_page_basic_settings);
++    lv_obj_set_size(zDeckUpdatePanel, LV_PCT(95), 124);
++    lv_obj_clear_flag(zDeckUpdatePanel, LV_OBJ_FLAG_SCROLLABLE);
++    lv_obj_set_style_bg_color(zDeckUpdatePanel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(zDeckUpdatePanel, 190, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(zDeckUpdatePanel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(zDeckUpdatePanel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_radius(zDeckUpdatePanel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_all(zDeckUpdatePanel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    zDeckUpdateStatusLabel = lv_label_create(zDeckUpdatePanel);
++    lv_obj_set_pos(zDeckUpdateStatusLabel, 4, 4);
++    lv_obj_set_size(zDeckUpdateStatusLabel, LV_PCT(96), 44);
++    lv_label_set_long_mode(zDeckUpdateStatusLabel, LV_LABEL_LONG_WRAP);
++    lv_obj_set_style_text_font(zDeckUpdateStatusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(zDeckUpdateStatusLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    auto makeButton = [](lv_obj_t *parent, lv_coord_t x, lv_coord_t y, lv_coord_t w, const char *text, lv_event_cb_t cb) {
++        lv_obj_t *button = lv_btn_create(parent);
++        lv_obj_set_pos(button, x, y);
++        lv_obj_set_size(button, w, 27);
++        add_style_settings_button_style(button);
++        lv_obj_set_style_shadow_width(button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_border_color(button, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_border_width(button, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_bg_color(button, lv_color_hex(0xff4db270), LV_PART_MAIN | LV_STATE_PRESSED);
++        lv_obj_set_style_text_color(button, lv_color_hex(0xff015114), LV_PART_MAIN | LV_STATE_PRESSED);
++        lv_obj_add_event_cb(button, cb, LV_EVENT_CLICKED, NULL);
++
++        lv_obj_t *label = lv_label_create(button);
++        lv_obj_set_size(label, LV_PCT(100), LV_SIZE_CONTENT);
++        lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
++        lv_label_set_text(label, text);
++        lv_obj_set_style_text_font(label, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_align(label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++        return button;
++    };
++
++    zDeckUpdateCheckButton = makeButton(zDeckUpdatePanel, 4, 54, 74, "CHECK", ui_event_zdeckUpdateCheckButton);
++    zDeckUpdateApplyButton = makeButton(zDeckUpdatePanel, 84, 54, 74, "APPLY", ui_event_zdeckUpdateApplyButton);
++    zDeckUpdateStatusButton = makeButton(zDeckUpdatePanel, 164, 54, 74, "STATUS", ui_event_zdeckUpdateStatusButton);
++    zDeckUpdateBackupButton = makeButton(zDeckUpdatePanel, 4, 88, 114, "BACKUP SD", ui_event_zdeckUpdateBackupButton);
++    zDeckUpdateRestoreButton = makeButton(zDeckUpdatePanel, 124, 88, 114, "RESTORE SD", ui_event_zdeckUpdateRestoreButton);
++
++    updateZDeckUpdateStatusLabel("Z-Deck OTA ready. WiFi required. Apply keeps storage and backs up settings to SD.");
++#endif
++}
++
++void TFTView_320x240::updateZDeckUpdateStatusLabel(const char *status)
++{
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++    if (!zDeckUpdateStatusLabel)
++        return;
++
++    const char *message = status && status[0] ? status : itsz::zdeck_update::statusText();
++    const char *wifi = WiFi.status() == WL_CONNECTED ? "WiFi on" : "WiFi off";
++    const char *sd = cardDetected ? "SD ready" : "SD missing";
++
++    char buf[320];
++    lv_snprintf(buf, sizeof(buf), "%s\n%s | %s | Current %s", message, wifi, sd, itsz::zdeck_update::currentPackVersion());
++    lv_label_set_text(zDeckUpdateStatusLabel, buf);
++#else
++    (void)status;
++#endif
++}
++
++void TFTView_320x240::ui_event_zdeckUpdateCheckButton(lv_event_t *e)
++{
++    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
++        return;
++
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++    THIS->zDeckUpdateRestoreArmed = false;
++    THIS->updateZDeckUpdateStatusLabel("Checking for updates...");
++    zDeckReleaseUpdateButton(THIS->zDeckUpdateCheckButton);
++    itsz::zdeck_update::checkForUpdates();
++    THIS->updateZDeckUpdateStatusLabel();
++    if (itsz::zdeck_update::hasCachedUpdate())
++        THIS->messageAlert("Update ready. Press APPLY.", true);
++#endif
++}
++
++void TFTView_320x240::ui_event_zdeckUpdateApplyButton(lv_event_t *e)
++{
++    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
++        return;
++
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++    THIS->zDeckUpdateRestoreArmed = false;
++    THIS->updateZDeckUpdateStatusLabel("Applying update...");
++    zDeckReleaseUpdateButton(THIS->zDeckUpdateApplyButton);
++    itsz::zdeck_update::applyCachedUpdate();
++    THIS->updateZDeckUpdateStatusLabel();
++#endif
++}
++
++void TFTView_320x240::ui_event_zdeckUpdateBackupButton(lv_event_t *e)
++{
++    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
++        return;
++
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++    THIS->zDeckUpdateRestoreArmed = false;
++    THIS->updateZDeckUpdateStatusLabel("Saving settings backup to SD...");
++    zDeckReleaseUpdateButton(THIS->zDeckUpdateBackupButton);
++    bool ok = nodeDB && nodeDB->backupPreferences(meshtastic_AdminMessage_BackupLocation_SD);
++    THIS->updateZDeckUpdateStatusLabel(ok ? "Settings backup saved to SD." : "SD backup failed. Check the card.");
++    THIS->messageAlert(ok ? "Settings backup saved to SD" : "SD backup failed", true);
++#endif
++}
++
++void TFTView_320x240::ui_event_zdeckUpdateRestoreButton(lv_event_t *e)
++{
++    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
++        return;
++
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++    if (!THIS->zDeckUpdateRestoreArmed) {
++        THIS->zDeckUpdateRestoreArmed = true;
++        THIS->updateZDeckUpdateStatusLabel("Press RESTORE SD again to restore settings from SD and reboot.");
++        zDeckReleaseUpdateButton(THIS->zDeckUpdateRestoreButton);
++        THIS->messageAlert("Press RESTORE again to confirm", true);
++        return;
++    }
++
++    THIS->zDeckUpdateRestoreArmed = false;
++    THIS->updateZDeckUpdateStatusLabel("Restoring settings from SD...");
++    zDeckReleaseUpdateButton(THIS->zDeckUpdateRestoreButton);
++    bool ok = nodeDB && nodeDB->restorePreferences(meshtastic_AdminMessage_BackupLocation_SD,
++                                                   SEGMENT_CONFIG | SEGMENT_MODULECONFIG | SEGMENT_DEVICESTATE |
++                                                       SEGMENT_CHANNELS);
++    if (ok) {
++        THIS->updateZDeckUpdateStatusLabel("Settings restored. Rebooting...");
++        THIS->messageAlert("Settings restored. Rebooting", true);
++        THIS->controller->requestReboot(2, THIS->ownNode);
++    } else {
++        THIS->updateZDeckUpdateStatusLabel("SD restore failed. No changes saved.");
++        THIS->messageAlert("SD restore failed", true);
++    }
++#endif
++}
++
++void TFTView_320x240::ui_event_zdeckUpdateStatusButton(lv_event_t *e)
++{
++    if (lv_event_get_code(e) != LV_EVENT_CLICKED || THIS->activeSettings != eNone)
++        return;
++
++#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
++    THIS->zDeckUpdateRestoreArmed = false;
++    THIS->updateZDeckUpdateStatusLabel();
++    zDeckReleaseUpdateButton(THIS->zDeckUpdateStatusButton);
++    THIS->messageAlert(itsz::zdeck_update::statusText(), true);
++#endif
++}
++
+ void TFTView_320x240::startScreenCorrection(void)
+ {
+     stopScreenCorrection();

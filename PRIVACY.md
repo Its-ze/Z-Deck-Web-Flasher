@@ -16,7 +16,7 @@ The journal is plaintext local history. Anyone with access to the SD card may be
 
 ## SD Settings Backup
 
-In `0.2.30-cyberdeck`, Z-Deck can back up and restore Meshtastic preferences from:
+In `0.2.31-cyberdeck`, Z-Deck can back up and restore Meshtastic preferences from:
 
 ```text
 /zdeck/backups/preferences.proto
@@ -26,8 +26,8 @@ The backup file includes Meshtastic config, module config, channels/PSKs, owner 
 
 ## USB SD Access
 
-In `0.2.30-cyberdeck`, Z-Deck does not expose the SD card as USB mass storage by default. Treat the SD card as plaintext local storage: files, maps, logs, ringtone assets, settings backups, and message history may be visible if the card is removed or mounted by another build.
+In `0.2.31-cyberdeck`, Z-Deck does not expose the SD card as USB mass storage by default. Treat the SD card as plaintext local storage: files, maps, logs, ringtone assets, settings backups, and message history may be visible if the card is removed or mounted by another build.
 
 ## On-Device Updates
 
-The Wi-Fi updater uses the hosted `update.json` manifest and applies only app firmware updates marked `app-only`. In `0.2.30-cyberdeck`, the updater is visible under `Settings > Z-Deck OTA`; Apply writes and verifies the SD settings backup before downloading firmware. The 0.2.30 controls repaint before long update or backup work so the status text is visible while the operation runs. The update mode does not erase NVS config, Meshtastic channels, keys, owner settings, sidebar placement, map page default, owner home title behavior, or SD-card files. A future update that intentionally changes config or data must declare a different update mode before the device will accept it. The Wi-Fi scan/dropdown setup stores only the selected network credentials in the device's normal Meshtastic configuration path.
+The Wi-Fi updater uses the hosted `update.json` manifest and applies only app firmware updates marked `app-only`. In `0.2.31-cyberdeck`, the updater is visible under `Settings > Z-Deck OTA`; Apply writes and verifies the SD settings backup before downloading firmware. The controls repaint before long update or backup work so the status text is visible while the operation runs. The update mode does not erase NVS config, Meshtastic channels, keys, owner settings, sidebar placement, map page default, owner home title behavior, or SD-card files. A future update that intentionally changes config or data must declare a different update mode before the device will accept it. The Wi-Fi scan/dropdown setup stores only the selected network credentials in the device's normal Meshtastic configuration path.
