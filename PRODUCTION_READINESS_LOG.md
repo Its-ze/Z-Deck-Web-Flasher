@@ -274,3 +274,43 @@ Blockers / next check:
 - The custom OTA `CHECK` and `APPLY` handlers are exposed through the T-Deck UI path, not as a Meshtastic serial command, so this pass verified the hosted app-only release bundle and preservation contract but did not remotely press the on-device `APPLY` button.
 - ARP did not show a clear T-Deck LAN IP on `192.168.50.0/24`, so there was no reachable network surface to watch the device pull the update.
 - To complete the physical OTA apply test, connect the T-Deck to Wi-Fi, open `Settings > Z-Deck OTA`, press `CHECK`, then press `APPLY`; the expected result for zdeck36 already installed is current/no update.
+
+### 2026-06-13 13:12 -04:00
+
+Scope: post-push public deploy, OTA CI, and Bluetooth usability check.
+
+Concrete bug check:
+- Verified the public release/deploy did not regress after adding the OTA release verifier.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled release labels: `2.8.0.zdeck36` and `0.2.35-cyberdeck`.
+- Confirmed visible/crawled feature/status labels: `Z-Deck OTA`, `Bluetooth readiness`, `Readiness Log`, `Amber Terminal`, `Slate Signal`, `Arctic High`, and `BACKUP SD`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json` through `python tools\verify-ota-release.py --live`.
+- Confirmed app-only OTA metadata, hosted firmware size/hash, SD pre-update backup path, manifest app slot paths, and LittleFS separation all still pass.
+
+GitHub checks:
+- Commit checked: `572afad Add OTA release verifier`.
+- Workflows checked for that commit: `Verify OTA Release`, `Broken Link Checker`, `Release Drafter`, `pages build and deployment`, `Push on main`, and `CodeQL`.
+- Result: all listed workflows completed with `success`.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+- `COM17` Bluetooth config was not read in this pass because earlier metadata reads on that port hung; avoid stacking serial reads there until physical reset/replug or a narrow read answers cleanly.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error` with problem `CM_PROB_FAILED_ADD`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`, `named_count=0`, `mesh_like_count=0`.
+
+Blockers / next check:
+- Bluetooth stack is callable and COM21 has Bluetooth enabled, but Windows still saw zero BLE advertisements; pairing/discovery is not proven.
+- Retest Bluetooth after opening the on-device Bluetooth/pairing screen or physically resetting/replugging the T-Deck.
+- OTA `APPLY` still needs a physical on-device `Settings > Z-Deck OTA` button test because the custom OTA path is UI-driven, not serial-driven.
