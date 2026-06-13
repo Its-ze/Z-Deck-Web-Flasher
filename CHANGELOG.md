@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.34-cyberdeck - 2026-06-13
+
+Map GPS/MAP readout hotfix for the physical T-Deck UI.
+
+- Rebuilt bundled firmware from `20260613-zdeck35-map-gps-label-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck35` and pack label to `0.2.34-cyberdeck`.
+- Changed the map coordinate readout to label live centered GPS coordinates as `GPS` and manually scrolled map-center coordinates as `MAP`.
+- Verified the app-only image on two plugged-in T-Decks without flashing LittleFS; both boards booted zdeck35 and kept existing settings/channels.
+- Kept zdeck32-zdeck34 compass/radar/alert pages, compact map menu, diagnostics, OTA/backup repaint fixes, GPS recovery, Wi-Fi scan/select, SD backup/restore, newest-first chats, node-name, hop counter, battery/header, and sidebar fixes.
+
 ## Z-Deck 0.2.31-cyberdeck - 2026-06-11
 
 Compass and map-options hotfix for the physical T-Deck UI.

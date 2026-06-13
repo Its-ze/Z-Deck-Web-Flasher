@@ -1,14 +1,14 @@
-﻿{
+{
     "schema":  1,
     "product":  "Z-Deck",
     "channel":  "public",
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.31-cyberdeck",
-                   "packVersion":  "0.2.31-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck32",
-                   "released":  "2026-06-11",
+                   "title":  "Z-Deck 0.2.34-cyberdeck",
+                   "packVersion":  "0.2.34-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck35",
+                   "released":  "2026-06-13",
                    "updateMode":  "app-only",
                    "preserves":  [
                                      "meshtastic_config",
@@ -34,12 +34,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck32-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck32-public/zdeck-firmware.bin",
-                                    "size":  3692384,
-                                    "sha256":  "f6f4b7f1e8c27e73b234f034f1a8a81583278e55ba09c997c94e5d25bb839a14",
-                                    "md5":  "fd20824669981635a291a8dbd08f2548"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck35-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck35-public/zdeck-firmware.bin",
+                                    "size":  3696752,
+                                    "sha256":  "ddac5b57594ca517c8cec351714dc178375990c6a881ac12096967a3503b64ef",
+                                    "md5":  "921d5913a9fdac1386b0b7ff67f7242f"
                                 },
-                   "notes":  "Adds a real compass/radar/alert panel for the non-map position pages, compacts the map options overlay so it fits on the T-Deck screen, and keeps GPS/map recovery, visible Settings OTA, Wi-Fi scan/select, SD backup/restore, newest-first chats, stable node names, send status, hop counters, battery/header fixes, sidebar gutter fixes, and app-only OTA preservation."
+                   "notes":  "Adds an explicit GPS/MAP coordinate label on the map so a manually scrolled map center is not mistaken for the live GPS fix. Keeps the real compass/radar/alert pages, compact map options overlay, GPS/map recovery, visible Settings OTA, Wi-Fi scan/select, SD backup/restore, newest-first chats, stable node names, send status, hop counters, Modern Field UI, battery/header/sidebar fixes, and app-only OTA preservation."
                }
 }

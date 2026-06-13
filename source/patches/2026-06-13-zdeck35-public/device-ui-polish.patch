@@ -1,0 +1,224 @@
+diff --git a/generated/ui_240x320/screens.c b/generated/ui_240x320/screens.c
+index 44bfb5b..abe7221 100644
+--- a/generated/ui_240x320/screens.c
++++ b/generated/ui_240x320/screens.c
+@@ -661,7 +661,7 @@ void create_screen_main_screen() {
+                             objects.home_signal_label = obj;
+                             lv_obj_set_pos(obj, 105, 50);
+                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
+-                            lv_label_set_text(obj, _("mesh listening"));
++                            lv_label_set_text(obj, _("LoRa listening"));
+                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+                             lv_obj_set_style_text_line_space(obj, -4, LV_PART_MAIN | LV_STATE_DEFAULT);
+                             {
+diff --git a/generated/ui_320x240/screens.c b/generated/ui_320x240/screens.c
+index 90c2d6a..e1c5d6c 100644
+--- a/generated/ui_320x240/screens.c
++++ b/generated/ui_320x240/screens.c
+@@ -535,7 +535,7 @@ void create_screen_main_screen() {
+                             objects.home_signal_label = obj;
+                             lv_obj_set_pos(obj, 105, 50);
+                             lv_obj_set_size(obj, LV_PCT(80), LV_SIZE_CONTENT);
+-                            lv_label_set_text(obj, _("mesh listening"));
++                            lv_label_set_text(obj, _("LoRa listening"));
+                             lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+                             lv_obj_set_style_text_line_space(obj, -4, LV_PART_MAIN | LV_STATE_DEFAULT);
+                             {
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 08eca0c..316564f 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -127,17 +127,17 @@ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingReq
+ {
+     switch (status) {
+     case LogMessage::eHeard:
+-        return "heard by mesh";
++        return "TX HEARD";
+     case LogMessage::eNoResponse:
+-        return "no response";
++        return "TX NO RESP";
+     case LogMessage::eAcked:
+-        return "acknowledged";
++        return "TX ACK";
+     case LogMessage::eFailed:
+-        return "failed";
++        return "TX FAIL";
+     case LogMessage::eDeleted:
+-        return "deleted";
++        return "DELETED";
+     default:
+-        return pendingRequest ? "queued" : "sent";
++        return pendingRequest ? "TX QUEUED" : "TX SENT";
+     }
+ }
+ 
+@@ -164,6 +164,7 @@ void itszSetOutgoingStatus(lv_obj_t *panel, const char *text, lv_color_t color)
+     lv_obj_t *statusLabel = panel->spec_attr->children[1];
+     lv_label_set_text(statusLabel, text);
+     lv_obj_set_style_text_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(statusLabel, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+ }
+ } // namespace
+ 
+@@ -2476,21 +2477,22 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
+ 
+     mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
+-    lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
+-    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
+-    lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
++    lv_obj_set_size(mapStatusOverlayLabel, 214, 54);
++    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_CENTER);
++    lv_obj_set_pos(mapStatusOverlayLabel, -14, 0);
+     lv_obj_set_style_bg_color(mapStatusOverlayLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_bg_opa(mapStatusOverlayLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_border_color(mapStatusOverlayLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(mapStatusOverlayLabel, 230, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(mapStatusOverlayLabel, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(mapStatusOverlayLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_radius(mapStatusOverlayLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_pad_left(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_pad_right(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_pad_top(mapStatusOverlayLabel, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_left(mapStatusOverlayLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_right(mapStatusOverlayLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_top(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_text_font(mapStatusOverlayLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_text_color(mapStatusOverlayLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_label_set_long_mode(mapStatusOverlayLabel, LV_LABEL_LONG_WRAP);
+-    lv_label_set_text(mapStatusOverlayLabel, "Map status loading...");
++    lv_label_set_text(mapStatusOverlayLabel, "MESH MAP READY\nSD/offline first");
+ 
+     updateDynamicMapMenu();
+ }
+@@ -2567,12 +2569,36 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+         lv_snprintf(gps, sizeof(gps), "GPS off");
+     }
+ 
+-    const char *tiles = wifiConnected ? "online tiles" : cardDetected ? "SD tiles" : "no tiles";
+-    const char *locs = objectsOnMap > 0 ? "nodes plotted" : nodeCount > 0 ? "nodes lack GPS" : "no node locations";
++    const bool mapUseful = gpsReady && objectsOnMap > 0;
++    const char *tiles = wifiConnected ? "WiFi tiles" : cardDetected ? "SD tiles" : "no tiles";
++    const char *locs = objectsOnMap > 0 ? "nodes located" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
++
++    if (mapUseful) {
++        lv_obj_set_size(mapStatusOverlayLabel, 206, 38);
++        lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
++        lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
++        lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_border_color(mapStatusOverlayLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_text_color(mapStatusOverlayLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    } else {
++        lv_obj_set_size(mapStatusOverlayLabel, 214, 72);
++        lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_CENTER);
++        lv_obj_set_pos(mapStatusOverlayLabel, -14, 0);
++        lv_obj_set_style_border_width(mapStatusOverlayLabel, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_border_color(mapStatusOverlayLabel, gpsReady ? colorBlueGreen : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_text_color(mapStatusOverlayLabel, gpsReady ? colorLightGray : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++    }
+ 
+     char buf[128];
+-    lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
+-                locs);
++    if (mapUseful) {
++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
++                    locs);
++    } else {
++        lv_snprintf(buf, sizeof(buf), "MESH MAP READY\n%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap,
++                    (unsigned int)nodeCount, locs);
++    }
+     lv_label_set_text(mapStatusOverlayLabel, buf);
+     lv_obj_move_foreground(mapStatusOverlayLabel);
+ }
+@@ -3168,7 +3194,7 @@ void TFTView_320x240::loadMap(void)
+ 
+ void TFTView_320x240::updateLocationMap(uint32_t num)
+ {
+-    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d located"), num, nodeCount);
++    lv_label_set_text_fmt(objects.top_map_label, _("Map %d/%d GPS"), num, nodeCount);
+     updateMapStatusOverlay(num);
+ }
+ 
+@@ -5032,11 +5058,20 @@ void TFTView_320x240::addMessage(lv_obj_t *container, uint32_t msgTime, uint32_t
+     add_style_chat_message_style(textLabel);
+ 
+     lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
+-    lv_obj_set_width(statusLabel, 200);
++    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
+     lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
+     lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_text_font(statusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_text_color(statusLabel, itszOutgoingStatusColor(status), LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(statusLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(statusLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(statusLabel, itszOutgoingStatusColor(status), LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_radius(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+     char statusBuf[52];
+     if (requestId) {
+         lv_snprintf(statusBuf, sizeof(statusBuf), "%s #%04x", itszOutgoingStatusText(status, status == LogMessage::eNone),
+@@ -6261,10 +6296,10 @@ void TFTView_320x240::handleTextMessageResponse(uint32_t channelOrNode, const ui
+                                                 : colorYellow,
+                                           LV_PART_MAIN | LV_STATE_DEFAULT);
+             itszSetOutgoingStatus(panel,
+-                                  err       ? "failed / no response"
+-                                  : isChannel ? "sent on channel"
+-                                  : ack       ? "acknowledged"
+-                                              : "heard by mesh",
++                                  err       ? "TX FAIL"
++                                  : isChannel ? "TX SENT (NO READ)"
++                                  : ack       ? "TX ACK"
++                                              : "TX HEARD",
+                                   err       ? colorRed
+                                   : isChannel ? colorMesh
+                                   : ack       ? colorBlueGreen
+@@ -7033,11 +7068,20 @@ void TFTView_320x240::newMessage(uint32_t nodeNum, lv_obj_t *container, uint8_t
+     add_style_new_message_style(msgLabel);
+ 
+     lv_obj_t *statusLabel = lv_label_create(hiddenPanel);
+-    lv_obj_set_width(statusLabel, 160);
++    lv_obj_set_width(statusLabel, LV_SIZE_CONTENT);
+     lv_obj_set_height(statusLabel, LV_SIZE_CONTENT);
+     lv_obj_set_style_text_font(statusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_text_color(statusLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_label_set_text_fmt(statusLabel, "received ch %u", (unsigned int)ch);
++    lv_obj_set_style_text_color(statusLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(statusLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(statusLabel, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(statusLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_radius(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_left(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_right(statusLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_top(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_bottom(statusLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_label_set_text_fmt(statusLabel, "RX CH %u", (unsigned int)ch);
+ 
+     if (state == MeshtasticView::eRunning) {
+         lv_obj_scroll_to_view(hiddenPanel, LV_ANIM_ON);
+@@ -7953,13 +7997,13 @@ void TFTView_320x240::task_handler(void)
+                     lv_obj_set_style_bg_image_src(objects.home_signal_button, &img_home_no_signal_image,
+                                                   LV_PART_MAIN | LV_STATE_DEFAULT);
+                     if (lastHeard == 0) {
+-                        lv_label_set_text(objects.home_signal_label, _("mesh listening\nno packets yet"));
+-                        lv_label_set_text(objects.home_signal_pct_label, _("LoRa idle"));
++                        lv_label_set_text(objects.home_signal_label, _("LoRa listening\nno mesh packets"));
++                        lv_label_set_text(objects.home_signal_pct_label, _("RX idle"));
+                     } else {
+                         char buf[48];
+-                        lv_snprintf(buf, sizeof(buf), _("mesh idle\n>%dm"), (int)(secs_until_offline / 60));
++                        lv_snprintf(buf, sizeof(buf), _("LoRa idle\nlast >%dm"), (int)(secs_until_offline / 60));
+                         lv_label_set_text(objects.home_signal_label, buf);
+-                        lv_label_set_text(objects.home_signal_pct_label, _("LoRa ok"));
++                        lv_label_set_text(objects.home_signal_pct_label, _("mesh quiet"));
+                     }
+                 }
+             }
