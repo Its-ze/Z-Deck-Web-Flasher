@@ -197,3 +197,51 @@ Blockers / next check:
 - Bluetooth stack is callable and T-Deck Bluetooth config is enabled, but pairing/discovery is not proven because Windows saw zero BLE advertisements.
 - Retest after a physical T-Deck reset/replug or after opening the on-device Bluetooth/pairing screen.
 - Second T-Deck still requires physical reset/replug before it can be flashed, verified, or added to the checklist.
+
+### 2026-06-13 12:49 -04:00
+
+Scope: second T-Deck recovery/update and public Bluetooth readiness feature.
+
+Changed:
+- Added a public `Bluetooth readiness` feature card to the flasher page.
+- Appended this run entry after updating the second visible T-Deck.
+
+Repo / release state:
+- Public flasher repo head before this entry: `4bed189 Record hourly readiness bluetooth check`.
+- Local public repo was clean before this change.
+
+Public web checks:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled elements before the edit: `Readiness Log`, `PRODUCTION_READINESS_LOG.md`, `Z-Deck OTA`, `Amber Terminal`, `Slate Signal`, `Arctic High`, and `BACKUP SD`.
+- Gap found: the public page did not mention `Bluetooth`, even though Bluetooth is now part of the production-readiness checks.
+- Fix added: `Bluetooth readiness` feature card describing adapter checks, BLE scan checks, and T-Deck Bluetooth config checks.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed update manifest remained firmware `2.8.0.zdeck36`, pack `0.2.35-cyberdeck`, update mode `app-only`, app size `3697280`, app SHA256 `e7480173d7c7504103ebaf5703a1308a84346c8240ea7a90c261fe7072384a32`.
+
+Hardware / serial checks:
+- Windows serial ports visible at start: `COM17`, `COM21`, and `COM3`.
+- `COM21` was visible again as USB VID `303A` PID `1001` T-Deck app-side serial.
+- `COM21` metadata before update reported firmware `2.8.0.zdeck35`, role `CLIENT`, hardware `T_DECK`.
+- `COM21` entered DFU through the Meshtastic admin API and re-enumerated as bootloader port `COM20`.
+- First bootloader flash attempt with `--before no-reset` failed before any write with a Windows serial configure error.
+- Board returned app-side as `COM21`; a second admin DFU request re-exposed `COM20`.
+- App-only flash then succeeded through `flash-latest-tdeck-build.ps1` using build `20260613-072354-t-deck-tft` with LittleFS skipped.
+- Esptool hash-verified bootloader, partitions, boot_app0, app slot at `0x10000`, and app slot at `0x650000`.
+- `COM21` returned app-side after reset.
+
+On-device config checks:
+- `COM21` metadata after update confirmed firmware `2.8.0.zdeck36`, role `CLIENT`, hardware `T_DECK`.
+- Non-secret readback confirmed role `0`, LoRa modem preset `0`, GPS mode `1`, display timeout `120`, and Bluetooth enabled.
+- No channel names, PSKs, private keys, admin URLs, or full info dumps were stored in this log.
+
+Bluetooth checks:
+- After the zdeck36 app-only flash, `COM21` initially read back Bluetooth disabled.
+- CLI `--set bluetooth.enabled true` reported success but did not persist on readback.
+- Direct Python Meshtastic API write to `localConfig.bluetooth.enabled` plus `writeConfig('bluetooth')` persisted successfully.
+- `COM21` readback then confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+- Python `bleak` BLE scan completed successfully but still found `0` advertisements in a 15 second window.
+
+Blockers / next check:
+- COM21 is now updated to zdeck36 and has Bluetooth enabled, but Windows BLE discovery still does not see advertisements.
+- COM17 was visible but a metadata read hung earlier in this pass; do not stack more serial reads on COM17 until it is physically reset/replugged or it answers a narrow API read.
+- Bluetooth pairing still needs an on-device pairing screen/reset test or a known-good phone pairing attempt.
