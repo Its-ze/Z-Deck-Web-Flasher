@@ -33,9 +33,10 @@ The public beta includes the Z-Deck source patch set under [source/patches](sour
 - `device-ui-sidebar-overlap-fix.patch`
 - `device-ui-ota-controls.patch`
 - `device-ui-wifi-scan.patch`
+- `device-ui-state-diagnostics.patch`
 
 These patches document the custom changes layered on top of upstream Meshtastic firmware. The shipped binaries should be treated as GPLv3 firmware derived from Meshtastic plus these Z-Deck changes.
 
 ## Rebuild Notes
 
-Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The current full source patch also includes the Z-Deck app-only Wi-Fi updater service, active LVGL Settings OTA controls, SD settings backup/restore support, sidebar placement with a fixed gutter/header overlap fix, bounded battery-safe owner-name home header behavior, Wi-Fi scan/select, map-page defaults, compact map controls, real compass/radar/alert position pages, and map tile progress status. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.
+Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The current full source patch also includes the Z-Deck app-only Wi-Fi updater service, active LVGL Settings OTA controls, SD settings backup/restore support, sidebar placement with a fixed gutter/header overlap fix, bounded battery-safe owner-name home header behavior, Wi-Fi scan/select, map-page defaults, compact map controls, real compass/radar/alert position pages, map tile progress status, diagnostics, and Amber Terminal/Slate Signal/Arctic High selectable screen themes. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.

@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.35-cyberdeck - 2026-06-13
+
+Production theme and validation pass for the physical T-Deck UI.
+
+- Rebuilt bundled firmware from `20260613-zdeck36-production-themes-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck36` and pack label to `0.2.35-cyberdeck`.
+- Added three selectable screen themes: `Amber Terminal`, `Slate Signal`, and `Arctic High`.
+- Verified zdeck36 app-only flashing on TDK1 without flashing LittleFS; owner/config survived, GPS produced a live fix, receive worked from the base bridge, and LongFast direct transmit received an ACK from the base node.
+- Kept zdeck35 GPS/MAP labels plus compass/radar/alert pages, compact map menu, diagnostics, OTA/backup repaint fixes, GPS recovery, Wi-Fi scan/select, SD backup/restore, newest-first chats, node-name, hop counter, battery/header, and sidebar fixes.
+- No private channel data, PSKs, channel URLs, Wi-Fi credentials, admin keys, or owner-specific settings are bundled.
 ## Z-Deck 0.2.34-cyberdeck - 2026-06-13
 
 Map GPS/MAP readout hotfix for the physical T-Deck UI.
