@@ -582,3 +582,59 @@ Blockers / next check:
 - Physical theme menu navigation and visual switching were not performed on the T-Deck screen during this pass.
 - Next safe proof is to open the on-device theme menu, select each of `Amber Terminal`, `Slate Signal`, and `Arctic High`, and confirm the home/map/chat/status pages repaint without clipped text or overlap.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
+
+### 2026-06-13 19:15 -04:00
+
+Scope: on-device diagnostics/state surface feature verification.
+
+Concrete feature unit:
+- Verified the current public package still exposes the Z-Deck diagnostics/state surface through the live public page, live OTA metadata, source archive, OTA verifier, workflow status, and non-secret T-Deck readback.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled labels: `diagnostics`, `diagnostic`, `status`, `state`, `Z-Deck OTA`, `0.2.35-cyberdeck`, and `2.8.0.zdeck36`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed release metadata: pack `0.2.35-cyberdeck`, firmware `2.8.0.zdeck36`, update mode `app-only`, and notes include `diagnostics`.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed verifier evidence: hosted `update.json` matches local metadata, hosted app firmware size/SHA256/MD5 matches, SD pre-update backup is required, and app slots stay separate from LittleFS.
+
+Public source archive checked:
+- Archive checked: `source\patches\2026-06-13-zdeck36-public`.
+- Confirmed diagnostics patch: `device-ui-state-diagnostics.patch`.
+- Confirmed diagnostics controls/statuses represented in source: `Z-Deck Diagnostics`, `Z-Deck diagnostics refreshed`, `Primary:`, `SD`, `WiFi`, `nodes`, and `stateLines`.
+- Confirmed state model symbols represented in source: `ZDeckStateModel`, `formatCompact`, `formatDiagnostics`, `formatLine`, `setOta`, `setSd`, `setMap`, and `setChat`.
+- Confirmed subsystem labels represented in source: `OTA`, `SD`, `Map`, and `Chat`.
+- Confirmed state tokens represented in source: `READY`, `BUSY`, `WAIT`, `WARN`, and `ERR`.
+- Confirmed initial state messages represented in source: `No update check yet.`, `SD state not checked.`, `Map not opened yet.`, and `No chat activity yet.`
+- No channel names, PSKs, private keys, admin URLs, Wi-Fi passwords, SD backup contents, node lists, messages, or full info dumps were read or stored.
+
+On-device pages / controls represented:
+- On-device pages represented: Z-Deck diagnostics panel, SD tool panel, Settings/Z-Deck OTA panel, map status overlay, and chat status/state hooks.
+- Controls/status labels represented: `Z-Deck Diagnostics` button, diagnostics refreshed alert, compact subsystem state lines, OTA progress/error state, SD backup/restore/prepare state, map ready/waiting/warning state, and chat activity state.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow metadata read on `COM21` returned firmware `2.8.0.zdeck36`, role `CLIENT`, and hardware `T_DECK`.
+- Narrow non-secret config read on `COM21` confirmed `device.role: 0`, `display.screen_on_secs: 120`, `lora.hop_limit: 3`, `lora.modem_preset: 0`, `bluetooth.enabled: True`, and `bluetooth.mode: 0`.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+
+GitHub checks:
+- Commit checked before this log entry: `2536c87 Record theme readiness check`.
+- Workflows checked for that commit: `Broken Link Checker`, `Release Drafter`, `pages build and deployment`, and `Push on main`.
+- Result: all listed workflows completed with `success`.
+
+Blockers / next check:
+- Physical `Z-Deck Diagnostics` button execution was not pressed on the T-Deck screen during this pass.
+- Next safe proof is to open the diagnostics panel on-device, press/refresh it, and confirm the OTA/SD/Map/Chat rows update without clipped text or overlap while avoiding any secret-bearing details.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
