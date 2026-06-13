@@ -420,3 +420,57 @@ Blockers / next check:
 - GPS lock quality and live position were not read to avoid storing location data in the log.
 - To complete device-side proof, open the T-Deck map stack, cycle `NEXT VIEW` through `COMPASS`, `RADAR`, and `ALERT`, press `CENTER`, and confirm the status label changes from waiting to centered when GPS or positioned nodes are available.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
+
+### 2026-06-13 16:16 -04:00
+
+Scope: chat ordering/send-status/hop counter feature verification.
+
+Concrete feature unit:
+- Verified the current public package still exposes newest-first chats, stable node names, send status, and hop counters through live page/release metadata, the zdeck36 public source archive, OTA verifier evidence, and non-secret T-Deck config readback.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled labels: `chat`, `newest-first`, `send status`, `hop`, `node names`, `0.2.35-cyberdeck`, and `2.8.0.zdeck36`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed release notes include newest-first chats, stable node names, send status, and hop counters.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed verifier evidence: hosted `update.json` matches local metadata, hosted app firmware size/SHA256/MD5 matches, SD pre-update backup is required, and app slots stay separate from LittleFS.
+
+Public source archive checked:
+- Archive checked: `source\patches\2026-06-13-zdeck36-public`.
+- Confirmed files: `device-ui-delivery-status.patch`, `device-ui-state-diagnostics.patch`, and `device-ui-sd-message-journal.patch`.
+- Confirmed delivery-status patch passes hop data through chat message creation and text-message response handling.
+- Confirmed status labels represented in source: `WAIT ACK`, `BCAST TTL`, `TX ACK`, `TX HEARD`, `NO ACK`, `RX CH`, `H?`, and `TTL`.
+- Confirmed source archive README lists chat ordering, send status, and hop counters in the public-safe stack.
+- No chat bodies, node lists, channel names, PSKs, private keys, admin URLs, Wi-Fi passwords, SD backup contents, or full info dumps were read or stored.
+
+On-device pages / controls represented:
+- On-device pages represented: chat list, chats page, message panel, group chat page, and message status label.
+- Controls/status labels represented: send path status, latest chat ordering, ACK wait status, broadcast TTL status, ACK/heard/no-ACK status, and hop/TTL counters.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow metadata read on `COM21` confirmed firmware `2.8.0.zdeck36`, role `CLIENT`, and hardware `T_DECK`.
+- Narrow non-secret config read on `COM21` confirmed `device.role: 0`, `display.screen_on_secs: 120`, `lora.hop_limit: 3`, and `lora.modem_preset: 0`.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+
+GitHub checks:
+- Commit checked before this log entry: `669ed2c Record map GPS compass readiness check`.
+- Workflows checked for that commit: `Scheduled`, `Broken Link Checker`, `Release Drafter`, `pages build and deployment`, and `Push on main`.
+- Result: all listed workflows completed with `success`.
+
+Blockers / next check:
+- Physical chat ordering/status rendering was not visually inspected on the T-Deck screen during this pass.
+- No live send/receive test was run to avoid unsolicited mesh traffic; next safe proof is an approved short LongFast/private two-device test that verifies latest chat ordering and status transitions.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
