@@ -314,3 +314,52 @@ Blockers / next check:
 - Bluetooth stack is callable and COM21 has Bluetooth enabled, but Windows still saw zero BLE advertisements; pairing/discovery is not proven.
 - Retest Bluetooth after opening the on-device Bluetooth/pairing screen or physically resetting/replugging the T-Deck.
 - OTA `APPLY` still needs a physical on-device `Settings > Z-Deck OTA` button test because the custom OTA path is UI-driven, not serial-driven.
+
+### 2026-06-13 14:14 -04:00
+
+Scope: SD backup/restore guardrails feature verification.
+
+Concrete feature unit:
+- Verified the `SD settings backup / restore` feature path is still wired through public release metadata, hosted page copy, on-device OTA controls, and firmware backup/restore code.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled labels: `SD settings backup`, `BACKUP SD`, `RESTORE SD`, `Z-Deck OTA`, `0.2.35-cyberdeck`, and `2.8.0.zdeck36`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed release metadata: pack `0.2.35-cyberdeck`, firmware `2.8.0.zdeck36`, update mode `app-only`, backup enabled `true`, backup location `sd`, backup path `/zdeck/backups/preferences.proto`, preserve list count `9`, firmware size `3697280`.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed verifier evidence: hosted `update.json` matches local metadata, hosted app firmware size/SHA256/MD5 matches, SD pre-update backup is required, manifest app slots stay separate from LittleFS.
+
+On-device pages / controls represented by source:
+- On-device page represented: `Settings > Z-Deck OTA`.
+- Controls represented: `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, `RESTORE SD`.
+- Source evidence: `itsz\device-ui-ota-controls.patch` creates `BACKUP SD` and `RESTORE SD` buttons, calls `nodeDB->backupPreferences(...BackupLocation_SD)`, and requires a second `RESTORE SD` press before restore/reboot.
+- Source evidence: `src\itsz\ZDeckUpdateService.cpp` calls `nodeDB->backupPreferences(...BackupLocation_SD)` before OTA write.
+- Source evidence: `src\mesh\NodeDB.h` defines the SD backup file as `/zdeck/backups/preferences.proto`.
+- Source evidence: `src\mesh\NodeDB.cpp` contains SD backup and restore handling for `BackupLocation_SD`.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- No SD backup file, channel names, PSKs, private keys, admin URLs, Wi-Fi passwords, or full info dumps were read or stored.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error` with problem `CM_PROB_FAILED_ADD`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`, `named_count=0`, `mesh_like_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+
+GitHub checks:
+- Commit checked before this log entry: `822e533 Record deploy and bluetooth readiness check`.
+- Workflows checked for that commit: `Broken Link Checker`, `Release Drafter`, `pages build and deployment`, and `Push on main`.
+- Result: all listed workflows completed with `success`.
+
+Blockers / next check:
+- Physical `BACKUP SD` / `RESTORE SD` button execution was not pressed remotely because the custom controls are on-device UI actions.
+- To complete device-side proof, use a T-Deck with SD installed, open `Settings > Z-Deck OTA`, press `BACKUP SD`, confirm the status label reports backup success, then verify restore only proceeds after the second guarded `RESTORE SD` press.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
