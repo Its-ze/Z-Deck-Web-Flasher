@@ -528,3 +528,57 @@ Blockers / next check:
 - No live Wi-Fi SSID/password config read was performed by design because those values are private.
 - Next safe proof is to open the on-device Wi-Fi settings panel, press `SCAN`, confirm the status changes through `WAIT`/`Scanning...`, pick a visible network from the dropdown, and confirm it fills the SSID field without revealing or logging the network password.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
+
+### 2026-06-13 18:13 -04:00
+
+Scope: on-device selectable themes feature verification.
+
+Concrete feature unit:
+- Verified the current public package still exposes the selectable on-device theme stack, including `Amber Terminal`, `Slate Signal`, and `Arctic High`, through the live public page, live OTA metadata, source archive, OTA verifier, and non-secret T-Deck readback.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled labels: `theme`, `themes`, `Amber Terminal`, `Slate Signal`, `Arctic High`, `Z-Deck OTA`, `0.2.35-cyberdeck`, and `2.8.0.zdeck36`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed release metadata: pack `0.2.35-cyberdeck`, firmware `2.8.0.zdeck36`, update mode `app-only`, and notes state that the build adds three selectable on-device screen themes.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed verifier evidence: hosted `update.json` matches local metadata, hosted app firmware size/SHA256/MD5 matches, SD pre-update backup is required, and app slots stay separate from LittleFS.
+
+Public source archive checked:
+- Archive checked: `source\patches\2026-06-13-zdeck36-public`.
+- Confirmed theme definitions: `ThemeID::AmberTerminal`, `ThemeID::SlateSignal`, `ThemeID::ArcticHigh`, and existing `ThemeID::Q10Classic`.
+- Confirmed theme names represented in source: `Amber Terminal`, `Slate Signal`, and `Arctic High`.
+- Confirmed theme menu/source path: `ThemeMenu`, `themeMenu()`, `Q10 Classic Theme`, and `kThemes`.
+- Confirmed source archive README states that existing theme IDs remain stable and saved configs continue to resolve safely.
+- No channel names, PSKs, private keys, admin URLs, Wi-Fi passwords, SD backup contents, node lists, messages, or full info dumps were read or stored.
+
+On-device pages / controls represented:
+- On-device pages represented: display/theme menu, home screen theme rendering, map/compass pages that include `Themes.h`, and Settings/Z-Deck OTA release status surface.
+- Controls/status labels represented: theme menu entry, selectable theme rows, active theme rendering, `Amber Terminal`, `Slate Signal`, `Arctic High`, `Q10 Classic Theme`, and release current/status text.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow metadata read on `COM21` returned firmware `2.8.0.zdeck36`, role `CLIENT`, and hardware `T_DECK`.
+- Narrow non-secret config read on `COM21` confirmed `device.role: 0`, `display.screen_on_secs: 120`, `lora.hop_limit: 3`, `lora.modem_preset: 0`, `bluetooth.enabled: True`, and `bluetooth.mode: 0`.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+
+GitHub checks:
+- Commit checked before this log entry: `3faa506 Record wifi setup readiness check`.
+- Workflows checked for that commit: `Release Drafter`, `Broken Link Checker`, `pages build and deployment`, and `Push on main`.
+- Result: all listed workflows completed with `success`.
+
+Blockers / next check:
+- Physical theme menu navigation and visual switching were not performed on the T-Deck screen during this pass.
+- Next safe proof is to open the on-device theme menu, select each of `Amber Terminal`, `Slate Signal`, and `Arctic High`, and confirm the home/map/chat/status pages repaint without clipped text or overlap.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
