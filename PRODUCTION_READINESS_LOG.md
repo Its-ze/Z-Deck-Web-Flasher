@@ -474,3 +474,57 @@ Blockers / next check:
 - Physical chat ordering/status rendering was not visually inspected on the T-Deck screen during this pass.
 - No live send/receive test was run to avoid unsolicited mesh traffic; next safe proof is an approved short LongFast/private two-device test that verifies latest chat ordering and status transitions.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
+
+### 2026-06-13 17:14 -04:00
+
+Scope: Wi-Fi scan/select setup feature verification.
+
+Concrete feature unit:
+- Verified the current public package still exposes the on-device Wi-Fi scan/select setup path through the live public page, live OTA metadata, source archive, OTA verifier, and non-secret T-Deck readback.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled labels: `Wi-Fi`, `Scan`, `select`, `settings`, `Z-Deck OTA`, `0.2.35-cyberdeck`, and `2.8.0.zdeck36`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed release metadata: pack `0.2.35-cyberdeck`, firmware `2.8.0.zdeck36`, update mode `app-only`, and notes include `Wi-Fi scan/select`.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed verifier evidence: hosted `update.json` matches local metadata, hosted app firmware size/SHA256/MD5 matches, SD pre-update backup is required, and app slots stay separate from LittleFS.
+
+Public source archive checked:
+- Archive checked: `source\patches\2026-06-13-zdeck36-public`.
+- Confirmed Wi-Fi scan/select source symbols: `wifiScanButton`, `wifiNetworkDropdown`, `wifiScanStatusLabel`, `scanWifiNetworks`, `ui_event_wifi_scan_button`, and `ui_event_wifi_network_dropdown`.
+- Confirmed Wi-Fi setup labels/statuses represented in source: `SCAN`, `WAIT`, `Press Scan`, `Scanning...`, `Scanning nearby WiFi...`, `Found %u networks. Pick one.`, `No networks found`, `Scan unavailable`, `Open network selected. Press OK.`, and `Network selected. Enter password, then OK.`
+- Confirmed source event path writes selected network text into the existing Wi-Fi SSID field and focuses the password field for secured networks.
+- No SSIDs, Wi-Fi passwords, channel names, PSKs, private keys, admin URLs, SD backup contents, node lists, messages, or full info dumps were read or stored.
+
+On-device pages / controls represented:
+- On-device pages represented: settings Wi-Fi panel, map/internet Wi-Fi button path, and Settings/Z-Deck OTA network status surface.
+- Controls/status labels represented: Wi-Fi button, `SCAN` button, Wi-Fi network dropdown, SSID field, password field, scan status label, `OK` action, `WIFI`, `SET WIFI`, `EDIT WIFI`, `WIFI ON`, `WIFI OFF`, and `NO WIFI`.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow metadata read on `COM21` returned firmware `2.8.0.zdeck36`, role `CLIENT`, and hardware `T_DECK`.
+- Narrow non-secret config read on `COM21` confirmed `device.role: 0`, `display.screen_on_secs: 120`, `lora.hop_limit: 3`, and `lora.modem_preset: 0`.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+
+GitHub checks:
+- Commit checked before this log entry: `233fc69 Record chat status readiness check`.
+- Workflows checked for that commit: `Release Drafter`, `Broken Link Checker`, `pages build and deployment`, and `Push on main`.
+- Result: all listed workflows completed with `success`.
+
+Blockers / next check:
+- Physical `SCAN` button execution and dropdown selection were not pressed on the T-Deck screen during this pass.
+- No live Wi-Fi SSID/password config read was performed by design because those values are private.
+- Next safe proof is to open the on-device Wi-Fi settings panel, press `SCAN`, confirm the status changes through `WAIT`/`Scanning...`, pick a visible network from the dropdown, and confirm it fills the SSID field without revealing or logging the network password.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
