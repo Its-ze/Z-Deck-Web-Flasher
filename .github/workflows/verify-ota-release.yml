@@ -1,0 +1,33 @@
+name: Verify OTA Release
+
+on:
+  push:
+    paths:
+      - "update.json"
+      - "manifest.json"
+      - "firmware/**"
+      - "tools/verify-ota-release.py"
+      - ".github/workflows/verify-ota-release.yml"
+  pull_request:
+    paths:
+      - "update.json"
+      - "manifest.json"
+      - "firmware/**"
+      - "tools/verify-ota-release.py"
+      - ".github/workflows/verify-ota-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify app-only OTA metadata
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify OTA release metadata
+        run: python3 tools/verify-ota-release.py

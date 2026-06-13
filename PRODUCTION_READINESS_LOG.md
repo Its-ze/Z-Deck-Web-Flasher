@@ -245,3 +245,32 @@ Blockers / next check:
 - COM21 is now updated to zdeck36 and has Bluetooth enabled, but Windows BLE discovery still does not see advertisements.
 - COM17 was visible but a metadata read hung earlier in this pass; do not stack more serial reads on COM17 until it is physically reset/replugged or it answers a narrow API read.
 - Bluetooth pairing still needs an on-device pairing screen/reset test or a known-good phone pairing attempt.
+
+### 2026-06-13 13:07 -04:00
+
+Scope: OTA release verification and app-only update guardrail.
+
+Changed:
+- Added `tools/verify-ota-release.py` to validate the public OTA update contract.
+- Added `.github/workflows/verify-ota-release.yml` so future update metadata, manifest, and firmware artifact changes are checked in GitHub Actions.
+
+Public OTA checks:
+- Page/control represented: on-device `Settings > Z-Deck OTA` block with `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, and guarded `RESTORE SD`.
+- Local command checked: `python tools\verify-ota-release.py`.
+- Live command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed local and hosted `update.json` describe firmware `2.8.0.zdeck36`, pack `0.2.35-cyberdeck`, update mode `app-only`.
+- Confirmed OTA firmware path is `firmware/zdeck-2.8.0-zdeck36-public/zdeck-firmware.bin`, not LittleFS or a factory image.
+- Confirmed app size `3697280`, SHA256 `e7480173d7c7504103ebaf5703a1308a84346c8240ea7a90c261fe7072384a32`, and MD5 `56a3cbe5f1f6d323e420edcd234a9563` match local and hosted bytes.
+- Confirmed `manifest.json` app slot offsets `0x10000` and `0x650000` point at the same app firmware payload, while LittleFS remains separate at `0xc90000`.
+- Confirmed update metadata requires SD pre-update backup at `/zdeck/backups/preferences.proto` and preserves Meshtastic config, channels, keys, owner settings, SD chat journal, and SD settings backup.
+- Confirmed installed `0.2.35-cyberdeck` / `2.8.0.zdeck36` devices should report current/no update against this manifest.
+
+Hardware / serial checks:
+- Windows serial ports visible during this pass: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` are visible as ESP32-S3/T-Deck app-side serial ports.
+- No channel names, PSKs, private keys, admin URLs, Wi-Fi passwords, or full info dumps were stored in this log.
+
+Blockers / next check:
+- The custom OTA `CHECK` and `APPLY` handlers are exposed through the T-Deck UI path, not as a Meshtastic serial command, so this pass verified the hosted app-only release bundle and preservation contract but did not remotely press the on-device `APPLY` button.
+- ARP did not show a clear T-Deck LAN IP on `192.168.50.0/24`, so there was no reachable network surface to watch the device pull the update.
+- To complete the physical OTA apply test, connect the T-Deck to Wi-Fi, open `Settings > Z-Deck OTA`, press `CHECK`, then press `APPLY`; the expected result for zdeck36 already installed is current/no update.
