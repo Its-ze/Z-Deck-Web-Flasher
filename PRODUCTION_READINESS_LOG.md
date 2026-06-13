@@ -153,3 +153,47 @@ Bluetooth checks:
 Blockers / next check:
 - BLE scan did not yet prove T-Deck advertising or pairing; retest after the T-Deck is reset/replugged or Bluetooth pairing mode is visible on-device.
 - The second T-Deck was not present on USB during this pass; it still needs physical reset/replug before flashing or verification.
+
+### 2026-06-13 11:53 -04:00
+
+Scope: hourly public-release surface and Bluetooth usability bug check.
+
+Changed:
+- No firmware or private settings were changed.
+- Appended this evidence entry to keep the production checklist current.
+
+Repo / release state:
+- Public flasher repo head before this entry: `857df98 Link production readiness log`.
+- Local public repo was clean before this log update.
+
+Public web checks:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled elements: `2.8.0.zdeck36`, `0.2.35-cyberdeck`, `Readiness Log`, `PRODUCTION_READINESS_LOG.md`, `Z-Deck OTA`, `Amber Terminal`, `Slate Signal`, `Arctic High`, `Wi-Fi`, and `BACKUP SD`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed update manifest: firmware `2.8.0.zdeck36`, pack `0.2.35-cyberdeck`, update mode `app-only`, app size `3697280`, app SHA256 `e7480173d7c7504103ebaf5703a1308a84346c8240ea7a90c261fe7072384a32`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck36-public/zdeck-firmware.bin`.
+- Confirmed hosted app binary: HTTP `200`, content type `application/octet-stream`, content length `3697280`.
+- Endpoint checked: `https://raw.githubusercontent.com/Its-ze/Z-Deck-Web-Flasher/main/PRODUCTION_READINESS_LOG.md`.
+- Confirmed public raw readiness log includes the production title, Bluetooth check matrix, and run entries.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17` as USB VID `303A` PID `1001` T-Deck app-side serial, and `COM3` as USB VID `3402` PID `0900`.
+- Second T-Deck was still not visible as an app or bootloader port during this pass.
+
+On-device config checks:
+- Page/control area represented by API readback: T-Deck Bluetooth, role, LoRa preset, and GPS configuration.
+- `COM17` readback confirmed Bluetooth enabled, Bluetooth mode `0`, role `0` client, LoRa modem preset `0`, and GPS mode `1`.
+- No channel names, PSKs, private keys, admin URLs, or full info dumps were read into this log.
+
+Bluetooth checks:
+- Windows Bluetooth service `bthserv` was running.
+- `DeviceAssociationService` was running.
+- Working Bluetooth adapter remained present: `USB\VID_0489&PID_E112\00E04C000001`, status `OK`.
+- Second Bluetooth adapter remained in error state: `USB\VID_0B05&PID_1D70\6&D596480&0&2`, status `Error`.
+- Python `bleak` BLE scan completed successfully.
+- BLE scan result remained `0` advertisements during a 12 second scan window.
+
+Blockers / next check:
+- Bluetooth stack is callable and T-Deck Bluetooth config is enabled, but pairing/discovery is not proven because Windows saw zero BLE advertisements.
+- Retest after a physical T-Deck reset/replug or after opening the on-device Bluetooth/pairing screen.
+- Second T-Deck still requires physical reset/replug before it can be flashed, verified, or added to the checklist.
