@@ -363,3 +363,60 @@ Blockers / next check:
 - Physical `BACKUP SD` / `RESTORE SD` button execution was not pressed remotely because the custom controls are on-device UI actions.
 - To complete device-side proof, use a T-Deck with SD installed, open `Settings > Z-Deck OTA`, press `BACKUP SD`, confirm the status label reports backup success, then verify restore only proceeds after the second guarded `RESTORE SD` press.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
+
+### 2026-06-13 15:14 -04:00
+
+Scope: map/GPS/compass feature verification.
+
+Concrete feature unit:
+- Verified the current public package still exposes the map/GPS/compass feature stack and that the plugged-in T-Deck still has production GPS config enabled without reading or storing coordinates.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled labels: `GPS`, `map`, `compass`, `radar`, `distance`, `0.2.35-cyberdeck`, `2.8.0.zdeck36`, and `Z-Deck OTA`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed release notes include GPS/MAP coordinate labels, real compass/radar/alert pages, compact map options, and GPS/map recovery.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed hosted `update.json` and hosted app firmware still match local metadata and hashes for `0.2.35-cyberdeck` / `2.8.0.zdeck36`.
+
+Public source archive checked:
+- Archive checked: `source\patches\2026-06-13-zdeck36-public`.
+- Confirmed source archive includes `device-ui-map-pages.patch`, `device-ui-map-switching-fix.patch`, `device-ui-map-autocenter.patch`, `device-ui-map-fullscreen.patch`, and `device-ui-compass-pages.patch`.
+- Confirmed map pages include `Live compass` / `COMPASS`, `DF/Radar` / `RADAR`, and `Distance alert` / `ALERT`.
+- Confirmed fullscreen map descriptions include `GPS fix and nearest node bearing` and `Positioned nodes, nearest range, and scan status`.
+- Confirmed auto-center status labels include `CENTER`, `NEXT VIEW`, `Centered on GPS`, and `Waiting for GPS or node positions`.
+- Confirmed compass page source creates a dedicated compass/radar panel and uses dynamic compass mode handling.
+
+On-device pages / controls represented:
+- On-device page represented: map page stack.
+- Controls represented: `NEXT VIEW`, `CENTER`, `COMPASS`, `RADAR`, `ALERT`, map status overlay, and map options area.
+- Status labels represented: `GPS off`, `nodes located`, `nodes lack GPS`, `no node coords`, `Centered on GPS`, and `Waiting for GPS or node positions`.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow metadata read on `COM21` confirmed firmware `2.8.0.zdeck36`, role `CLIENT`, hardware `T_DECK`.
+- Narrow non-secret GPS config read on `COM21` confirmed `position.gps_mode: 1`, `position.rx_gpio: 44`, `position.tx_gpio: 43`, `position.gps_update_interval: 5`, `position.gps_attempt_time: 600`, and `power.is_power_saving: False`.
+- No live latitude, longitude, channel names, PSKs, private keys, admin URLs, Wi-Fi passwords, SD backup contents, or full info dumps were read or stored.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error` with problem `CM_PROB_FAILED_ADD`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`, `named_count=0`, `mesh_like_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+
+GitHub checks:
+- Commit checked before this log entry: `be6eb7a Record SD guardrail readiness check`.
+- Workflows checked for that commit: `Broken Link Checker`, `Release Drafter`, `pages build and deployment`, and `Push on main`.
+- Result: all listed workflows completed with `success`.
+
+Blockers / next check:
+- Physical map/compass screen rendering was not visually inspected on the T-Deck during this pass.
+- GPS lock quality and live position were not read to avoid storing location data in the log.
+- To complete device-side proof, open the T-Deck map stack, cycle `NEXT VIEW` through `COMPASS`, `RADAR`, and `ALERT`, press `CENTER`, and confirm the status label changes from waiting to centered when GPS or positioned nodes are available.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
