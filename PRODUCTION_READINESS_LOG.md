@@ -694,3 +694,63 @@ Blockers / next check:
 - Physical home/header/sidebar rendering was not visually inspected on the T-Deck screen during this pass.
 - Next safe proof is to inspect the home screen and several top-panel pages on-device with the sidebar on both left and right, confirming the battery percent, owner title, right status icons, Home RX row, and navigation rail do not overlap.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
+
+### 2026-06-13 21:16 -04:00
+
+Scope: public GitHub Pages artifact and release traceability verification.
+
+Concrete feature unit:
+- Verified the current public artifact set for `0.2.35-cyberdeck` / `2.8.0.zdeck36` end-to-end and added the missing public Git tag anchor for this package.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed live page HTTP content includes `Z-Deck Web Flasher`, `0.2.35-cyberdeck`, `2.8.0.zdeck36`, `Install`, `Web Serial`, `Z-Deck OTA`, `features`, and `source`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed `update.json` returned HTTP `200`, content type `application/json; charset=utf-8`, pack `0.2.35-cyberdeck`, firmware `2.8.0.zdeck36`, update mode `app-only`, firmware URL over HTTPS, firmware size `3697280`, SD backup enabled, and backup path `/zdeck/backups/preferences.proto`.
+- Endpoint checked: hosted firmware binary URL from `update.json`.
+- Confirmed firmware `HEAD` returned HTTP `200`, content type `application/octet-stream`, and content length `3697280`.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed verifier evidence: hosted `update.json` matches local metadata, hosted app firmware size/SHA256/MD5 matches, SD pre-update backup is required, and app slots stay separate from LittleFS.
+
+Public source / package artifacts checked:
+- Firmware package checked: `firmware\zdeck-2.8.0-zdeck36-public`.
+- Confirmed package files: `bootloader.bin`, `boot_app0.bin`, `partitions.bin`, `zdeck-factory.bin`, `zdeck-firmware.bin`, `zdeck-littlefs.bin`, `zdeck-meshtastic-metadata.json`, `SHA256SUMS.json`, and `README.md`.
+- Confirmed `SHA256SUMS.json` lists six binary artifacts and the app binary hash matches `update.json`.
+- Confirmed package README states firmware `2.8.0.zdeck36`, pack `0.2.35-cyberdeck`, build `20260613-zdeck36-production-themes-t-deck-tft`, app slots at `0x10000` and `0x650000`, and app-only OTA preservation.
+- Source archive checked: `source\patches\2026-06-13-zdeck36-public`.
+- Confirmed archive includes `README.md`, `meshtastic-firmware-src.patch`, `zdeck-full-source.patch`, and the public-safe patch stack.
+- Confirmed source archive README states no private channel data, PSKs, channel URLs, Wi-Fi credentials, admin keys, owner-specific settings, or saved chats are bundled.
+
+GitHub checks:
+- Commit checked before this log entry: `6e22603 Record UI overlap readiness check`.
+- Workflows checked for that commit: `Release Drafter`, `Broken Link Checker`, `Push on main`, and `pages build and deployment`.
+- Result: all listed workflows completed with `success`.
+- GitHub tag/release check before this log entry found existing tags/releases only through older public versions; no `zdeck-0.2.35-cyberdeck` tag or release was present.
+- Action from this run: create and push public tag `zdeck-0.2.35-cyberdeck` after committing this log entry, so the current public Pages package has a Git tag anchor.
+
+On-device pages / controls represented:
+- On-device pages represented by artifacts: first-install web flasher, Settings/Z-Deck OTA, SD backup/restore controls, Wi-Fi scan/select setup, diagnostics, map/GPS/compass pages, chat/status pages, and sidebar/settings surfaces.
+- Controls/status labels represented: `Install`, `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, `RESTORE SD`, `SCAN`, `Z-Deck OTA`, and update progress/status text.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow metadata read on `COM21` returned firmware `2.8.0.zdeck36`, role `CLIENT`, and hardware `T_DECK`.
+- Narrow non-secret config read on `COM21` confirmed `device.role: 0`, `display.screen_on_secs: 120`, `lora.hop_limit: 3`, `lora.modem_preset: 0`, `power.is_power_saving: False`, `bluetooth.enabled: True`, and `bluetooth.mode: 0`.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+
+Blockers / next check:
+- GitHub release object for `zdeck-0.2.35-cyberdeck` was not created by this pass; tag traceability is added, but a formal release page/assets would still need a release-create step.
+- Live page copy did not literally include the string `update.json`, though the live endpoint itself passed.
+- Physical on-device OTA/apply from the public artifact was not pressed during this pass.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
