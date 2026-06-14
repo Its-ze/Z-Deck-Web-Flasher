@@ -812,3 +812,60 @@ Blockers / next check:
 - Physical on-device OTA/apply from `Settings > Z-Deck OTA` was not pressed during this pass.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
 - Formal GitHub release object for `zdeck-0.2.35-cyberdeck` remains separate from this page/link improvement.
+
+### 2026-06-13 23:19 -04:00
+
+Scope: formal public GitHub release object for `zdeck-0.2.35-cyberdeck`.
+
+Concrete feature unit:
+- Created the missing formal GitHub prerelease for tag `zdeck-0.2.35-cyberdeck`.
+- Release URL: `https://github.com/Its-ze/Z-Deck-Web-Flasher/releases/tag/zdeck-0.2.35-cyberdeck`.
+- Release is public, non-draft, and marked prerelease.
+- Release notes are public-safe and do not include private channel data, PSKs, channel URLs, Wi-Fi passwords, admin keys, owner-specific settings, or saved chats.
+
+Public release assets checked:
+- `bootloader.bin`: `15104` bytes.
+- `partitions.bin`: `3072` bytes.
+- `boot_app0.bin`: `8192` bytes.
+- `zdeck-firmware.bin`: `3697280` bytes.
+- `zdeck-factory.bin`: `3762816` bytes.
+- `zdeck-littlefs.bin`: `3538944` bytes.
+- `SHA256SUMS.json`: `1009` bytes.
+- `zdeck-meshtastic-metadata.json`: `2208` bytes.
+- `README.md`: `1410` bytes.
+- Public GitHub API release check confirmed `assetCount: 9`.
+
+Public pages / controls checked:
+- Release page checked: `https://github.com/Its-ze/Z-Deck-Web-Flasher/releases/tag/zdeck-0.2.35-cyberdeck`.
+- Confirmed release page returned HTTP `200`.
+- Page checked live: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed live page returned HTTP `200` and still includes visible `update.json` text plus `href="update.json"`.
+- Endpoint checked live: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed live manifest returned HTTP `200`, pack `0.2.35-cyberdeck`, firmware `2.8.0.zdeck36`, update mode `app-only`, and firmware size `3697280`.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed verifier evidence: hosted `update.json` matches local metadata, hosted app firmware size/SHA256/MD5 matches, SD pre-update backup is required, and app slots stay separate from LittleFS.
+
+On-device pages / controls represented:
+- On-device page represented by the release and OTA manifest: `Settings > Z-Deck OTA`.
+- Controls/status labels represented: `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, guarded `RESTORE SD`, app-only OTA mode, SD pre-update backup, and update progress/status text.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow non-secret config read on `COM21` confirmed `device.role: 0`, `display.screen_on_secs: 120`, `bluetooth.enabled: True`, `bluetooth.mode: 0`, and `power.is_power_saving: False`.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed Bluetooth was enabled.
+
+Blockers / next check:
+- Physical on-device OTA/apply from `Settings > Z-Deck OTA` was not pressed during this pass.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
+- The release object now exists; future release checks should verify both Pages `update.json` and the GitHub release page/assets.
