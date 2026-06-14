@@ -40,6 +40,16 @@ a {
   color: inherit;
 }
 
+.inline-link {
+  color: var(--cyan);
+  text-decoration-color: color-mix(in srgb, var(--cyan) 62%, transparent);
+  text-underline-offset: 3px;
+}
+
+.inline-link:hover {
+  color: var(--green);
+}
+
 .app-shell {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
