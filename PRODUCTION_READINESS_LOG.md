@@ -638,3 +638,59 @@ Blockers / next check:
 - Physical `Z-Deck Diagnostics` button execution was not pressed on the T-Deck screen during this pass.
 - Next safe proof is to open the diagnostics panel on-device, press/refresh it, and confirm the OTA/SD/Map/Chat rows update without clipped text or overlap while avoiding any secret-bearing details.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
+
+### 2026-06-13 20:15 -04:00
+
+Scope: battery/header/sidebar overlap guardrail verification.
+
+Concrete feature unit:
+- Verified the current public package still exposes the battery/header/sidebar overlap fixes through the live public page, live OTA metadata, source archive, OTA verifier, workflow status, and non-secret T-Deck readback.
+
+Public pages / controls checked:
+- Page checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/`.
+- Confirmed visible/crawled labels: `battery`, `header`, `sidebar`, `overlap`, `Z-Deck OTA`, `0.2.35-cyberdeck`, and `2.8.0.zdeck36`.
+- Endpoint checked: `https://its-ze.github.io/Z-Deck-Web-Flasher/update.json`.
+- Confirmed release metadata: pack `0.2.35-cyberdeck`, firmware `2.8.0.zdeck36`, update mode `app-only`, preserve list includes `sidebar_layout`, and notes include `battery/header/sidebar fixes`.
+- Command checked: `python tools\verify-ota-release.py --live`.
+- Confirmed verifier evidence: hosted `update.json` matches local metadata, hosted app firmware size/SHA256/MD5 matches, SD pre-update backup is required, and app slots stay separate from LittleFS.
+
+Public source archive checked:
+- Archive checked: `source\patches\2026-06-13-zdeck36-public`.
+- Confirmed README states this release keeps `battery/header/sidebar fixes`.
+- Confirmed sidebar files: `device-ui-sidebar-layout.patch` and `device-ui-sidebar-overlap-fix.patch`.
+- Confirmed sidebar controls/statuses represented in source: `Sidebar: right`, `Sidebar: left`, `zDeckSidebarButton`, `/zdeck_sidebar.cfg`, `zDeckSidebarWidth`, `zDeckSidebarGutter`, `zDeckSidebarContentWidth`, `zDeckSidebarRightX`, and fixed placement for top/header panels.
+- Confirmed home overlap guardrail: `device-ui-home-layout-fix.patch` moves `HomeSignalLabel` to `42,42`, widens it to `LV_PCT(80)`, and keeps `HomeSignalPctLabel` inside a bounded row.
+- Confirmed header/battery guardrails in full source patch: `drawBoundedHeaderTitle`, reserved left/right header lanes, `hasBattery`, `displayChargePercent`, `showUsbOnly`, clamped battery fill dimensions, visible battery percent text, and `statusLeftEndX` reserved before drawing the title.
+- Confirmed public page copy states the right-side sidebar keeps top panels clear of the rail and the home header clips owner title between the battery/percent block and right-side status icons.
+- No channel names, PSKs, private keys, admin URLs, Wi-Fi passwords, SD backup contents, node lists, messages, or full info dumps were read or stored.
+
+On-device pages / controls represented:
+- On-device pages represented: home screen, common header/status bar, top panels, basic settings sidebar placement control, map/chat/settings top panels, and Settings/Z-Deck OTA release status surface.
+- Controls/status labels represented: battery icon, battery percent text, owner/header title, right-side status icons, navigation/sidebar rail, `Sidebar: right`, `Sidebar: left`, `HomeSignalLabel`, `HomeSignalPctLabel`, and `Z-Deck OTA`.
+
+Hardware / serial checks:
+- Windows serial ports visible: `COM17`, `COM21`, and `COM3`.
+- `COM17` and `COM21` were visible as USB VID `303A` PID `1001` ESP32-S3/T-Deck app-side serial ports.
+- `COM3` remained visible as USB VID `3402` PID `0900`.
+- Narrow metadata read on `COM21` returned firmware `2.8.0.zdeck36`, role `CLIENT`, and hardware `T_DECK`.
+- Narrow non-secret config read on `COM21` confirmed `device.role: 0`, `display.screen_on_secs: 120`, `lora.hop_limit: 3`, `lora.modem_preset: 0`, `power.is_power_saving: False`, `bluetooth.enabled: True`, and `bluetooth.mode: 0`.
+
+Bluetooth checks:
+- Windows service `bthserv` was running.
+- Windows service `DeviceAssociationService` was running.
+- Bluetooth adapter `USB\VID_0489&PID_E112\00E04C000001` was `OK`.
+- Bluetooth adapter `USB\VID_0B05&PID_1D70\6&D596480&0&2` remained in `Error`.
+- Microsoft Bluetooth LE Enumerator was `OK`.
+- Python `bleak` scan completed successfully for 12 seconds.
+- BLE scan result: `device_count=0`.
+- Narrow non-secret Meshtastic read on `COM21` confirmed `bluetooth.enabled: True` and `bluetooth.mode: 0`.
+
+GitHub checks:
+- Commit checked before this log entry: `6e25881 Record diagnostics readiness check`.
+- Workflows checked for that commit: `Broken Link Checker`, `Release Drafter`, `pages build and deployment`, and `Push on main`.
+- Result: all listed workflows completed with `success`.
+
+Blockers / next check:
+- Physical home/header/sidebar rendering was not visually inspected on the T-Deck screen during this pass.
+- Next safe proof is to inspect the home screen and several top-panel pages on-device with the sidebar on both left and right, confirming the battery percent, owner title, right status icons, Home RX row, and navigation rail do not overlap.
+- Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
