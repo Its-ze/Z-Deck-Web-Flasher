@@ -1,6 +1,6 @@
 # Z-Deck Web Flasher
 
-Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.35-cyberdeck**.
+Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.36-cyberdeck**.
 
 This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped public build. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
 
@@ -43,8 +43,8 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 
 ## Included Build
 
-- Release label: `Z-Deck 0.2.35-cyberdeck`
-- Firmware base version: `2.8.0.zdeck36`
+- Release label: `Z-Deck 0.2.36-cyberdeck`
+- Firmware base version: `2.8.0.zdeck37`
 - Target: `t-deck-tft`
 - LoRa region: `US` compiled default for public LongFast reliability
 - Chip: `ESP32-S3`
@@ -58,6 +58,7 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 - GPS defaults: fresh T-Deck installs keep GPS enabled on RX44/TX43 and disable the inherited T-Deck power-saving default so the receiver stays active.
 - Offline maps: SD preparation creates Z-Deck map folders, while the real tile loader stays on `/maps/zdeck-mesh` by default and filters non-tile page folders from the tile-style dropdown. The on-device map reports drawing, ready, missing-tile, and cached-tile status instead of staying stuck on a loading message. If GPS or peer locations arrive after opening the map, the view recenters and stale saved map-home data no longer prevents recovery to the live GPS or located mesh-node area.
 - Chats: group and direct chat pickers sort newest active thread first, and missing node names fall back to stable `Node xxxx` labels instead of `?? ??`.
+- Found devices: repeated NodeDB records are deduped before the on-device node list, message destination picker, and favorite-node pages render them, so the same T-Deck or local device does not appear multiple times.
 - Message UI: received packets show measured hop count as `H#`; unknown route data shows `H?`; outbound limits use `TTL#`.
 - Audio: T-Deck I2S ringtone playback uses full tone sequences instead of stopping on the first note.
 - SD card: Tools includes a two-press `Prepare / Reset SD` action that shows setup progress, formats the card, builds Z-Deck folders, writes a README, labels supported FAT cards as `TDECKSDCARD`, stores local message history, discovers ringtones from the SD card, and recognizes the same prepared card on later inserts.

@@ -869,3 +869,43 @@ Blockers / next check:
 - Physical on-device OTA/apply from `Settings > Z-Deck OTA` was not pressed during this pass.
 - Bluetooth pairing/discovery remains unproven until a physical pairing/reset check produces BLE advertisements.
 - The release object now exists; future release checks should verify both Pages `update.json` and the GitHub release page/assets.
+
+### 2026-06-14 15:34 -04:00
+
+Scope: zdeck37 OTA-test release and duplicate found-device cleanup.
+
+Concrete feature unit:
+- Added duplicate-node filtering in the T-Deck firmware source before the on-device node list, message destination picker, and favorite-node pages render NodeDB records.
+- Rebuilt public firmware as `2.8.0.zdeck37` / `0.2.36-cyberdeck` from `20260614-zdeck37-ota-test-t-deck-tft`.
+- Published local package folder `firmware\zdeck-2.8.0-zdeck37-public`.
+- Published source archive folder `source\patches\2026-06-14-zdeck37-public`.
+
+Public pages / controls checked locally:
+- Page file checked: `index.html`.
+- Status text checked: `Flash Z-Deck 0.2.36`, `2.8.0.zdeck37`, `0.2.36-cyberdeck`, `Firmware SHA256`, `update.json`, and `Z-Deck OTA`.
+- Script file checked: `app.js`.
+- Ticker labels checked: `firmware: Z-Deck 0.2.36-cyberdeck / LongFast` and `duplicate-device cleanup + OTA test`.
+- Wiki page checked: `wiki\index.html`.
+- Documentation checked: `README.md`, `CHANGELOG.md`, `KNOWN_ISSUES.md`, `PRIVACY.md`, `SECURITY.md`, and `CONTRIBUTING.md`.
+
+On-device pages / controls represented:
+- On-device pages represented by the release and OTA manifest: `Found devices` / node list, message destination picker, favorite-node pages, and `Settings > Z-Deck OTA`.
+- Controls/status labels represented: `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, guarded `RESTORE SD`, app-only OTA mode, SD pre-update backup, and update progress/status text.
+
+Build / package evidence:
+- WSL PlatformIO build completed successfully.
+- Metadata reports firmware `2.8.0.zdeck37`, pack `0.2.36-cyberdeck`, hardware `T_DECK`, environment `t-deck-tft`.
+- App payload: `firmware\zdeck-2.8.0-zdeck37-public\zdeck-firmware.bin`.
+- App size: `3697536`.
+- App SHA256: `84a37baac2ca75796a3d65d4f1f4ed2026d95bd67cced0d23a6a98855c07d3b8`.
+- App MD5: `de633ec3339af516e9c4aec9fdfdb348`.
+- New package checksum entries verified for `boot_app0.bin`, `bootloader.bin`, `partitions.bin`, `zdeck-factory.bin`, `zdeck-firmware.bin`, and `zdeck-littlefs.bin`.
+
+Validation commands:
+- `python tools\verify-ota-release.py` passed.
+- Patch manifest check passed with all `23` root patch files accounted for.
+- `git diff --check` passed after cleaning generated patch whitespace.
+
+Blockers / next check:
+- Live GitHub Pages verification must run after this release is pushed.
+- Physical on-device OTA apply still requires the user to connect Wi-Fi, open `Settings > Z-Deck OTA`, press `CHECK`, then press `APPLY`.
