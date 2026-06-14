@@ -726,7 +726,12 @@ GitHub checks:
 - Workflows checked for that commit: `Release Drafter`, `Broken Link Checker`, `Push on main`, and `pages build and deployment`.
 - Result: all listed workflows completed with `success`.
 - GitHub tag/release check before this log entry found existing tags/releases only through older public versions; no `zdeck-0.2.35-cyberdeck` tag or release was present.
-- Action from this run: create and push public tag `zdeck-0.2.35-cyberdeck` after committing this log entry, so the current public Pages package has a Git tag anchor.
+- Commit created from this log entry: `53a6902 Record public artifact readiness check`.
+- Public tag created and pushed: `zdeck-0.2.35-cyberdeck`.
+- GitHub API tag check confirmed `zdeck-0.2.35-cyberdeck` resolves to commit `53a69029fc5474d0452f4c67fe18d42c85c884a4`.
+- GitHub release-object check for `zdeck-0.2.35-cyberdeck` returned HTTP `404`, so tag traceability exists but a formal release page was still not created.
+- Workflows checked for commit `53a6902`: `Release Drafter`, `Broken Link Checker`, `Push on main`, and `pages build and deployment`.
+- Result: all listed workflows completed with `success`.
 
 On-device pages / controls represented:
 - On-device pages represented by artifacts: first-install web flasher, Settings/Z-Deck OTA, SD backup/restore controls, Wi-Fi scan/select setup, diagnostics, map/GPS/compass pages, chat/status pages, and sidebar/settings surfaces.
