@@ -5,10 +5,10 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.36-cyberdeck",
-                   "packVersion":  "0.2.36-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck37",
-                   "released":  "2026-06-14",
+                   "title":  "Z-Deck 0.2.37-cyberdeck",
+                   "packVersion":  "0.2.37-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck38",
+                   "released":  "2026-06-16",
                    "updateMode":  "app-only",
                    "preserves":  [
                                      "meshtastic_config",
@@ -34,12 +34,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck37-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck37-public/zdeck-firmware.bin",
-                                    "size":  3697536,
-                                    "sha256":  "84a37baac2ca75796a3d65d4f1f4ed2026d95bd67cced0d23a6a98855c07d3b8",
-                                    "md5":  "de633ec3339af516e9c4aec9fdfdb348"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck38-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck38-public/zdeck-firmware.bin",
+                                    "size":  3697632,
+                                    "sha256":  "b4d2d77e89c4abb0a973ae94e79f923cafe2f1b67547f6e031c52388ce9c7b14",
+                                    "md5":  "9cabdca9ee208b53792ffa024579abc3"
                                 },
-                   "notes":  "Fixes duplicate found-device entries by deduping repeated NodeDB records in the node list, message destination picker, and favorite-node pages. Keeps the zdeck36 selectable themes, GPS/MAP coordinate labels, real compass/radar/alert pages, compact map controls, Settings OTA, Wi-Fi scan/select, SD backup/restore, newest-first chats, stable node names, send status, hop counters, battery/header/sidebar fixes, diagnostics, and app-only OTA preservation."
+                   "notes":  "Fixes SD settings backup and restore by decoding /zdeck/backups/preferences.proto using the actual SD file size and rejecting empty or oversized backup files. Keeps duplicate found-device cleanup, selectable themes, GPS/MAP coordinate labels, compass/radar/alert pages, compact map controls, Settings OTA, Wi-Fi scan/select, newest-first chats, stable node names, send status, hop counters, battery/header/sidebar fixes, diagnostics, and app-only OTA preservation."
                }
 }

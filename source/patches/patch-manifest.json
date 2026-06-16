@@ -2,9 +2,9 @@
     "name":  "zdeck-public-stack",
     "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced LongFast public default behavior, on-device WiFi scan/select, GPS/compass refresh fixes, map page switching, persistent map page defaults, offline/SD map prep, tile progress and missing-tile status, compact map/cache overlays, real compass/radar/distance-alert position pages, coordinate-aware map GPS/MAP readout, stale saved-home map recovery, clearer message delivery labels, hop counters where packet route data exposes them, latest-activity chat ordering, node-name fallback cleanup, SD message journal support, SD settings backup/restore support, SD prepare/reset tools, SD setup detection/progress readouts, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, the Modern Field on-device theme/layout, a public on-device health panel, app-only Wi-Fi updates exposed in the active LVGL Settings screen, OTA/backup button release and progress repaint fixes, home LoRa RX overlap fixes, persistent sidebar-left/right placement with a fixed gutter, a home header that shows the configured owner name instead of a hard-coded CyberDeck label, and a bounded top header that keeps battery icon/percent visible.",
     "release":  {
-                    "label":  "Z-Deck 0.2.36-cyberdeck",
-                    "firmwareVersion":  "2.8.0.zdeck37",
-                    "packVersion":  "0.2.36-cyberdeck",
+                    "label":  "Z-Deck 0.2.37-cyberdeck",
+                    "firmwareVersion":  "2.8.0.zdeck38",
+                    "packVersion":  "0.2.37-cyberdeck",
                     "channelDefaults":  "LongFast public setup; users add private/admin channels after flashing",
                     "privateChannelsBundled":  false,
                     "privateKeysBundled":  false,
@@ -24,9 +24,9 @@
                    "patchBase":  "origin/2.8"
                },
     "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck37-public",
-                  "latestBuiltFrom":  "20260614-zdeck37-ota-test-t-deck-tft",
-                  "status":  "WSL PlatformIO build completed successfully from the public patch stack. This public-safe zdeck37 build fixes duplicate found-device entries in the node list, message destination picker, and favorite-node pages while keeping themes, GPS/MAP coordinate labels, compass/radar/distance-alert pages, compact map controls, Settings OTA, Wi-Fi scan/select, SD backup/restore, newest-first chats, stable names, send status, hop counters, battery/header/sidebar fixes, diagnostics, and app-only OTA preservation."
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck38-public",
+                  "latestBuiltFrom":  "20260616-zdeck38-sd-backup-restore-hotfix-t-deck-tft",
+                  "status":  "WSL PlatformIO build completed successfully from the public patch stack. This public-safe zdeck38 build fixes SD settings backup/restore by decoding the backup protobuf using the actual SD file size and rejecting empty or oversized backups while keeping duplicate found-device cleanup, themes, GPS/MAP labels, compass/radar/distance-alert pages, compact map controls, Settings OTA, Wi-Fi scan/select, newest-first chats, stable names, send status, hop counters, battery/header/sidebar fixes, diagnostics, and app-only OTA preservation."
               },
     "patchFiles":  [
                        "device-ui-map.patch",
@@ -53,7 +53,7 @@
                        "device-ui-state-diagnostics.patch",
                        "zdeck-full-source.patch"
                    ],
-    "sourceArchive":  "source/patches/2026-06-14-zdeck37-public",
+    "sourceArchive":  "source/patches/2026-06-16-zdeck38-public",
     "publicSetup":  {
                         "ownerDefault":  "Meshtastic xxxx until the owner name is configured",
                         "shortNameDefault":  "xxxx until the short name is configured",

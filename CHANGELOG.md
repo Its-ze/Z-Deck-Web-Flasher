@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.37-cyberdeck - 2026-06-16
+
+SD backup/restore decode hotfix.
+
+- Rebuilt bundled firmware from `20260616-zdeck38-sd-backup-restore-hotfix-t-deck-tft`.
+- Bumped runtime identity to `2.8.0.zdeck38` and pack label to `0.2.37-cyberdeck`.
+- Fixed SD settings backup verification and restore by decoding `/zdeck/backups/preferences.proto` using the actual SD file size instead of the maximum protobuf size.
+- Added explicit rejection for empty or oversized SD backup files so bad backup media fails clearly.
+- Kept zdeck37 duplicate found-device cleanup plus selectable themes, GPS/MAP labels, compass/radar/alert pages, compact map controls, diagnostics, OTA/backup repaint fixes, GPS recovery, Wi-Fi scan/select, newest-first chats, node-name, hop counter, battery/header, and sidebar fixes.
+- No private channel data, PSKs, channel URLs, Wi-Fi credentials, admin keys, or owner-specific settings are bundled.
+
 ## Z-Deck 0.2.36-cyberdeck - 2026-06-14
 
 OTA test release for duplicate found-device cleanup.

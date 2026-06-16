@@ -9,6 +9,18 @@ Rules for each run:
 - Record exact pages, controls, status labels, hardware ports, and visible elements checked.
 - Separate confirmed behavior from blockers that require physical reset, replug, pairing approval, GPS sky view, or another external action.
 
+## 2026-06-16 - zdeck38 SD Backup/Restore Decode Hotfix
+
+- Feature/fix: `Settings > Z-Deck OTA` `BACKUP SD`, guarded `RESTORE SD`, and OTA preflight settings backup verification.
+- Root cause found in firmware source: SD backup restore/verify decoded `/zdeck/backups/preferences.proto` with `meshtastic_BackupPreferences_size` instead of the actual file size, so valid shorter protobuf files could fail decode at EOF.
+- Code change: `src/mesh/NodeDB.cpp` now checks the SD file size, rejects empty or oversized backups, and passes the actual byte count into `pb_decode`.
+- Build evidence: WSL PlatformIO build completed for `t-deck-tft`; exported build folder `F:\Dropbox\Dev Ops\T-Deck\firmware\builds\20260616-113921-t-deck-tft`.
+- Release evidence staged locally: firmware `2.8.0.zdeck38`, pack `0.2.37-cyberdeck`, app size `3697632`, SHA256 `b4d2d77e89c4abb0a973ae94e79f923cafe2f1b67547f6e031c52388ce9c7b14`.
+- Public page evidence checked locally at `http://127.0.0.1:4173/`: title `Z-Deck Firmware Pack Public`, H1 `Flash Z-Deck 0.2.37`, visible `zdeck38`/`Z38`, visible `/zdeck/backups/preferences.proto`, and no captured console errors.
+- Public pages/files touched: `index.html`, `app.js`, `README.md`, `CHANGELOG.md`, `PRIVACY.md`, `manifest.json`, `update.json`, `firmware/zdeck-2.8.0-zdeck38-public`, `source/patches/2026-06-16-zdeck38-public`, and `source/patches/patch-manifest.json`.
+- Security boundary: no raw backup file, PSK, private key, admin URL, Wi-Fi password, full `--info`, or owner-specific private settings were printed or bundled.
+- Remaining physical check: install zdeck38 on a T-Deck with SD inserted, press `BACKUP SD`, confirm the status label reports success, then use the second guarded `RESTORE SD` press only when ready to reboot and verify restored settings.
+
 ## Exact Check Matrix
 
 ### Public Web Flasher

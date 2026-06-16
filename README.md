@@ -1,6 +1,6 @@
 # Z-Deck Web Flasher
 
-Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.36-cyberdeck**.
+Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.37-cyberdeck**.
 
 This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped public build. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
 
@@ -43,8 +43,8 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 
 ## Included Build
 
-- Release label: `Z-Deck 0.2.36-cyberdeck`
-- Firmware base version: `2.8.0.zdeck37`
+- Release label: `Z-Deck 0.2.37-cyberdeck`
+- Firmware base version: `2.8.0.zdeck38`
 - Target: `t-deck-tft`
 - LoRa region: `US` compiled default for public LongFast reliability
 - Chip: `ESP32-S3`
@@ -62,7 +62,7 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 - Message UI: received packets show measured hop count as `H#`; unknown route data shows `H?`; outbound limits use `TTL#`.
 - Audio: T-Deck I2S ringtone playback uses full tone sequences instead of stopping on the first note.
 - SD card: Tools includes a two-press `Prepare / Reset SD` action that shows setup progress, formats the card, builds Z-Deck folders, writes a README, labels supported FAT cards as `TDECKSDCARD`, stores local message history, discovers ringtones from the SD card, and recognizes the same prepared card on later inserts.
-- Settings backup: the active T-Deck Settings screen has a visible `Z-Deck OTA` block with `BACKUP SD` and guarded `RESTORE SD` controls. Backups are written to `/zdeck/backups/preferences.proto` and include Meshtastic config, module config, channels/PSKs, owner data, and security keys. Treat the SD card as private.
+- Settings backup: the active T-Deck Settings screen has a visible `Z-Deck OTA` block with `BACKUP SD` and guarded `RESTORE SD` controls. Backups are written to `/zdeck/backups/preferences.proto` and include Meshtastic config, module config, channels/PSKs, owner data, and security keys. `0.2.37-cyberdeck` fixes backup verification and restore by decoding the actual SD file size. Treat the SD card as private.
 - Updates: after this build is installed once by USB, use the Wi-Fi settings popup to scan/select your network, then open `Settings > Z-Deck OTA` and use `CHECK`, `APPLY`, or `STATUS`. The hosted updater is app-only and writes/verifies the SD settings backup before downloading firmware. App-only updates preserve Meshtastic config, channels, keys, owner settings, sidebar placement, map page default, and SD chat history unless a future manifest explicitly declares a different update mode.
 - OTA and backup controls: CHECK, APPLY, BACKUP SD, and RESTORE SD release the pressed button and repaint the status readout before long Wi-Fi, flash, or SD work starts. OTA progress also pumps the screen during download/write.
 - USB storage: disabled by default so Web Serial and Meshtastic API sessions stay stable; SD prep/journal/ringtone/backup features still use the card internally.

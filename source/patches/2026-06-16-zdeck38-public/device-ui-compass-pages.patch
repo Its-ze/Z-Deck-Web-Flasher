@@ -1,0 +1,428 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index 0e953a3..df9f054 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -197,6 +197,9 @@ class TFTView_320x240 : public MeshtasticView
+     void setupDynamicMapMenu(void);
+     void updateDynamicMapMenu(void);
+     void updateMapStatusOverlay(uint32_t objectsOnMap);
++    void setupZDeckMapToolPanel(void);
++    void updateZDeckMapToolPanel(bool gpsReady, uint32_t positionedNodes, uint32_t nearestNode, int32_t nearestLat, int32_t nearestLon,
++                                 float nearestKm, const char *nearestName, const char *gps, const char *tileState);
+     void openWifiSettingsFromMap(void);
+     void setupWifiScanControls(void);
+     void resetWifiScanControls(void);
+@@ -487,6 +490,17 @@ class TFTView_320x240 : public MeshtasticView
+     lv_obj_t *mapModeButtonLabel = nullptr;
+     lv_obj_t *mapCacheStatusLabel = nullptr;
+     lv_obj_t *mapStatusOverlayLabel = nullptr;             // map screen reason/status hint
++    lv_obj_t *zDeckMapToolPanel = nullptr;                 // drawn compass/radar panel for non-map map pages
++    lv_obj_t *zDeckMapToolRing = nullptr;
++    lv_obj_t *zDeckMapToolNeedle = nullptr;
++    lv_obj_t *zDeckMapToolPeerNeedle = nullptr;
++    lv_obj_t *zDeckMapToolNorthLabel = nullptr;
++    lv_obj_t *zDeckMapToolEastLabel = nullptr;
++    lv_obj_t *zDeckMapToolSouthLabel = nullptr;
++    lv_obj_t *zDeckMapToolWestLabel = nullptr;
++    lv_obj_t *zDeckMapToolHeadingLabel = nullptr;
++    lv_obj_t *zDeckMapToolDetailLabel = nullptr;
++    lv_obj_t *zDeckMapToolFooterLabel = nullptr;
+     uint8_t zDeckMapPage = 0;                              // UI-only page; map_data.style remains the tile style
+     bool zDeckMapAutoCenterPending = true;                 // first live GPS/node fix should recover from default map center
+     lv_obj_t *wifiScanButton = nullptr;                    // scan nearby WiFi networks from existing settings popup
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index db7e78d..36aec7f 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -12,6 +12,7 @@
+ #include "graphics/map/TileProvider.h"
+ #include "graphics/map/URLService.h"
+ #include "graphics/view/TFT/Themes.h"
++#include "gps/GeoCoord.h"
+ #include "images.h"
+ #include "input/InputDriver.h"
+ #include "lv_i18n.h"
+@@ -174,6 +175,12 @@ constexpr ZDeckMapPage zDeckMapPages[] = {
+     {"zdeck-radar", "DF/Radar", "RADAR", "Positioned nodes, nearest range, and scan status"},
+     {"zdeck-alert", "Distance alert", "ALERT", "Closest-node warning view"},
+ };
++lv_point_precise_t zDeckCompassNeedlePoints[2] = {};
++lv_point_precise_t zDeckCompassPeerNeedlePoints[2] = {};
++int32_t zDeckCompassLastLat = 0;
++int32_t zDeckCompassLastLon = 0;
++float zDeckCompassHeading = 0.0f;
++bool zDeckCompassHeadingValid = false;
+
+ constexpr size_t zDeckMapPageCount()
+ {
+@@ -214,6 +221,65 @@ const ZDeckMapPage &zDeckCurrentMapPage(uint8_t pageIndex)
+ {
+     return zDeckMapPages[pageIndex % zDeckMapPageCount()];
+ }
++
++float zDeckWrapRadians(float angle)
++{
++    const float fullTurn = 2.0f * PI;
++    while (angle < 0.0f)
++        angle += fullTurn;
++    while (angle >= fullTurn)
++        angle -= fullTurn;
++    return angle;
++}
++
++void zDeckSetLineToAngle(lv_obj_t *line, lv_point_precise_t *points, int16_t cx, int16_t cy, int16_t radius, float angle)
++{
++    points[0].x = cx;
++    points[0].y = cy;
++    points[1].x = cx + (lv_value_precise_t)roundf(sinf(angle) * radius);
++    points[1].y = cy - (lv_value_precise_t)roundf(cosf(angle) * radius);
++    lv_line_set_points(line, points, 2);
++    lv_obj_clear_flag(line, LV_OBJ_FLAG_HIDDEN);
++}
++
++void zDeckPlaceCompassLabel(lv_obj_t *label, int16_t cx, int16_t cy, int16_t radius, float angle)
++{
++    lv_obj_set_pos(label, cx + (int16_t)roundf(sinf(angle) * radius) - 6,
++                   cy - (int16_t)roundf(cosf(angle) * radius) - 6);
++}
++
++float zDeckRadiansToDegrees360(float angle)
++{
++    return zDeckWrapRadians(angle) * 180.0f / PI;
++}
++
++bool zDeckUpdateCompassHeading(int32_t lat, int32_t lon, float &heading)
++{
++    if (!lat || !lon)
++        return false;
++
++    if (zDeckCompassLastLat && zDeckCompassLastLon) {
++        const float dx = 71.5f * 1e-7f * (lon - zDeckCompassLastLon);
++        const float dy = 111.3f * 1e-7f * (lat - zDeckCompassLastLat);
++        const float movedKm = sqrtf(dx * dx + dy * dy);
++        if (movedKm >= 0.005f) {
++            zDeckCompassHeading = GeoCoord::bearing(zDeckCompassLastLat * 1e-7, zDeckCompassLastLon * 1e-7, lat * 1e-7, lon * 1e-7);
++            zDeckCompassHeadingValid = true;
++            zDeckCompassLastLat = lat;
++            zDeckCompassLastLon = lon;
++        }
++    } else {
++        zDeckCompassLastLat = lat;
++        zDeckCompassLastLon = lon;
++    }
++
++    if (!zDeckCompassHeadingValid)
++        return false;
++
++    heading = zDeckCompassHeading;
++    return true;
++}
++
+ bool zDeckLoadSidebarRightPreference(bool defaultValue)
+ {
+     File file = fileSystem.open(zDeckSidebarPreferencePath, FILE_READ);
+@@ -2864,41 +2930,42 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+         controller->storeUIConfig(db.uiConfig);
+     }
+
+-    lv_obj_set_height(objects.map_osd_panel, 218);
++    lv_obj_set_height(objects.map_osd_panel, 180);
+
+     mapInternetStatusLabel = lv_label_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapInternetStatusLabel, 7, 100);
+-    lv_obj_set_width(mapInternetStatusLabel, lv_pct(94));
++    lv_obj_set_pos(mapInternetStatusLabel, 7, 118);
++    lv_obj_set_width(mapInternetStatusLabel, 206);
+     lv_label_set_long_mode(mapInternetStatusLabel, LV_LABEL_LONG_DOT);
++    lv_obj_set_style_text_font(mapInternetStatusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+     mapCenterButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapCenterButton, 7, 124);
+-    lv_obj_set_size(mapCenterButton, 74, 34);
++    lv_obj_set_pos(mapCenterButton, 7, 137);
++    lv_obj_set_size(mapCenterButton, 58, 23);
+     lv_obj_set_style_bg_color(mapCenterButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapCenterButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapCenterButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_add_event_cb(mapCenterButton, ui_event_mapCenterButton, LV_EVENT_CLICKED, NULL);
+     mapCenterButtonLabel = lv_label_create(mapCenterButton);
+-    lv_label_set_text(mapCenterButtonLabel, "CENTER");
++    lv_label_set_text(mapCenterButtonLabel, "CTR");
+     lv_obj_center(mapCenterButtonLabel);
+
+     mapModeButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapModeButton, 87, 124);
+-    lv_obj_set_size(mapModeButton, 92, 34);
++    lv_obj_set_pos(mapModeButton, 70, 137);
++    lv_obj_set_size(mapModeButton, 74, 23);
+     lv_obj_set_style_bg_color(mapModeButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapModeButton, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapModeButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_add_event_cb(mapModeButton, ui_event_mapModeButton, LV_EVENT_CLICKED, NULL);
+     mapModeButtonLabel = lv_label_create(mapModeButton);
+     lv_label_set_long_mode(mapModeButtonLabel, LV_LABEL_LONG_DOT);
+-    lv_obj_set_width(mapModeButtonLabel, 84);
++    lv_obj_set_width(mapModeButtonLabel, 68);
+     lv_obj_set_style_text_align(mapModeButtonLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_label_set_text(mapModeButtonLabel, zDeckCurrentMapPage(zDeckMapPage).button);
+     lv_obj_center(mapModeButtonLabel);
+
+     mapCacheButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapCacheButton, 185, 124);
+-    lv_obj_set_size(mapCacheButton, 62, 34);
++    lv_obj_set_pos(mapCacheButton, 149, 137);
++    lv_obj_set_size(mapCacheButton, 58, 23);
+     lv_obj_set_style_bg_color(mapCacheButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapCacheButton, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapCacheButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -2908,8 +2975,8 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_obj_center(mapCacheButtonLabel);
+
+     mapInternetButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapInternetButton, 7, 166);
+-    lv_obj_set_size(mapInternetButton, 78, 30);
++    lv_obj_set_pos(mapInternetButton, 7, 161);
++    lv_obj_set_size(mapInternetButton, 58, 18);
+     lv_obj_set_style_bg_color(mapInternetButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapInternetButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapInternetButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -2919,9 +2986,10 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_obj_center(mapInternetButtonLabel);
+
+     mapCacheStatusLabel = lv_label_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapCacheStatusLabel, 92, 166);
+-    lv_obj_set_width(mapCacheStatusLabel, 156);
++    lv_obj_set_pos(mapCacheStatusLabel, 70, 161);
++    lv_obj_set_width(mapCacheStatusLabel, 140);
+     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
++    lv_obj_set_style_text_font(mapCacheStatusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+     mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
+     lv_obj_set_size(mapStatusOverlayLabel, 212, 38);
+@@ -2941,9 +3009,199 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_label_set_long_mode(mapStatusOverlayLabel, LV_LABEL_LONG_WRAP);
+     lv_label_set_text(mapStatusOverlayLabel, "Mesh map | SD/offline first");
+
++    setupZDeckMapToolPanel();
+     updateDynamicMapMenu();
+ }
+
++void TFTView_320x240::setupZDeckMapToolPanel(void)
++{
++    if (zDeckMapToolPanel)
++        return;
++
++    zDeckMapToolPanel = lv_obj_create(objects.raw_map_panel);
++    lv_obj_set_pos(zDeckMapToolPanel, 0, 0);
++    lv_obj_set_size(zDeckMapToolPanel, lv_pct(100), lv_pct(100));
++    lv_obj_add_flag(zDeckMapToolPanel, LV_OBJ_FLAG_HIDDEN);
++    lv_obj_clear_flag(zDeckMapToolPanel, LV_OBJ_FLAG_SCROLLABLE);
++    lv_obj_clear_flag(zDeckMapToolPanel, LV_OBJ_FLAG_CLICKABLE);
++    lv_obj_set_style_bg_color(zDeckMapToolPanel, LV_COLOR_HEX(0x101010), LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(zDeckMapToolPanel, 252, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(zDeckMapToolPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_radius(zDeckMapToolPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_all(zDeckMapToolPanel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    zDeckMapToolRing = lv_obj_create(zDeckMapToolPanel);
++    lv_obj_set_pos(zDeckMapToolRing, 14, 24);
++    lv_obj_set_size(zDeckMapToolRing, 114, 114);
++    lv_obj_clear_flag(zDeckMapToolRing, LV_OBJ_FLAG_SCROLLABLE);
++    lv_obj_clear_flag(zDeckMapToolRing, LV_OBJ_FLAG_CLICKABLE);
++    lv_obj_set_style_radius(zDeckMapToolRing, LV_RADIUS_CIRCLE, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_color(zDeckMapToolRing, LV_COLOR_HEX(0x161d1d), LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(zDeckMapToolRing, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(zDeckMapToolRing, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(zDeckMapToolRing, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    zDeckMapToolNeedle = lv_line_create(zDeckMapToolPanel);
++    lv_obj_set_style_line_width(zDeckMapToolNeedle, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_line_color(zDeckMapToolNeedle, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_add_flag(zDeckMapToolNeedle, LV_OBJ_FLAG_HIDDEN);
++
++    zDeckMapToolPeerNeedle = lv_line_create(zDeckMapToolPanel);
++    lv_obj_set_style_line_width(zDeckMapToolPeerNeedle, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_line_color(zDeckMapToolPeerNeedle, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_add_flag(zDeckMapToolPeerNeedle, LV_OBJ_FLAG_HIDDEN);
++
++    auto makeCardinal = [this](const char *text) {
++        lv_obj_t *label = lv_label_create(zDeckMapToolPanel);
++        lv_label_set_text(label, text);
++        lv_obj_set_width(label, 14);
++        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_text_font(label, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_text_color(label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++        return label;
++    };
++    zDeckMapToolNorthLabel = makeCardinal("N");
++    zDeckMapToolEastLabel = makeCardinal("E");
++    zDeckMapToolSouthLabel = makeCardinal("S");
++    zDeckMapToolWestLabel = makeCardinal("W");
++
++    zDeckMapToolHeadingLabel = lv_label_create(zDeckMapToolPanel);
++    lv_obj_set_pos(zDeckMapToolHeadingLabel, 139, 14);
++    lv_obj_set_width(zDeckMapToolHeadingLabel, 130);
++    lv_label_set_long_mode(zDeckMapToolHeadingLabel, LV_LABEL_LONG_DOT);
++    lv_obj_set_style_text_font(zDeckMapToolHeadingLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(zDeckMapToolHeadingLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    zDeckMapToolDetailLabel = lv_label_create(zDeckMapToolPanel);
++    lv_obj_set_pos(zDeckMapToolDetailLabel, 139, 39);
++    lv_obj_set_width(zDeckMapToolDetailLabel, 130);
++    lv_obj_set_height(zDeckMapToolDetailLabel, 95);
++    lv_label_set_long_mode(zDeckMapToolDetailLabel, LV_LABEL_LONG_WRAP);
++    lv_obj_set_style_text_font(zDeckMapToolDetailLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(zDeckMapToolDetailLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    zDeckMapToolFooterLabel = lv_label_create(zDeckMapToolPanel);
++    lv_obj_set_pos(zDeckMapToolFooterLabel, 9, 147);
++    lv_obj_set_width(zDeckMapToolFooterLabel, 260);
++    lv_label_set_long_mode(zDeckMapToolFooterLabel, LV_LABEL_LONG_DOT);
++    lv_obj_set_style_text_font(zDeckMapToolFooterLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(zDeckMapToolFooterLabel, colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
++void TFTView_320x240::updateZDeckMapToolPanel(bool gpsReady, uint32_t positionedNodes, uint32_t nearestNode, int32_t nearestLat,
++                                              int32_t nearestLon, float nearestKm, const char *nearestName, const char *gps,
++                                              const char *tileState)
++{
++    setupZDeckMapToolPanel();
++    if (!zDeckMapToolPanel)
++        return;
++
++    const bool toolPage = zDeckMapPage > 0;
++    if (!toolPage) {
++        lv_obj_add_flag(zDeckMapToolPanel, LV_OBJ_FLAG_HIDDEN);
++        if (mapStatusOverlayLabel)
++            lv_obj_clear_flag(mapStatusOverlayLabel, LV_OBJ_FLAG_HIDDEN);
++        lv_obj_clear_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
++        if (db.config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT)
++            lv_obj_clear_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
++        lv_obj_clear_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN);
++        lv_obj_clear_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
++        return;
++    }
++
++    lv_obj_clear_flag(zDeckMapToolPanel, LV_OBJ_FLAG_HIDDEN);
++    lv_obj_move_foreground(zDeckMapToolPanel);
++    if (mapStatusOverlayLabel)
++        lv_obj_add_flag(mapStatusOverlayLabel, LV_OBJ_FLAG_HIDDEN);
++    lv_obj_add_flag(objects.navigation_panel, LV_OBJ_FLAG_HIDDEN);
++    lv_obj_add_flag(objects.gps_lock_button, LV_OBJ_FLAG_HIDDEN);
++    lv_obj_add_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN);
++    lv_obj_add_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
++
++    const bool nearAlert = zDeckMapPage == 3 && nearestNode && nearestKm <= 0.5f;
++    const int16_t cx = 71;
++    const int16_t cy = 82;
++    const int16_t ringRadius = 57;
++    const int16_t needleRadius = 47;
++    float heading = 0.0f;
++    const bool headingReady = gpsReady && zDeckUpdateCompassHeading(myLatitude, myLongitude, heading);
++    const bool dynamicRing = db.uiConfig.compass_mode != meshtastic_CompassMode_FIXED_RING;
++    const float ringOffset = headingReady && dynamicRing ? -heading : 0.0f;
++    const float headingNeedle = headingReady && !dynamicRing ? heading : 0.0f;
++
++    zDeckPlaceCompassLabel(zDeckMapToolNorthLabel, cx, cy, ringRadius, ringOffset);
++    zDeckPlaceCompassLabel(zDeckMapToolEastLabel, cx, cy, ringRadius, zDeckWrapRadians(ringOffset + PI / 2.0f));
++    zDeckPlaceCompassLabel(zDeckMapToolSouthLabel, cx, cy, ringRadius, zDeckWrapRadians(ringOffset + PI));
++    zDeckPlaceCompassLabel(zDeckMapToolWestLabel, cx, cy, ringRadius, zDeckWrapRadians(ringOffset + (3.0f * PI / 2.0f)));
++
++    lv_obj_set_style_border_color(zDeckMapToolRing, nearAlert ? colorRed : headingReady ? colorBlueGreen : colorYellow,
++                                  LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_line_color(zDeckMapToolNeedle, nearAlert ? colorRed : colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
++    if (headingReady)
++        zDeckSetLineToAngle(zDeckMapToolNeedle, zDeckCompassNeedlePoints, cx, cy, needleRadius, headingNeedle);
++    else
++        lv_obj_add_flag(zDeckMapToolNeedle, LV_OBJ_FLAG_HIDDEN);
++
++    bool havePeerBearing = false;
++    float peerBearing = 0.0f;
++    if (gpsReady && nearestNode && nearestLat && nearestLon) {
++        peerBearing = GeoCoord::bearing(myLatitude * 1e-7, myLongitude * 1e-7, nearestLat * 1e-7, nearestLon * 1e-7);
++        if (headingReady && dynamicRing)
++            peerBearing -= heading;
++        havePeerBearing = true;
++    }
++    if (havePeerBearing) {
++        lv_obj_set_style_line_color(zDeckMapToolPeerNeedle, nearAlert ? colorRed : colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
++        zDeckSetLineToAngle(zDeckMapToolPeerNeedle, zDeckCompassPeerNeedlePoints, cx, cy, needleRadius - 10, peerBearing);
++    } else {
++        lv_obj_add_flag(zDeckMapToolPeerNeedle, LV_OBJ_FLAG_HIDDEN);
++    }
++
++    const char *title = zDeckMapPage == 1 ? "COMPASS" : zDeckMapPage == 2 ? "RADAR" : "ALERT";
++    char header[42];
++    if (headingReady) {
++        const unsigned int headingDeg = (unsigned int)roundf(zDeckRadiansToDegrees360(heading));
++        lv_snprintf(header, sizeof(header), "%s %03u deg", title, headingDeg);
++    } else {
++        lv_snprintf(header, sizeof(header), "%s waiting", title);
++    }
++    lv_label_set_text(zDeckMapToolHeadingLabel, header);
++    lv_obj_set_style_text_color(zDeckMapToolHeadingLabel, nearAlert ? colorRed : headingReady ? colorBlueGreen : colorYellow,
++                                LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    char bearingLine[36];
++    if (havePeerBearing) {
++        const unsigned int peerDeg = (unsigned int)roundf(zDeckRadiansToDegrees360(peerBearing));
++        lv_snprintf(bearingLine, sizeof(bearingLine), "Peer brg %03u deg", peerDeg);
++    } else if (nearestNode) {
++        lv_snprintf(bearingLine, sizeof(bearingLine), "Need heading");
++    } else {
++        lv_snprintf(bearingLine, sizeof(bearingLine), "No peer bearing");
++    }
++
++    char detail[176];
++    if (zDeckMapPage == 1) {
++        lv_snprintf(detail, sizeof(detail), "%s\n%s\nNearest %.18s\n%s", gps, headingReady ? "Ring follows heading" : "Move for heading",
++                    nearestNode ? nearestName : "none", bearingLine);
++    } else if (zDeckMapPage == 2) {
++        lv_snprintf(detail, sizeof(detail), "Nodes %u/%u positioned\n%s\n%s\nLive mesh sweep", (unsigned int)positionedNodes,
++                    (unsigned int)nodeCount, nearestNode ? nearestName : "none", bearingLine);
++    } else {
++        lv_snprintf(detail, sizeof(detail), "%s\n%s\nWarn under 500m\n%s", nearAlert ? "DISTANCE WARN" : "Distance clear",
++                    nearestNode ? nearestName : "No positioned peer", bearingLine);
++    }
++    lv_label_set_text(zDeckMapToolDetailLabel, detail);
++    lv_obj_set_style_text_color(zDeckMapToolDetailLabel, nearAlert ? colorRed : colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++
++    char footer[96];
++    if (nearestNode)
++        lv_snprintf(footer, sizeof(footer), "%s | %.2fkm | %s", tileState, nearestKm, zDeckCurrentMapPage(zDeckMapPage).summary);
++    else
++        lv_snprintf(footer, sizeof(footer), "%s | %s", tileState, zDeckCurrentMapPage(zDeckMapPage).summary);
++    lv_label_set_text(zDeckMapToolFooterLabel, footer);
++    lv_obj_set_style_text_color(zDeckMapToolFooterLabel, nearAlert ? colorRed : colorGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
+ void TFTView_320x240::updateDynamicMapMenu(void)
+ {
+     if (!mapInternetStatusLabel)
+@@ -3035,6 +3293,8 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+
+     uint32_t positionedNodes = 0;
+     uint32_t nearestNode = 0;
++    int32_t nearestLat = 0;
++    int32_t nearestLon = 0;
+     float nearestKm = 0.0f;
+     const char *nearestName = "none";
+     for (auto &it : nodes) {
+@@ -3051,6 +3311,8 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+             float dist = sqrt(dx * dx + dy * dy);
+             if (!nearestNode || dist < nearestKm) {
+                 nearestNode = it.first;
++                nearestLat = lat;
++                nearestLon = lon;
+                 nearestKm = dist;
+                 nearestName = lv_label_get_text(it.second->LV_OBJ_IDX(node_lbl_idx));
+             }
+@@ -3097,6 +3359,8 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+         lv_snprintf(nearest, sizeof(nearest), "Waiting for positions");
+     }
+
++    updateZDeckMapToolPanel(gpsReady, positionedNodes, nearestNode, nearestLat, nearestLon, nearestKm, nearestName, gps, tileState);
++
+     const bool nearAlert = zDeckMapPage == 3 && nearestNode && nearestKm <= 0.5f;
+     lv_obj_set_size(mapStatusOverlayLabel, offlineToolPage ? 218 : 212, offlineToolPage ? 92 : 42);
+     lv_obj_set_align(mapStatusOverlayLabel, offlineToolPage ? LV_ALIGN_TOP_LEFT : LV_ALIGN_BOTTOM_LEFT);
