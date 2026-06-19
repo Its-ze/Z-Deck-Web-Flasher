@@ -57,6 +57,19 @@
           <p id="manifestStatus" class="muted">Default manifest: bundled Z-Deck firmware.</p>
         </div>
 
+        <div class="dongle-pairing" aria-label="T-Dongle pairing setup">
+          <div>
+            <p class="eyebrow">T-Dongle bridge</p>
+            <h2>Pair a dongle separately</h2>
+            <p>Use this after the dongle is flashed with CyberDeck Link. Open the pairing console, pair it to the T-Deck, then save the profile so send, receive, and settings commands mirror back to the T-Deck SD card.</p>
+          </div>
+          <div class="dongle-actions">
+            <button id="openDonglePairing" class="mode-button" type="button">Open pairing UI</button>
+            <a class="mode-button" href="https://its-ze.github.io/tdongle-usb-adapter/" target="_blank" rel="noreferrer">Flash network-card build</a>
+          </div>
+          <p id="donglePairingStatus" class="muted">Pairing console URL: http://192.168.4.1/</p>
+        </div>
+
         <pre id="ticker" class="console">waiting for deck...</pre>
       </div>
 
@@ -206,6 +219,10 @@
         <article>
           <h3>Better chats</h3>
           <p>Newest-first direct/group chat pickers, stable node-name fallback labels, and clearer hop/send status.</p>
+        </article>
+        <article>
+          <h3>T-Dongle pairing</h3>
+          <p>Public flasher now exposes a separate pairing button, local dongle UI link, and public network-card installer handoff.</p>
         </article>
       </div>
     </section>

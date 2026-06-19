@@ -287,6 +287,40 @@ input,
   color: var(--muted);
 }
 
+.dongle-pairing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 0.38fr);
+  gap: 14px;
+  align-items: start;
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 42%, var(--line));
+  background: color-mix(in srgb, var(--panel-2) 82%, #07100d);
+}
+
+.dongle-pairing h2 {
+  margin-bottom: 8px;
+  font-size: 22px;
+}
+
+.dongle-pairing p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.dongle-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.dongle-actions .mode-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .console {
   min-height: 132px;
   margin: auto 0 0;
@@ -673,6 +707,10 @@ code {
   }
 
   .manifest-form {
+    grid-template-columns: 1fr;
+  }
+
+  .dongle-pairing {
     grid-template-columns: 1fr;
   }
 

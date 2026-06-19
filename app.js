@@ -16,6 +16,8 @@ const recoveryButtons = Array.from(document.querySelectorAll("[data-recovery]"))
 const recoveryModeLabel = document.getElementById("recoveryModeLabel");
 const recoverySteps = document.getElementById("recoverySteps");
 const recoveryHint = document.getElementById("recoveryHint");
+const openDonglePairing = document.getElementById("openDonglePairing");
+const donglePairingStatus = document.getElementById("donglePairingStatus");
 
 const recoveryModes = {
   normal: {
@@ -101,6 +103,21 @@ installButton.addEventListener("click", () => {
     "firmware: Z-Deck 0.2.37-cyberdeck / LongFast",
     "flash map: app0 + app1 + littlefs",
     "features: duplicate-device cleanup + OTA test"
+  ]);
+});
+
+openDonglePairing?.addEventListener("click", () => {
+  const url = "http://192.168.4.1/";
+  window.open(url, "_blank", "noopener,noreferrer");
+  if (donglePairingStatus) {
+    donglePairingStatus.textContent = "Opening T-Dongle pairing console at " + url;
+  }
+  setTicker([
+    "status: T-Dongle pairing requested",
+    "network: connect to CyberDeck-Link or the dongle network adapter",
+    "url: " + url,
+    "steps: Begin Pair -> confirm on T-Deck -> Save Profile",
+    "sd mirror: /zdeck/cyberdeck/dongle-pairing.json"
   ]);
 });
 

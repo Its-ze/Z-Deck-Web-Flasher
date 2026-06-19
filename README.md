@@ -67,6 +67,7 @@ For arbitrary local firmware files, use the Windows installer from the firmware 
 - OTA and backup controls: CHECK, APPLY, BACKUP SD, and RESTORE SD release the pressed button and repaint the status readout before long Wi-Fi, flash, or SD work starts. OTA progress also pumps the screen during download/write.
 - USB storage: disabled by default so Web Serial and Meshtastic API sessions stay stable; SD prep/journal/ringtone/backup features still use the card internally.
 - On-device notices: USB connected and SD inserted/setup prompts can be disabled in settings.
+- T-Dongle bridge: the public flasher exposes a separate **Open pairing UI** button for the CyberDeck Link dongle console at `http://192.168.4.1/`, plus a public handoff to the VoidLink T-Dongle USB network-card installer. Pairing/profile files are expected to mirror under `/zdeck/cyberdeck/` on the T-Deck SD card; do not publish the private contents.
 
 ## Documentation
 
