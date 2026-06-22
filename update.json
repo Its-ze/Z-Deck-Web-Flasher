@@ -1,45 +1,45 @@
 {
-    "schema": 1,
-    "product": "Z-Deck",
-    "channel": "public",
-    "hardware": "T_DECK",
-    "environment": "t-deck-tft",
-    "latest": {
-        "title": "Z-Deck 0.2.41-cyberdeck",
-        "packVersion": "0.2.41-cyberdeck",
-        "firmwareVersion": "2.8.0.zdeck42",
-        "released": "2026-06-22",
-        "updateMode": "app-only",
-        "preserves": [
-            "meshtastic_config",
-            "channels",
-            "keys",
-            "owner_settings",
-            "sd_chat_journal",
-            "sd_settings_backup",
-            "sidebar_layout",
-            "map_page_default",
-            "owner_home_title"
-        ],
-        "preUpdateBackup": {
-            "enabled": true,
-            "location": "sd",
-            "path": "/zdeck/backups/preferences.proto",
-            "contains": [
-                "config",
-                "module_config",
-                "channels_psks",
-                "owner",
-                "security_keys"
-            ]
-        },
-        "firmware": {
-            "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck42-public/zdeck-firmware.bin",
-            "path": "firmware/zdeck-2.8.0-zdeck42-public/zdeck-firmware.bin",
-            "size": 3710624,
-            "sha256": "c5bfa49bab58e5a4f70dca62d1cd7442a6c03104e63dc794c8c33a5a5d990505",
-            "md5": "8a99fac4b49685524630b8a4c5f3d4fc"
-        },
-        "notes": "Adds USB Wi-Fi diagnostics for OTA troubleshooting: wifi-status, wifi-scan, and wifi-start use saved device credentials without printing passwords. Keeps verified USB OTA/SD backup debug commands and app-only OTA preservation for config, channels, keys, owner settings, and SD data."
-    }
+    "schema":  1,
+    "product":  "Z-Deck",
+    "channel":  "public",
+    "hardware":  "T_DECK",
+    "environment":  "t-deck-tft",
+    "latest":  {
+                   "title":  "Z-Deck 0.2.44-cyberdeck",
+                   "packVersion":  "0.2.44-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck45",
+                   "released":  "2026-06-22",
+                   "updateMode":  "app-only",
+                   "preserves":  [
+                                     "meshtastic_config",
+                                     "channels",
+                                     "keys",
+                                     "owner_settings",
+                                     "sd_chat_journal",
+                                     "sd_settings_backup",
+                                     "sidebar_layout",
+                                     "map_page_default",
+                                     "owner_home_title"
+                                 ],
+                   "preUpdateBackup":  {
+                                           "enabled":  true,
+                                           "location":  "sd",
+                                           "path":  "/zdeck/backups/preferences.proto",
+                                           "contains":  [
+                                                            "config",
+                                                            "module_config",
+                                                            "channels_psks",
+                                                            "owner",
+                                                            "security_keys"
+                                                        ]
+                                       },
+                   "firmware":  {
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck45-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck45-public/zdeck-firmware.bin",
+                                    "size":  3711712,
+                                    "sha256":  "820bc045cce984ce2484161b5741ac1640c1d57c249d2d1c1a51ec36dc7519c2",
+                                    "md5":  "37d16c58f777e5cc31def1601872a876"
+                                },
+                   "notes":  "Fixes the on-device BACKUP SD/RESTORE SD crash path by queuing SD maintenance outside the UI button handler, adds a USB backup-queue diagnostic that exercises the same deferred path, and fixes backup completion state so it returns READY instead of staying busy. Keeps USB Wi-Fi diagnostics, verified USB OTA/SD debug commands, and app-only OTA preservation for config, channels, keys, owner settings, and SD data."
+               }
 }

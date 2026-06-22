@@ -921,3 +921,44 @@ Validation commands:
 Blockers / next check:
 - Live GitHub Pages verification must run after this release is pushed.
 - Physical on-device OTA apply still requires the user to connect Wi-Fi, open `Settings > Z-Deck OTA`, press `CHECK`, then press `APPLY`.
+
+### 2026-06-22 00:06 -04:00
+
+Scope: BACKUP SD crash investigation and zdeck45 public hotfix.
+
+Concrete feature unit:
+- Fixed the on-device `BACKUP SD` / guarded `RESTORE SD` crash path by queuing SD maintenance through `ZDeckMaint` instead of running SD setup/write/restore directly inside LVGL/classic UI button handlers.
+- Added USB diagnostic command `itsz zdeck backup-queue` plus helper command `backup-queue` so the same deferred path can be triggered while serial debug is running.
+- Fixed backup completion state mapping so a completed SD backup reports `OTA READY` instead of remaining `OTA BUSY`.
+- Rebuilt and flashed app-only firmware `2.8.0.zdeck45` / `0.2.44-cyberdeck`; LittleFS was skipped to preserve device settings/channels/keys/owner data.
+
+Hardware / serial checks:
+- Windows serial ports observed: `COM17` normal app mode, `COM16` ESP32-S3 bootloader mode, and `COM3` unrelated serial.
+- Flash target verified as ESP32-S3 over `COM16`; both app slots were written and verified by esptool.
+- Device returned to normal mode on `COM17`.
+
+On-device pages / controls represented:
+- `Settings > Z-Deck OTA` controls represented by the release and source patch stack: `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, and guarded `RESTORE SD`.
+- USB commands checked: `status`, `backup`, and `backup-queue`.
+- Status labels checked: `OTA IDLE`, `SD READY`, `OTA BUSY SD backup queued`, `OTA READY Settings backup saved to SD`, and debug breadcrumb `ui-backup/deferred.ok`.
+
+Build / package evidence:
+- WSL PlatformIO build completed successfully from `20260622-zdeck45-sd-backup-ready-state-t-deck-tft`.
+- App payload: `firmware\zdeck-2.8.0-zdeck45-public\zdeck-firmware.bin`.
+- App size: `3711712`.
+- App SHA256: `820bc045cce984ce2484161b5741ac1640c1d57c249d2d1c1a51ec36dc7519c2`.
+- App MD5: `37d16c58f777e5cc31def1601872a876`.
+- Direct USB backup passed with `sd-backup/api.ok`, SD size detected, backup file saved, and restore/decode verification OK.
+- Deferred USB backup passed with `ui-backup/deferred.begin`, `sd-backup/api.ok`, and `ui-backup/deferred.ok`.
+- Final post-backup status passed: `OTA READY Settings backup saved to SD` and `SD READY Settings backup saved to SD`.
+
+Validation commands:
+- `python tools\verify-ota-release.py` passed.
+- `git diff --check` passed apart from normal line-ending warnings.
+- JSON parse checks passed for `manifest.json`, `update.json`, and `source\patches\patch-manifest.json`.
+- Text-only public secret scan passed for zdeck45 package/source JSON, Markdown, patch, and text files.
+- `SHA256SUMS.json` package hash verification passed.
+
+Blockers / next check:
+- Live GitHub Pages verification must run after this release is pushed.
+- Physical touchscreen press of `BACKUP SD` should be checked by the user, but the USB `backup-queue` command exercised the same deferred service path that the button now calls.
