@@ -1,0 +1,643 @@
+diff --git a/include/graphics/view/TFT/TFTView_320x240.h b/include/graphics/view/TFT/TFTView_320x240.h
+index df9f054..e9ebb41 100644
+--- a/include/graphics/view/TFT/TFTView_320x240.h
++++ b/include/graphics/view/TFT/TFTView_320x240.h
+@@ -199,7 +199,9 @@ class TFTView_320x240 : public MeshtasticView
+     void updateMapStatusOverlay(uint32_t objectsOnMap);
+     void setupZDeckMapToolPanel(void);
+     void updateZDeckMapToolPanel(bool gpsReady, uint32_t positionedNodes, uint32_t nearestNode, int32_t nearestLat, int32_t nearestLon,
+-                                 float nearestKm, const char *nearestName, const char *gps, const char *tileState);
++                                 float nearestKm, const char *nearestName, const char *gps, const char *tileState,
++                                 bool deflockReady, bool deflockCachePresent, uint16_t deflockRecords, int32_t deflockLat,
++                                 int32_t deflockLon, float deflockKm, const char *deflockName, const char *deflockKind);
+     void openWifiSettingsFromMap(void);
+     void setupWifiScanControls(void);
+     void resetWifiScanControls(void);
+@@ -351,7 +353,6 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_wifi_button(lv_event_t *e);
+     static void ui_event_wifi_scan_button(lv_event_t *e);
+     static void ui_event_wifi_network_dropdown(lv_event_t *e);
+-    static void ui_event_zdeckSidebarButton(lv_event_t *e);
+     static void ui_event_language_button(lv_event_t *e);
+     static void ui_event_channel_button(lv_event_t *e);
+     static void ui_event_brightness_button(lv_event_t *e);
+@@ -422,6 +423,7 @@ class TFTView_320x240 : public MeshtasticView
+     static void ui_event_mapCacheButton(lv_event_t *e);
+     static void ui_event_mapModeButton(lv_event_t *e);
+     static void ui_event_zdeckHealthButton(lv_event_t *e);
++    static void ui_event_zdeckSidebarButton(lv_event_t *e);
+     static void ui_event_zdeckSdButton(lv_event_t *e);
+     static void ui_event_zdeckUpdateCheckButton(lv_event_t *e);
+     static void ui_event_zdeckUpdateApplyButton(lv_event_t *e);
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 3c48188..4ee4260 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -12,6 +12,7 @@
+ #include "graphics/map/TileProvider.h"
+ #include "graphics/map/URLService.h"
+ #include "graphics/view/TFT/Themes.h"
++#include "GPSStatus.h"
+ #include "gps/GeoCoord.h"
+ #include "images.h"
+ #include "input/InputDriver.h"
+@@ -25,6 +26,7 @@
+ #include <algorithm>
+ #include <cmath>
+ #include <cstdio>
++#include <cstdlib>
+ #include <cstring>
+ #include <functional>
+ #include <iomanip>
+@@ -173,8 +175,18 @@ constexpr int16_t zDeckSidebarRightX = zDeckSidebarContentWidth + zDeckSidebarGu
+ constexpr ZDeckMapPage zDeckMapPages[] = {
+     {"zdeck-mesh", "Mesh map", "MESH", "Tile map with mesh nodes and GPS"},
+     {"zdeck-compass", "Live compass", "COMPASS", "GPS fix and nearest node bearing"},
+-    {"zdeck-radar", "DF/Radar", "RADAR", "Positioned nodes, nearest range, and scan status"},
+-    {"zdeck-alert", "Distance alert", "ALERT", "Closest-node warning view"},
++    {"zdeck-radar", "DeFlock radar", "DEFLOCK", "Nearest ALPR cache point with range and bearing"},
++    {"zdeck-alert", "Distance alert", "ALERT", "Closest DeFlock or mesh proximity warning"},
++};
++struct ZDeckDeflockHit {
++    bool valid = false;
++    bool cachePresent = false;
++    uint16_t records = 0;
++    int32_t latitude = 0;
++    int32_t longitude = 0;
++    float distanceKm = 0.0f;
++    char name[36] = "none";
++    char kind[24] = "ALPR";
+ };
+ lv_point_precise_t zDeckCompassNeedlePoints[2] = {};
+ lv_point_precise_t zDeckCompassPeerNeedlePoints[2] = {};
+@@ -182,6 +194,10 @@ int32_t zDeckCompassLastLat = 0;
+ int32_t zDeckCompassLastLon = 0;
+ float zDeckCompassHeading = 0.0f;
+ bool zDeckCompassHeadingValid = false;
++ZDeckDeflockHit zDeckLastDeflockHit;
++uint32_t zDeckLastDeflockScanMs = 0;
++int32_t zDeckLastDeflockScanLat = 0;
++int32_t zDeckLastDeflockScanLon = 0;
+ 
+ constexpr size_t zDeckMapPageCount()
+ {
+@@ -254,17 +270,171 @@ float zDeckRadiansToDegrees360(float angle)
+     return zDeckWrapRadians(angle) * 180.0f / PI;
+ }
+ 
+-bool zDeckUpdateCompassHeading(int32_t lat, int32_t lon, float &heading)
++float zDeckDistanceKm(int32_t fromLat, int32_t fromLon, int32_t toLat, int32_t toLon)
++{
++    const float midLatRad = float(fromLat + toLat) * 0.5e-7f * PI / 180.0f;
++    const float latKm = 111.32f * 1e-7f * float(fromLat - toLat);
++    const float lonKm = 111.32f * std::max(0.1f, fabsf(cosf(midLatRad))) * 1e-7f * float(fromLon - toLon);
++    return sqrtf(latKm * latKm + lonKm * lonKm);
++}
++
++void zDeckSetSafeText(char *target, size_t targetSize, const char *value, const char *fallback)
++{
++    const char *src = value && value[0] ? value : fallback;
++    strncpy(target, src, targetSize - 1);
++    target[targetSize - 1] = '\0';
++    for (size_t i = 0; target[i]; ++i) {
++        if (target[i] == '\r' || target[i] == '\n')
++            target[i] = ' ';
++    }
++}
++
++bool zDeckGetCsvField(const char *line, uint8_t fieldIndex, char *out, size_t outSize)
+ {
++    if (!line || !out || outSize == 0)
++        return false;
++    out[0] = '\0';
++    uint8_t field = 0;
++    size_t pos = 0;
++    bool quoted = false;
++    for (const char *p = line; *p; ++p) {
++        if (*p == '"') {
++            quoted = !quoted;
++            continue;
++        }
++        if (!quoted && (*p == ',' || *p == ';')) {
++            if (field == fieldIndex)
++                break;
++            field++;
++            pos = 0;
++            out[0] = '\0';
++            continue;
++        }
++        if (field == fieldIndex && pos < outSize - 1) {
++            out[pos++] = *p;
++            out[pos] = '\0';
++        }
++    }
++    while (pos > 0 && (out[pos - 1] == ' ' || out[pos - 1] == '\t')) {
++        out[--pos] = '\0';
++    }
++    char *start = out;
++    while (*start == ' ' || *start == '\t')
++        start++;
++    if (start != out)
++        memmove(out, start, strlen(start) + 1);
++    return out[0] != '\0';
++}
++
++bool zDeckParseDeflockLine(const char *line, int32_t myLat, int32_t myLon, ZDeckDeflockHit &hit)
++{
++    if (!line || !line[0] || line[0] == '#')
++        return false;
++
++    char latField[24];
++    char lonField[24];
++    if (!zDeckGetCsvField(line, 0, latField, sizeof(latField)) || !zDeckGetCsvField(line, 1, lonField, sizeof(lonField)))
++        return false;
++
++    char *latEnd = nullptr;
++    char *lonEnd = nullptr;
++    const float lat = strtof(latField, &latEnd);
++    const float lon = strtof(lonField, &lonEnd);
++    if (latEnd == latField || lonEnd == lonField || !std::isfinite(lat) || !std::isfinite(lon) || fabsf(lat) > 90.0f ||
++        fabsf(lon) > 180.0f)
++        return false;
++
++    char nameField[48];
++    char kindField[32];
++    zDeckGetCsvField(line, 2, nameField, sizeof(nameField));
++    zDeckGetCsvField(line, 3, kindField, sizeof(kindField));
++
++    hit.valid = true;
++    hit.latitude = (int32_t)roundf(lat * 1e7f);
++    hit.longitude = (int32_t)roundf(lon * 1e7f);
++    hit.distanceKm = zDeckDistanceKm(myLat, myLon, hit.latitude, hit.longitude);
++    zDeckSetSafeText(hit.name, sizeof(hit.name), nameField, "DeFlock ALPR");
++    zDeckSetSafeText(hit.kind, sizeof(hit.kind), kindField, "ALPR");
++    return true;
++}
++
++bool zDeckScanDeflockCache(int32_t myLat, int32_t myLon, ZDeckDeflockHit &best)
++{
++    best = ZDeckDeflockHit{};
++    static const char *paths[] = {"/zdeck/deflock.csv", "/maps/deflock.csv", "/deflock.csv"};
++    File file;
++    for (const char *path : paths) {
++        file = fileSystem.open(path, FILE_READ);
++        if (file)
++            break;
++    }
++    if (!file) {
++        best.cachePresent = false;
++        return false;
++    }
++
++    best.cachePresent = true;
++    while (file.available()) {
++        String line = file.readStringUntil('\n');
++        line.trim();
++        ZDeckDeflockHit candidate;
++        if (!zDeckParseDeflockLine(line.c_str(), myLat, myLon, candidate))
++            continue;
++        best.records++;
++        if (!best.valid || candidate.distanceKm < best.distanceKm) {
++            candidate.cachePresent = true;
++            candidate.records = best.records;
++            best = candidate;
++        }
++    }
++    file.close();
++    return best.valid;
++}
++
++bool zDeckGetDeflockHit(bool gpsReady, int32_t myLat, int32_t myLon, ZDeckDeflockHit &hit)
++{
++    if (!gpsReady) {
++        hit = zDeckLastDeflockHit;
++        return false;
++    }
++
++    const uint32_t now = millis();
++    const float movedKm = zDeckLastDeflockScanLat && zDeckLastDeflockScanLon
++                              ? zDeckDistanceKm(myLat, myLon, zDeckLastDeflockScanLat, zDeckLastDeflockScanLon)
++                              : 99.0f;
++    if (now - zDeckLastDeflockScanMs > 15000 || movedKm > 0.03f) {
++        zDeckScanDeflockCache(myLat, myLon, zDeckLastDeflockHit);
++        zDeckLastDeflockScanMs = now;
++        zDeckLastDeflockScanLat = myLat;
++        zDeckLastDeflockScanLon = myLon;
++    }
++    hit = zDeckLastDeflockHit;
++    return hit.valid;
++}
++
++bool zDeckUpdateCompassHeading(int32_t lat, int32_t lon, float &heading, const char **source)
++{
++    if (source)
++        *source = "waiting";
+     if (!lat || !lon)
+         return false;
+ 
++    if (gpsStatus && gpsStatus->getHasHeading()) {
++        heading = zDeckWrapRadians(gpsStatus->getHeadingDegrees() * PI / 180.0f);
++        zDeckCompassHeading = heading;
++        zDeckCompassHeadingValid = true;
++        zDeckCompassLastLat = lat;
++        zDeckCompassLastLon = lon;
++        if (source)
++            *source = "GPS course";
++        return true;
++    }
++
+     if (zDeckCompassLastLat && zDeckCompassLastLon) {
+-        const float dx = 71.5f * 1e-7f * (lon - zDeckCompassLastLon);
+-        const float dy = 111.3f * 1e-7f * (lat - zDeckCompassLastLat);
+-        const float movedKm = sqrtf(dx * dx + dy * dy);
+-        if (movedKm >= 0.005f) {
+-            zDeckCompassHeading = GeoCoord::bearing(zDeckCompassLastLat * 1e-7, zDeckCompassLastLon * 1e-7, lat * 1e-7, lon * 1e-7);
++        const float movedKm = zDeckDistanceKm(lat, lon, zDeckCompassLastLat, zDeckCompassLastLon);
++        if (movedKm >= 0.003f) {
++            zDeckCompassHeading =
++                GeoCoord::bearing(zDeckCompassLastLat * 1e-7, zDeckCompassLastLon * 1e-7, lat * 1e-7, lon * 1e-7);
+             zDeckCompassHeadingValid = true;
+             zDeckCompassLastLat = lat;
+             zDeckCompassLastLon = lon;
+@@ -278,6 +448,8 @@ bool zDeckUpdateCompassHeading(int32_t lat, int32_t lon, float &heading)
+         return false;
+ 
+     heading = zDeckCompassHeading;
++    if (source)
++        *source = "GPS motion";
+     return true;
+ }
+ 
+@@ -333,6 +505,7 @@ void zDeckPlaceMainContent(lv_obj_t *obj, bool sidebarRight)
+     lv_obj_set_x(obj, sidebarRight ? 0 : zDeckSidebarContentLeftX);
+     lv_obj_set_width(obj, zDeckSidebarContentWidth);
+ }
++
+ const char *itszOutgoingStatusText(LogMessage::MsgStatus status, bool pendingRequest)
+ {
+     switch (status) {
+@@ -3091,7 +3264,9 @@ void TFTView_320x240::setupZDeckMapToolPanel(void)
+ 
+ void TFTView_320x240::updateZDeckMapToolPanel(bool gpsReady, uint32_t positionedNodes, uint32_t nearestNode, int32_t nearestLat,
+                                               int32_t nearestLon, float nearestKm, const char *nearestName, const char *gps,
+-                                              const char *tileState)
++                                              const char *tileState, bool deflockReady, bool deflockCachePresent,
++                                              uint16_t deflockRecords, int32_t deflockLat, int32_t deflockLon, float deflockKm,
++                                              const char *deflockName, const char *deflockKind)
+ {
+     setupZDeckMapToolPanel();
+     if (!zDeckMapToolPanel)
+@@ -3119,13 +3294,18 @@ void TFTView_320x240::updateZDeckMapToolPanel(bool gpsReady, uint32_t positioned
+     lv_obj_add_flag(objects.zoom_in_button, LV_OBJ_FLAG_HIDDEN);
+     lv_obj_add_flag(objects.zoom_out_button, LV_OBJ_FLAG_HIDDEN);
+ 
+-    const bool nearAlert = zDeckMapPage == 3 && nearestNode && nearestKm <= 0.5f;
++    const bool deflockPage = zDeckMapPage == 2;
++    const bool alertPage = zDeckMapPage == 3;
++    const bool deflockAlert = deflockReady && deflockKm <= 0.30f;
++    const bool meshAlert = nearestNode && nearestKm <= 0.50f;
++    const bool nearAlert = (deflockPage && deflockAlert) || (alertPage && (deflockAlert || meshAlert));
+     const int16_t cx = 71;
+     const int16_t cy = 82;
+     const int16_t ringRadius = 57;
+     const int16_t needleRadius = 47;
+     float heading = 0.0f;
+-    const bool headingReady = gpsReady && zDeckUpdateCompassHeading(myLatitude, myLongitude, heading);
++    const char *headingSource = "waiting";
++    const bool headingReady = gpsReady && zDeckUpdateCompassHeading(myLatitude, myLongitude, heading, &headingSource);
+     const bool dynamicRing = db.uiConfig.compass_mode != meshtastic_CompassMode_FIXED_RING;
+     const float ringOffset = headingReady && dynamicRing ? -heading : 0.0f;
+     const float headingNeedle = headingReady && !dynamicRing ? heading : 0.0f;
+@@ -3145,10 +3325,14 @@ void TFTView_320x240::updateZDeckMapToolPanel(bool gpsReady, uint32_t positioned
+ 
+     bool havePeerBearing = false;
+     float peerBearing = 0.0f;
+-    if (gpsReady && nearestNode && nearestLat && nearestLon) {
+-        peerBearing = GeoCoord::bearing(myLatitude * 1e-7, myLongitude * 1e-7, nearestLat * 1e-7, nearestLon * 1e-7);
++    const bool useDeflockTarget = (deflockPage || alertPage) && deflockReady;
++    const int32_t targetLat = useDeflockTarget ? deflockLat : nearestLat;
++    const int32_t targetLon = useDeflockTarget ? deflockLon : nearestLon;
++    const bool haveTarget = useDeflockTarget || nearestNode;
++    if (gpsReady && haveTarget && targetLat && targetLon) {
++        peerBearing = GeoCoord::bearing(myLatitude * 1e-7, myLongitude * 1e-7, targetLat * 1e-7, targetLon * 1e-7);
+         if (headingReady && dynamicRing)
+-            peerBearing -= heading;
++            peerBearing = zDeckWrapRadians(peerBearing - heading);
+         havePeerBearing = true;
+     }
+     if (havePeerBearing) {
+@@ -3158,7 +3342,7 @@ void TFTView_320x240::updateZDeckMapToolPanel(bool gpsReady, uint32_t positioned
+         lv_obj_add_flag(zDeckMapToolPeerNeedle, LV_OBJ_FLAG_HIDDEN);
+     }
+ 
+-    const char *title = zDeckMapPage == 1 ? "COMPASS" : zDeckMapPage == 2 ? "RADAR" : "ALERT";
++    const char *title = zDeckMapPage == 1 ? "COMPASS" : zDeckMapPage == 2 ? "DEFLOCK" : "ALERT";
+     char header[42];
+     if (headingReady) {
+         const unsigned int headingDeg = (unsigned int)roundf(zDeckRadiansToDegrees360(heading));
+@@ -3173,30 +3357,46 @@ void TFTView_320x240::updateZDeckMapToolPanel(bool gpsReady, uint32_t positioned
+     char bearingLine[36];
+     if (havePeerBearing) {
+         const unsigned int peerDeg = (unsigned int)roundf(zDeckRadiansToDegrees360(peerBearing));
+-        lv_snprintf(bearingLine, sizeof(bearingLine), "Peer brg %03u deg", peerDeg);
+-    } else if (nearestNode) {
++        lv_snprintf(bearingLine, sizeof(bearingLine), "%s brg %03u deg", useDeflockTarget ? "ALPR" : "Peer", peerDeg);
++    } else if (haveTarget) {
+         lv_snprintf(bearingLine, sizeof(bearingLine), "Need heading");
+     } else {
+-        lv_snprintf(bearingLine, sizeof(bearingLine), "No peer bearing");
++        lv_snprintf(bearingLine, sizeof(bearingLine), "No target bearing");
+     }
+ 
+     char detail[176];
+     if (zDeckMapPage == 1) {
+-        lv_snprintf(detail, sizeof(detail), "%s\n%s\nNearest %.18s\n%s", gps, headingReady ? "Ring follows heading" : "Move for heading",
+-                    nearestNode ? nearestName : "none", bearingLine);
++        lv_snprintf(detail, sizeof(detail), "%s\nHeading: %s\nMesh %.18s\n%s", gps,
++                    headingReady ? headingSource : "move for course", nearestNode ? nearestName : "none", bearingLine);
+     } else if (zDeckMapPage == 2) {
+-        lv_snprintf(detail, sizeof(detail), "Nodes %u/%u positioned\n%s\n%s\nLive mesh sweep", (unsigned int)positionedNodes,
+-                    (unsigned int)nodeCount, nearestNode ? nearestName : "none", bearingLine);
++        if (!gpsReady) {
++            lv_snprintf(detail, sizeof(detail), "Need GPS fix\nDeFlock cache ready after fix\nCSV: lat,lon,name,type");
++        } else if (!deflockCachePresent) {
++            lv_snprintf(detail, sizeof(detail), "No DeFlock cache\nAdd /zdeck/deflock.csv\nCSV: lat,lon,name,type");
++        } else if (deflockReady) {
++            lv_snprintf(detail, sizeof(detail), "%s\n%.0fm %s\n%s\n%u cache pts", deflockName, deflockKm * 1000.0f,
++                        deflockKind, bearingLine, (unsigned int)deflockRecords);
++        } else {
++            lv_snprintf(detail, sizeof(detail), "DeFlock cache empty\nAdd ALPR rows\nCSV: lat,lon,name,type");
++        }
+     } else {
+-        lv_snprintf(detail, sizeof(detail), "%s\n%s\nWarn under 500m\n%s", nearAlert ? "DISTANCE WARN" : "Distance clear",
+-                    nearestNode ? nearestName : "No positioned peer", bearingLine);
++        const char *alert = deflockAlert ? "DEFLOCK ALERT" : meshAlert ? "MESH PROXIMITY" : "Distance clear";
++        if (deflockReady) {
++            lv_snprintf(detail, sizeof(detail), "%s\nALPR %.0fm %.18s\nMesh %.18s\n%s", alert, deflockKm * 1000.0f,
++                        deflockName, nearestNode ? nearestName : "none", bearingLine);
++        } else {
++            lv_snprintf(detail, sizeof(detail), "%s\nNo DeFlock target\nMesh %.18s\nWarn ALPR 300m", alert,
++                        nearestNode ? nearestName : "none");
++        }
+     }
+     lv_label_set_text(zDeckMapToolDetailLabel, detail);
+     lv_obj_set_style_text_color(zDeckMapToolDetailLabel, nearAlert ? colorRed : colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+ 
+     char footer[96];
+-    if (nearestNode)
+-        lv_snprintf(footer, sizeof(footer), "%s | %.2fkm | %s", tileState, nearestKm, zDeckCurrentMapPage(zDeckMapPage).summary);
++    if ((deflockPage || alertPage) && deflockReady)
++        lv_snprintf(footer, sizeof(footer), "DeFlock %.2fkm | %s", deflockKm, zDeckCurrentMapPage(zDeckMapPage).summary);
++    else if (nearestNode)
++        lv_snprintf(footer, sizeof(footer), "%s | mesh %.2fkm | %s", tileState, nearestKm, zDeckCurrentMapPage(zDeckMapPage).summary);
+     else
+         lv_snprintf(footer, sizeof(footer), "%s | %s", tileState, zDeckCurrentMapPage(zDeckMapPage).summary);
+     lv_label_set_text(zDeckMapToolFooterLabel, footer);
+@@ -3281,11 +3481,11 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+     const ZDeckMapPage &page = zDeckCurrentMapPage(zDeckMapPage);
+     const bool offlineToolPage = strcmp(page.style, zDeckDefaultTileStyle) != 0;
+ 
+-    char gps[56];
++    char gps[40];
+     if (gpsReady && gpsSatellites > 0) {
+-        lv_snprintf(gps, sizeof(gps), "GPS %.5f,%.5f %u sats", myLatitude * 1e-7, myLongitude * 1e-7, (unsigned int)gpsSatellites);
++        lv_snprintf(gps, sizeof(gps), "GPS ok %u sats", (unsigned int)gpsSatellites);
+     } else if (gpsReady) {
+-        lv_snprintf(gps, sizeof(gps), "GPS %.5f,%.5f", myLatitude * 1e-7, myLongitude * 1e-7);
++        lv_snprintf(gps, sizeof(gps), "GPS ok");
+     } else if (gpsConfigured) {
+         lv_snprintf(gps, sizeof(gps), "GPS waiting");
+     } else {
+@@ -3320,6 +3520,9 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+         }
+     }
+ 
++    ZDeckDeflockHit deflock;
++    const bool deflockReady = zDeckGetDeflockHit(gpsReady, myLatitude, myLongitude, deflock);
++
+     char tileState[48];
+     if (!map) {
+         lv_snprintf(tileState, sizeof(tileState), "map not open");
+@@ -3360,16 +3563,25 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+         lv_snprintf(nearest, sizeof(nearest), "Waiting for positions");
+     }
+ 
+-    updateZDeckMapToolPanel(gpsReady, positionedNodes, nearestNode, nearestLat, nearestLon, nearestKm, nearestName, gps, tileState);
++    updateZDeckMapToolPanel(gpsReady, positionedNodes, nearestNode, nearestLat, nearestLon, nearestKm, nearestName, gps, tileState,
++                            deflockReady, deflock.cachePresent, deflock.records, deflock.latitude, deflock.longitude,
++                            deflock.distanceKm, deflock.name, deflock.kind);
+ 
+-    const bool nearAlert = zDeckMapPage == 3 && nearestNode && nearestKm <= 0.5f;
++    const bool deflockAlert = deflockReady && deflock.distanceKm <= 0.30f;
++    const bool meshAlert = nearestNode && nearestKm <= 0.50f;
++    const bool nearAlert = (zDeckMapPage == 2 && deflockAlert) || (zDeckMapPage == 3 && (deflockAlert || meshAlert));
+     char zdeckMapState[96];
+-    lv_snprintf(zdeckMapState, sizeof(zdeckMapState), "%s | %s | %u/%u nodes | %s", page.name, gps,
+-                (unsigned int)positionedNodes, (unsigned int)nodeCount, tileState);
++    if (deflockReady) {
++        lv_snprintf(zdeckMapState, sizeof(zdeckMapState), "%s | %s | DeFlock %.0fm | %u/%u nodes", page.name, gps,
++                    deflock.distanceKm * 1000.0f, (unsigned int)positionedNodes, (unsigned int)nodeCount);
++    } else {
++        lv_snprintf(zdeckMapState, sizeof(zdeckMapState), "%s | %s | DeFlock %s | %u/%u nodes", page.name, gps,
++                    deflock.cachePresent ? "empty" : "no cache", (unsigned int)positionedNodes, (unsigned int)nodeCount);
++    }
+     itsz::zdeck_state::setMap(nearAlert ? itsz::zdeck_state::State::Warning
+                                         : !map                         ? itsz::zdeck_state::State::Waiting
+                                           : !map->redrawComplete()     ? itsz::zdeck_state::State::Busy
+-                                          : gpsReady || positionedNodes ? itsz::zdeck_state::State::Ready
++                                          : gpsReady || positionedNodes || deflockReady ? itsz::zdeck_state::State::Ready
+                                                                         : itsz::zdeck_state::State::Waiting,
+                               zdeckMapState);
+     lv_obj_set_size(mapStatusOverlayLabel, offlineToolPage ? 218 : 212, offlineToolPage ? 92 : 42);
+@@ -3386,10 +3598,20 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+     if (zDeckMapPage == 1) {
+         lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", page.name, gps, nearest, tileState);
+     } else if (zDeckMapPage == 2) {
+-        lv_snprintf(buf, sizeof(buf), "%s | %u/%u positioned\n%s\n%s", page.name, (unsigned int)positionedNodes,
+-                    (unsigned int)nodeCount, nearest, tileState);
++        if (deflockReady) {
++            lv_snprintf(buf, sizeof(buf), "%s | %.0fm\n%.24s\n%s", nearAlert ? "DEFLOCK ALERT" : page.name,
++                        deflock.distanceKm * 1000.0f, deflock.name, tileState);
++        } else {
++            lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n/zdeck/deflock.csv", page.name, gps,
++                        deflock.cachePresent ? "No ALPR rows nearby" : "No DeFlock cache");
++        }
+     } else if (zDeckMapPage == 3) {
+-        lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", nearAlert ? "DISTANCE WARN" : page.name, gps, nearest, tileState);
++        if (deflockReady) {
++            lv_snprintf(buf, sizeof(buf), "%s | ALPR %.0fm\n%.22s\n%s", nearAlert ? "DISTANCE WARN" : page.name,
++                        deflock.distanceKm * 1000.0f, deflock.name, nearest);
++        } else {
++            lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", nearAlert ? "DISTANCE WARN" : page.name, gps, nearest, tileState);
++        }
+     } else {
+         const char *locs = objectsOnMap > 0 ? "nodes on map" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
+         lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tileState, (unsigned int)objectsOnMap,
+@@ -3430,6 +3652,17 @@ bool TFTView_320x240::centerMapBestEffort(bool showAlert)
+         return true;
+     }
+ 
++    if (db.uiConfig.map_data.has_home) {
++        map->setZoom(db.uiConfig.map_data.home.zoom);
++        map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
++        zDeckMapAutoCenterPending = false;
++        updateLocationMap(map->getObjectsOnMap());
++        updateDynamicMapMenu();
++        if (showAlert)
++            messageAlert(_("Centered saved map"), true);
++        return true;
++    }
++
+     std::vector<int32_t> sortedLat;
+     std::vector<int32_t> sortedLon;
+     sortedLat.reserve(nodeObjects.size());
+@@ -3480,7 +3713,7 @@ bool TFTView_320x240::centerMapBestEffort(bool showAlert)
+ 
+         map->setHomeLocation(latcenter * 1e-7, loncenter * 1e-7);
+         map->setZoom(zoom);
+-        zDeckMapAutoCenterPending = !showAlert;
++        zDeckMapAutoCenterPending = false;
+         updateLocationMap(map->getObjectsOnMap());
+         updateDynamicMapMenu();
+         if (showAlert)
+@@ -3488,17 +3721,6 @@ bool TFTView_320x240::centerMapBestEffort(bool showAlert)
+         return true;
+     }
+ 
+-    if (db.uiConfig.map_data.has_home) {
+-        map->setZoom(db.uiConfig.map_data.home.zoom);
+-        map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
+-        zDeckMapAutoCenterPending = !showAlert;
+-        updateLocationMap(map->getObjectsOnMap());
+-        updateDynamicMapMenu();
+-        if (showAlert)
+-            messageAlert(_("Centered saved map"), true);
+-        return true;
+-    }
+-
+     zDeckMapAutoCenterPending = true;
+     updateDynamicMapMenu();
+     if (showAlert)
+@@ -3754,6 +3976,7 @@ void TFTView_320x240::ui_event_zdeckSidebarButton(lv_event_t *e)
+         return;
+     THIS->setZDeckSidebarRight(!THIS->zDeckSidebarRight);
+ }
++
+ void TFTView_320x240::updateZDeckHealthPanel(void)
+ {
+     if (!zDeckHealthLabel)
+@@ -3954,22 +4177,6 @@ void TFTView_320x240::ui_event_zdeckSdButton(lv_event_t *e)
+         THIS->messageAlert("SD card reset failed", true);
+ }
+ 
+-static void zDeckReleaseUpdateButton(lv_obj_t *button)
+-{
+-#if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
+-    if (button) {
+-        lv_obj_clear_state(button, LV_STATE_PRESSED);
+-        lv_obj_clear_state(button, LV_STATE_FOCUSED);
+-        lv_obj_invalidate(button);
+-    }
+-    lv_timer_handler();
+-    delay(20);
+-    lv_timer_handler();
+-#else
+-    (void)button;
+-#endif
+-}
+-
+ void TFTView_320x240::setupZDeckUpdateTool(void)
+ {
+ #if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
+@@ -4054,7 +4261,7 @@ void TFTView_320x240::ui_event_zdeckUpdateCheckButton(lv_event_t *e)
+ #if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
+     THIS->zDeckUpdateRestoreArmed = false;
+     THIS->updateZDeckUpdateStatusLabel("Checking for updates...");
+-    zDeckReleaseUpdateButton(THIS->zDeckUpdateCheckButton);
++    lv_timer_handler();
+     itsz::zdeck_update::checkForUpdates();
+     THIS->updateZDeckUpdateStatusLabel();
+     if (itsz::zdeck_update::hasCachedUpdate())
+@@ -4070,7 +4277,7 @@ void TFTView_320x240::ui_event_zdeckUpdateApplyButton(lv_event_t *e)
+ #if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
+     THIS->zDeckUpdateRestoreArmed = false;
+     THIS->updateZDeckUpdateStatusLabel("Applying update...");
+-    zDeckReleaseUpdateButton(THIS->zDeckUpdateApplyButton);
++    lv_timer_handler();
+     itsz::zdeck_update::applyCachedUpdate();
+     THIS->updateZDeckUpdateStatusLabel();
+ #endif
+@@ -4084,7 +4291,7 @@ void TFTView_320x240::ui_event_zdeckUpdateBackupButton(lv_event_t *e)
+ #if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
+     THIS->zDeckUpdateRestoreArmed = false;
+     THIS->updateZDeckUpdateStatusLabel("Saving settings backup to SD...");
+-    zDeckReleaseUpdateButton(THIS->zDeckUpdateBackupButton);
++    lv_timer_handler();
+     bool ok = nodeDB && nodeDB->backupPreferences(meshtastic_AdminMessage_BackupLocation_SD);
+     THIS->updateZDeckUpdateStatusLabel(ok ? "Settings backup saved to SD." : "SD backup failed. Check the card.");
+     THIS->messageAlert(ok ? "Settings backup saved to SD" : "SD backup failed", true);
+@@ -4100,14 +4307,13 @@ void TFTView_320x240::ui_event_zdeckUpdateRestoreButton(lv_event_t *e)
+     if (!THIS->zDeckUpdateRestoreArmed) {
+         THIS->zDeckUpdateRestoreArmed = true;
+         THIS->updateZDeckUpdateStatusLabel("Press RESTORE SD again to restore settings from SD and reboot.");
+-        zDeckReleaseUpdateButton(THIS->zDeckUpdateRestoreButton);
+         THIS->messageAlert("Press RESTORE again to confirm", true);
+         return;
+     }
+ 
+     THIS->zDeckUpdateRestoreArmed = false;
+     THIS->updateZDeckUpdateStatusLabel("Restoring settings from SD...");
+-    zDeckReleaseUpdateButton(THIS->zDeckUpdateRestoreButton);
++    lv_timer_handler();
+     bool ok = nodeDB && nodeDB->restorePreferences(meshtastic_AdminMessage_BackupLocation_SD,
+                                                    SEGMENT_CONFIG | SEGMENT_MODULECONFIG | SEGMENT_DEVICESTATE |
+                                                        SEGMENT_CHANNELS);
+@@ -4130,7 +4336,6 @@ void TFTView_320x240::ui_event_zdeckUpdateStatusButton(lv_event_t *e)
+ #if defined(ARCH_ESP32) && HAS_WIFI && defined(ZDECK_PUBLIC_BUILD)
+     THIS->zDeckUpdateRestoreArmed = false;
+     THIS->updateZDeckUpdateStatusLabel();
+-    zDeckReleaseUpdateButton(THIS->zDeckUpdateStatusButton);
+     THIS->messageAlert(itsz::zdeck_update::statusText(), true);
+ #endif
+ }
+@@ -4487,11 +4692,11 @@ void TFTView_320x240::loadMap(void)
+                 map->setZoom(13);
+             }
+             map->setGpsPosition(myLatitude * 1e-7, myLongitude * 1e-7);
+-            zDeckMapAutoCenterPending = gpsSatellites == 0;
++            zDeckMapAutoCenterPending = false;
+         } else if (db.uiConfig.map_data.has_home) {
+             map->setHomeLocation(db.uiConfig.map_data.home.latitude * 1e-7, db.uiConfig.map_data.home.longitude * 1e-7);
+             map->setZoom(db.uiConfig.map_data.home.zoom);
+-            zDeckMapAutoCenterPending = true;
++            zDeckMapAutoCenterPending = false;
+         } else if (nodeObjects.size() >= 1) {
+             // no gps, no saved position; center on positioned nodes if any exist
+             std::vector<int32_t> sortedLat;
+@@ -4545,7 +4750,7 @@ void TFTView_320x240::loadMap(void)
+                 while (zoom > 1 && (156543.034f * latCos / float(1UL << zoom)) < targetMpp)
+                     zoom--;
+                 map->setZoom(zoom);
+-                zDeckMapAutoCenterPending = true;
++                zDeckMapAutoCenterPending = false;
+             } else {
+                 map->setZoom(3);
+                 zDeckMapAutoCenterPending = true;
+@@ -4697,7 +4902,7 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
+             map->add(nodeNum, lat * 1e-7, lon * 1e-7, drawObjectCB);
+             lv_obj_add_flag(img, LV_OBJ_FLAG_CLICKABLE);
+             lv_obj_add_event_cb(img, ui_event_mapNodeButton, LV_EVENT_CLICKED, (void *)nodeNum);
+-            if (zDeckMapAutoCenterPending && !hasPosition)
++            if (zDeckMapAutoCenterPending && !hasPosition && !db.uiConfig.map_data.has_home)
+                 centerMapBestEffort(false);
+             else
+                 updateLocationMap(map->getObjectsOnMap());
+@@ -4706,7 +4911,7 @@ void TFTView_320x240::addOrUpdateMap(uint32_t nodeNum, int32_t lat, int32_t lon)
+         if (map) {
+             map->update(it->first, lat * 1e-7, lon * 1e-7);
+         }
+-        if (map && zDeckMapAutoCenterPending && !hasPosition)
++        if (map && zDeckMapAutoCenterPending && !hasPosition && !db.uiConfig.map_data.has_home)
+             centerMapBestEffort(false);
+         else
+             updateLocationMap(map ? map->getObjectsOnMap() : 0);
