@@ -1054,3 +1054,28 @@ Validation commands:
 
 Blockers / next check:
 - Commit and push zdeck48, wait for GitHub Pages propagation, then run OTA check/apply on the T-Deck over USB debug while preserving LittleFS/private settings.
+
+### 2026-06-22 10:31 -04:00
+
+Scope: zdeck48 live OTA availability and attempted on-device OTA watch.
+
+Concrete feature unit:
+- Confirmed GitHub Pages caught up to the zdeck48 public release.
+- Live `update.json` and live `zdeck-firmware.bin` matched local metadata, size, SHA256, and MD5.
+- Attempted to start the device OTA watch over USB after Pages validation.
+
+Hardware / serial checks:
+- Expected normal T-Deck app port `COM17` was not present.
+- Windows reported only active serial port `COM3` with USB VID:PID `3402:0900`.
+- Meshtastic metadata probe on `COM3` timed out, so `COM3` was not treated as the T-Deck.
+- Non-writing ESP probe on `COM3` failed with no serial data received.
+- Last known T-Deck Wi-Fi IP `192.168.50.204` did not answer ping.
+
+Validation commands:
+- `python tools\verify-ota-release.py --live` passed after one propagation wait.
+- `python -m serial.tools.list_ports` showed only `COM3`.
+- `python -m meshtastic --port COM3 --no-nodes --timeout 20 --device-metadata` timed out.
+- `python -m esptool --port COM3 --baud 115200 chip_id` did not connect and did not write anything.
+
+Blockers / next check:
+- The T-Deck is not currently reachable over USB or Wi-Fi from this computer, so the zdeck47-to-zdeck48 OTA apply could not be triggered or watched. Reconnect the T-Deck in normal app mode, confirm its port appears, then run `ota-check` and `ota-apply` over USB debug.
