@@ -1,0 +1,100 @@
+{
+  "version": "2.8.0.zdeck39",
+  "build_epoch": 1782014400,
+  "platformioTarget": "t-deck-tft",
+  "mcu": "esp32s3",
+  "repo": "firmware/meshtastic-firmware-2.8",
+  "files": [
+    {
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.elf",
+      "md5": "580f4e2bd39104bffdb8a8940581783e",
+      "bytes": 26119872
+    },
+    {
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.bin",
+      "md5": "b91f1a0f11ec209f10bcd97eba6f1ff5",
+      "bytes": 3706576,
+      "part_name": "app0"
+    },
+    {
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.factory.bin",
+      "md5": "21eac0fec3459c2075be81490eff31d9",
+      "bytes": 3772112
+    },
+    {
+      "name": "littlefs-t-deck-tft-2.8.0.35b0590.bin",
+      "md5": "154700b146b7310f3b8894fc63c6076d",
+      "bytes": 3538944,
+      "part_name": "spiffs"
+    }
+  ],
+  "has_mui": true,
+  "has_inkhud": false,
+  "buildName": "Z-Deck Pack",
+  "zDeckPackVersion": "0.2.38-cyberdeck",
+  "zDeckBuildFolder": "20260622-zdeck39-ota-sd-debug-t-deck-tft",
+  "part": [
+    {
+      "name": "nvs",
+      "type": "data",
+      "subtype": "nvs",
+      "offset": "0x9000",
+      "size": "0x5000",
+      "flags": ""
+    },
+    {
+      "name": "otadata",
+      "type": "data",
+      "subtype": "ota",
+      "offset": "0xe000",
+      "size": "0x2000",
+      "flags": ""
+    },
+    {
+      "name": "app0",
+      "type": "app",
+      "subtype": "ota_0",
+      "offset": "0x10000",
+      "size": "0x640000",
+      "flags": ""
+    },
+    {
+      "name": "app1",
+      "type": "app",
+      "subtype": "ota_1",
+      "offset": "0x650000",
+      "size": "0x640000",
+      "flags": ""
+    },
+    {
+      "name": "spiffs",
+      "type": "data",
+      "subtype": "spiffs",
+      "offset": "0xc90000",
+      "size": "0x360000",
+      "flags": ""
+    },
+    {
+      "name": "coredump",
+      "type": "data",
+      "subtype": "coredump",
+      "offset": "0xFF0000",
+      "size": "0x10000",
+      "flags": ""
+    }
+  ],
+  "hwModel": 50,
+  "hwModelSlug": "T_DECK",
+  "architecture": "esp32-s3",
+  "activelySupported": true,
+  "displayName": "Z-Deck T-Deck",
+  "supportLevel": 1,
+  "images": [
+    "t-deck.svg"
+  ],
+  "tags": [
+    "LilyGo"
+  ],
+  "requiresDfu": true,
+  "partitionScheme": "16MB"
+}
