@@ -5,9 +5,9 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.46-cyberdeck",
-                   "packVersion":  "0.2.46-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck47",
+                   "title":  "Z-Deck 0.2.47-cyberdeck",
+                   "packVersion":  "0.2.47-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck48",
                    "released":  "2026-06-22",
                    "updateMode":  "app-only",
                    "preserves":  [
@@ -34,12 +34,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck47-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck47-public/zdeck-firmware.bin",
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck48-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck48-public/zdeck-firmware.bin",
                                     "size":  3711824,
-                                    "sha256":  "e4cf16a1ed90d89e847ae91461cccb454fff457005ea186968dcea69b0457fc2",
-                                    "md5":  "75a833d938888a5af03ccfa005ea8c86"
+                                    "sha256":  "74e60b4942afcee0cd8dae0b037e9fae17502db17a551fb738ebd6bf68ed5b85",
+                                    "md5":  "facb0ec221190f1734beb019f1bafefa"
                                 },
-                   "notes":  "Hotfixes the OTA apply preflight path by splitting SD backup from the HTTP/download install frame, after zdeck45 reset during ota/preflight.backup.begin while zdeck46 was being tested. Also includes the right-sidebar battery safe-zone fix from zdeck46 so the icon and percentage stay visible. App-only OTA preserves config, channels, keys, owner settings, sidebar/layout preferences, and SD data."
+                   "notes":  "Validation release for OTA apply after zdeck47 split SD preflight backup from the HTTP/download install frame. Includes the zdeck46 right-sidebar battery safe-zone fix so the icon and percentage stay visible. App-only OTA preserves config, channels, keys, owner settings, sidebar/layout preferences, and SD data."
                }
 }

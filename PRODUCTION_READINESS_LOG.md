@@ -1028,3 +1028,29 @@ Validation commands:
 
 Blockers / next check:
 - The currently installed zdeck45 app cannot OTA apply past its own preflight reset. Use an app-only USB flash once to bootstrap onto zdeck47, then verify future OTA apply from zdeck47.
+
+### 2026-06-22 10:24 -04:00
+
+Scope: zdeck48 public validation release for OTA apply testing from zdeck47.
+
+Concrete feature unit:
+- Packaged zdeck48 as a distinct app-only OTA target so a device already bootstrapped to zdeck47 can exercise the full Wi-Fi OTA apply path.
+- Preserved the zdeck46 right-sidebar battery safe-zone fix and the zdeck47 OTA preflight stack split.
+- Kept the web flasher LittleFS image as an install-time artifact only; `update.json` remains app-only and preserves config, channels, keys, owner settings, sidebar/layout preferences, map defaults, and SD data.
+
+Build / package evidence:
+- WSL PlatformIO build completed successfully from `20260622-zdeck48-ota-apply-validation-t-deck-tft`.
+- App payload: `firmware\zdeck-2.8.0-zdeck48-public\zdeck-firmware.bin`.
+- App size: `3711824`.
+- App SHA256: `74e60b4942afcee0cd8dae0b037e9fae17502db17a551fb738ebd6bf68ed5b85`.
+- App MD5: `facb0ec221190f1734beb019f1bafefa`.
+- Source archive: `source\patches\2026-06-22-zdeck48-public`.
+
+Validation commands:
+- `python tools\verify-ota-release.py` passed.
+- `git diff --check` passed apart from normal line-ending warnings.
+- `SHA256SUMS.json` package hash verification passed for 7 files.
+- Release-scoped literal secret scan passed for manifest/update/package/source-archive text files without printing secret-like values.
+
+Blockers / next check:
+- Commit and push zdeck48, wait for GitHub Pages propagation, then run OTA check/apply on the T-Deck over USB debug while preserving LittleFS/private settings.
