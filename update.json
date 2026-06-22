@@ -1,13 +1,13 @@
-{
+﻿{
     "schema":  1,
     "product":  "Z-Deck",
     "channel":  "public",
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.44-cyberdeck",
-                   "packVersion":  "0.2.44-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck45",
+                   "title":  "Z-Deck 0.2.45-cyberdeck",
+                   "packVersion":  "0.2.45-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck46",
                    "released":  "2026-06-22",
                    "updateMode":  "app-only",
                    "preserves":  [
@@ -34,12 +34,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck45-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck45-public/zdeck-firmware.bin",
-                                    "size":  3711712,
-                                    "sha256":  "820bc045cce984ce2484161b5741ac1640c1d57c249d2d1c1a51ec36dc7519c2",
-                                    "md5":  "37d16c58f777e5cc31def1601872a876"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck46-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck46-public/zdeck-firmware.bin",
+                                    "size":  3711792,
+                                    "sha256":  "983c3f6d1b85b62be44d53b26ccedfc9466342d6ddc9cb4c457f0925a234a9a7",
+                                    "md5":  "aa35756c80fa6f874805c2b5d810b65a"
                                 },
-                   "notes":  "Fixes the on-device BACKUP SD/RESTORE SD crash path by queuing SD maintenance outside the UI button handler, adds a USB backup-queue diagnostic that exercises the same deferred path, and fixes backup completion state so it returns READY instead of staying busy. Keeps USB Wi-Fi diagnostics, verified USB OTA/SD debug commands, and app-only OTA preservation for config, channels, keys, owner settings, and SD data."
+                   "notes":  "Fixes the right-sidebar battery overlap by keeping the battery panel inside the safe content area and tightening the icon/percent layout so the percentage remains visible. Keeps the zdeck45 SD backup/restore crash fix, USB Wi-Fi/OTA/SD diagnostics, and app-only OTA preservation for config, channels, keys, owner settings, sidebar/layout preferences, and SD data."
                }
 }

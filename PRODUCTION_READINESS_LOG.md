@@ -967,3 +967,34 @@ Validation commands:
 
 Blockers / next check:
 - Physical touchscreen press of `BACKUP SD` should be checked by the user, but the USB `backup-queue` command exercised the same deferred service path that the button now calls.
+
+### 2026-06-22 09:56 -04:00
+
+Scope: zdeck46 public release for right-sidebar battery indicator overlap.
+
+Concrete feature unit:
+- Fixed the T-Deck right-sidebar battery overlap by constraining `battery_panel` to a 64px safe zone inside the 280px content area when the sidebar is on the right.
+- Tightened battery icon and percentage offsets so the percent text stays visible beside the icon instead of sitting under the right rail.
+- Rebuilt public firmware as `2.8.0.zdeck46` / `0.2.45-cyberdeck` from `20260622-zdeck46-battery-sidebar-clearance-t-deck-tft`.
+
+On-device pages / controls represented:
+- Home/top status bar battery panel.
+- Right sidebar layout preference.
+- `Settings > Z-Deck OTA` app-only update path with SD pre-update backup preserved.
+
+Build / package evidence:
+- WSL PlatformIO build completed successfully.
+- App payload: `firmware\zdeck-2.8.0-zdeck46-public\zdeck-firmware.bin`.
+- App size: `3711792`.
+- App SHA256: `983c3f6d1b85b62be44d53b26ccedfc9466342d6ddc9cb4c457f0925a234a9a7`.
+- App MD5: `aa35756c80fa6f874805c2b5d810b65a`.
+- `SHA256SUMS.json` package hash verification passed for 7 files.
+- Text-only high-risk public secret scan passed without printing any sensitive values.
+
+Validation commands:
+- `python tools\verify-ota-release.py` passed.
+- JSON parse checks passed for `manifest.json`, `update.json`, `source\patches\patch-manifest.json`, and `firmware\zdeck-2.8.0-zdeck46-public\SHA256SUMS.json`.
+- `git diff --check` passed apart from normal line-ending warnings.
+
+Blockers / next check:
+- Live GitHub Pages verification and physical device OTA apply still need to run after this release is pushed.
