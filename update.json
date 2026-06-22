@@ -5,9 +5,9 @@
     "hardware":  "T_DECK",
     "environment":  "t-deck-tft",
     "latest":  {
-                   "title":  "Z-Deck 0.2.38-cyberdeck",
-                   "packVersion":  "0.2.38-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck39",
+                   "title":  "Z-Deck 0.2.39-cyberdeck",
+                   "packVersion":  "0.2.39-cyberdeck",
+                   "firmwareVersion":  "2.8.0.zdeck40",
                    "released":  "2026-06-22",
                    "updateMode":  "app-only",
                    "preserves":  [
@@ -34,12 +34,12 @@
                                                         ]
                                        },
                    "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck39-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck39-public/zdeck-firmware.bin",
-                                    "size":  3706576,
-                                    "sha256":  "d0cf1ed323f6462ad12e0eb45308c57c9902ff769dd408b8fd6af8755863a725",
-                                    "md5":  "b91f1a0f11ec209f10bcd97eba6f1ff5"
+                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck40-public/zdeck-firmware.bin",
+                                    "path":  "firmware/zdeck-2.8.0-zdeck40-public/zdeck-firmware.bin",
+                                    "size":  3708576,
+                                    "sha256":  "740ab5bccff2dd5caea58fffcdee08e5eab69abc7e528f81c4fc27612ea9dbc1",
+                                    "md5":  "409c2c095e6dbcb5058add2170f688da"
                                 },
-                   "notes":  "Adds private-safe OTA and SD backup/restore debug breadcrumbs. Diagnostics now show the last OTA/SD stage, heap, reset reason, and status, and successful backup/OTA checkpoints append /zdeck/logs/zdeck-debug.log on SD. No PSKs, private keys, Wi-Fi passwords, channel URLs, or raw backup contents are logged."
+                   "notes":  "Adds USB serial debug commands for live OTA and SD backup/restore troubleshooting plus private-safe OTA/SD breadcrumbs. Use itsz zdeck status/debug/backup/ota check/ota apply over USB to trigger actions and watch progress without logging PSKs, private keys, Wi-Fi passwords, channel URLs, or raw backup contents."
                }
 }
