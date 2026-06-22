@@ -1079,3 +1079,27 @@ Validation commands:
 
 Blockers / next check:
 - The T-Deck is not currently reachable over USB or Wi-Fi from this computer, so the zdeck47-to-zdeck48 OTA apply could not be triggered or watched. Reconnect the T-Deck in normal app mode, confirm its port appears, then run `ota-check` and `ota-apply` over USB debug.
+
+### 2026-06-22 19:38 -04:00
+
+Scope: resumed zdeck47-to-zdeck48 OTA apply attempt after the T-Deck was reconnected.
+
+Concrete feature unit:
+- Confirmed the expected T-Deck reappeared as `COM17` with USB VID:PID `303A:1001` and serial `E072A1CD2AC8`.
+- Read-only Meshtastic metadata confirmed app mode on firmware `2.8.0.zdeck47`, hardware `T_DECK`, role `CLIENT`, and PKC present.
+- USB debug Wi-Fi status confirmed Wi-Fi enabled/configured/connected at `192.168.50.204` with RSSI reported.
+- OTA apply was not started because the device disappeared before `ota-check` could open `COM17`.
+
+Hardware / serial checks:
+- `COM16` bootloader mode appeared briefly at `19:22:26` and removed at `19:22:27`.
+- `COM17` app mode appeared at `19:22:27` and removed at `19:23:35`.
+- After removal, Windows again showed the T-Deck ports as `CM_PROB_PHANTOM`; only `COM3` remained present, and `COM3` is not a T-Deck.
+- A fast OTA watcher monitored for `COM17` for 10 minutes and it did not return.
+
+Validation commands:
+- `python -m meshtastic --port COM17 --no-nodes --timeout 25 --device-metadata` passed before the disconnect.
+- `.\tools\zdeck-usb-debug.ps1 -Port COM17 -Command wifi-status -MonitorSeconds 15` passed before the disconnect.
+- `.\tools\zdeck-usb-debug.ps1 -Port COM17 -Command ota-check -MonitorSeconds 45` could not open the port because `COM17` had already been removed.
+
+Blockers / next check:
+- The device is reachable briefly, then drops from both USB and Wi-Fi before OTA can be checked or applied. Next attempt should skip nonessential probes and start with `ota-check` immediately when `COM17` returns, or use a stable power/cable/port path before retrying.
