@@ -951,6 +951,9 @@ Build / package evidence:
 - Direct USB backup passed with `sd-backup/api.ok`, SD size detected, backup file saved, and restore/decode verification OK.
 - Deferred USB backup passed with `ui-backup/deferred.begin`, `sd-backup/api.ok`, and `ui-backup/deferred.ok`.
 - Final post-backup status passed: `OTA READY Settings backup saved to SD` and `SD READY Settings backup saved to SD`.
+- Live GitHub Pages OTA verification passed after Pages caught up to commit `0ac0e90`: live `update.json` SHA256 matched local, live firmware size matched, live firmware SHA256 matched, and live firmware MD5 matched.
+- Device Wi-Fi status over USB passed without printing credentials: Wi-Fi enabled/configured/connected, IP present, RSSI reported.
+- Device OTA check over USB passed against live public manifest: HTTP `200`, manifest parsed, payload size `3711712`, `newer=0`, and status `Z-Deck is current 0.2.44-cyberdeck`.
 
 Validation commands:
 - `python tools\verify-ota-release.py` passed.
@@ -958,7 +961,9 @@ Validation commands:
 - JSON parse checks passed for `manifest.json`, `update.json`, and `source\patches\patch-manifest.json`.
 - Text-only public secret scan passed for zdeck45 package/source JSON, Markdown, patch, and text files.
 - `SHA256SUMS.json` package hash verification passed.
+- `python tools\verify-ota-release.py --live` passed after GitHub Pages propagation.
+- `.\tools\zdeck-usb-debug.ps1 -Port COM17 -Command wifi-status -MonitorSeconds 12` passed.
+- `.\tools\zdeck-usb-debug.ps1 -Port COM17 -Command ota-check -MonitorSeconds 35` passed.
 
 Blockers / next check:
-- Live GitHub Pages verification must run after this release is pushed.
 - Physical touchscreen press of `BACKUP SD` should be checked by the user, but the USB `backup-queue` command exercised the same deferred service path that the button now calls.
