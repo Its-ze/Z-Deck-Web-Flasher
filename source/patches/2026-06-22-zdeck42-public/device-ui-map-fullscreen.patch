@@ -1,0 +1,423 @@
+diff --git a/include/graphics/map/MapPanel.h b/include/graphics/map/MapPanel.h
+index 08c593e..51c4cee 100644
+--- a/include/graphics/map/MapPanel.h
++++ b/include/graphics/map/MapPanel.h
+@@ -51,6 +51,9 @@ class MapPanel
+     void update(uint32_t id, bool filtered);
+     void remove(uint32_t id);
+     uint32_t getObjectsOnMap(void) { return objectsOnMap; }
++    uint16_t getTileSlots(void) const { return tileSlots; }
++    uint16_t getLoadedTiles(void) const { return loadedTiles; }
++    uint16_t getMissingTiles(void) const { return missingTiles; }
+     // images
+     void setHomeLocationImage(lv_obj_t *img);
+     void setGpsPositionImage(lv_obj_t *img);
+@@ -79,6 +82,10 @@ class MapPanel
+     bool needsRedraw = false;
+     bool redrawCompleted = true;
+     bool locked = false; // map follows GPS location
++    bool hasGpsPosition = false;
++    uint16_t tileSlots = 0;
++    uint16_t loadedTiles = 0;
++    uint16_t missingTiles = 0;
+ 
+     int16_t widthPixel;  // visible panel width
+     int16_t heightPixel; // visible panel height
+diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 136749f..a7493b1 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -153,15 +153,17 @@ struct ZDeckMapPage {
+     const char *style;
+     const char *name;
+     const char *button;
++    const char *summary;
+ };
+ 
+ constexpr const char *zDeckDefaultTileStyle = "zdeck-mesh";
++constexpr const char *zDeckMapPagePreferencePath = "/zdeck_map_page.cfg";
+ constexpr const char *zDeckSidebarPreferencePath = "/zdeck_sidebar.cfg";
+ constexpr ZDeckMapPage zDeckMapPages[] = {
+-    {"zdeck-mesh", "Mesh map", "MESH"},
+-    {"zdeck-compass", "Live compass", "COMPASS"},
+-    {"zdeck-radar", "DF/Radar", "RADAR"},
+-    {"zdeck-alert", "Distance alert", "ALERT"},
++    {"zdeck-mesh", "Mesh map", "MESH", "Tile map with mesh nodes and GPS"},
++    {"zdeck-compass", "Live compass", "COMPASS", "GPS fix and nearest node bearing"},
++    {"zdeck-radar", "DF/Radar", "RADAR", "Positioned nodes, nearest range, and scan status"},
++    {"zdeck-alert", "Distance alert", "ALERT", "Closest-node warning view"},
+ };
+ 
+ constexpr size_t zDeckMapPageCount()
+@@ -228,6 +230,27 @@ void zDeckSaveSidebarRightPreference(bool value)
+     }
+ }
+ 
++uint8_t zDeckLoadMapPagePreference(uint8_t defaultValue)
++{
++    File file = fileSystem.open(zDeckMapPagePreferencePath, FILE_READ);
++    if (file) {
++        int value = file.read();
++        file.close();
++        if (value >= '0' && value < '0' + (int)zDeckMapPageCount())
++            return (uint8_t)(value - '0');
++    }
++    return defaultValue % zDeckMapPageCount();
++}
++
++void zDeckSaveMapPagePreference(uint8_t pageIndex)
++{
++    File file = fileSystem.open(zDeckMapPagePreferencePath, FILE_WRITE);
++    if (!file)
++        return;
++    file.write((uint8_t)('0' + (pageIndex % zDeckMapPageCount())));
++    file.close();
++}
++
+ void zDeckPlaceMainContent(lv_obj_t *obj, bool sidebarRight)
+ {
+     if (!obj)
+@@ -2824,22 +2847,25 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     const bool migratedManagedStyle = zDeckMapStyleIsManaged(db.uiConfig.map_data.style);
+     if (migratedManagedStyle)
+         zDeckMapPage = (uint8_t)zDeckMapPageIndex(db.uiConfig.map_data.style);
++    else
++        zDeckMapPage = zDeckLoadMapPagePreference(zDeckMapPage);
+     zDeckEnsureMapStyle(db.uiConfig.map_data);
+     if (migratedManagedStyle) {
+         db.uiConfig.has_map_data = true;
++        zDeckSaveMapPagePreference(zDeckMapPage);
+         controller->storeUIConfig(db.uiConfig);
+     }
+ 
+-    lv_obj_set_height(objects.map_osd_panel, 212);
++    lv_obj_set_height(objects.map_osd_panel, 218);
+ 
+     mapInternetStatusLabel = lv_label_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapInternetStatusLabel, 7, 104);
++    lv_obj_set_pos(mapInternetStatusLabel, 7, 100);
+     lv_obj_set_width(mapInternetStatusLabel, lv_pct(94));
+     lv_label_set_long_mode(mapInternetStatusLabel, LV_LABEL_LONG_DOT);
+ 
+     mapCenterButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapCenterButton, 7, 130);
+-    lv_obj_set_size(mapCenterButton, 76, 30);
++    lv_obj_set_pos(mapCenterButton, 7, 124);
++    lv_obj_set_size(mapCenterButton, 74, 34);
+     lv_obj_set_style_bg_color(mapCenterButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapCenterButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapCenterButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -2849,19 +2875,22 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_obj_center(mapCenterButtonLabel);
+ 
+     mapModeButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapModeButton, 89, 130);
+-    lv_obj_set_size(mapModeButton, 76, 30);
++    lv_obj_set_pos(mapModeButton, 87, 124);
++    lv_obj_set_size(mapModeButton, 92, 34);
+     lv_obj_set_style_bg_color(mapModeButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapModeButton, colorYellow, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapModeButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_add_event_cb(mapModeButton, ui_event_mapModeButton, LV_EVENT_CLICKED, NULL);
+     mapModeButtonLabel = lv_label_create(mapModeButton);
+-    lv_label_set_text(mapModeButtonLabel, "NEXT VIEW");
++    lv_label_set_long_mode(mapModeButtonLabel, LV_LABEL_LONG_DOT);
++    lv_obj_set_width(mapModeButtonLabel, 84);
++    lv_obj_set_style_text_align(mapModeButtonLabel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_label_set_text(mapModeButtonLabel, zDeckCurrentMapPage(zDeckMapPage).button);
+     lv_obj_center(mapModeButtonLabel);
+ 
+     mapCacheButton = lv_btn_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapCacheButton, 171, 130);
+-    lv_obj_set_size(mapCacheButton, 76, 30);
++    lv_obj_set_pos(mapCacheButton, 185, 124);
++    lv_obj_set_size(mapCacheButton, 62, 34);
+     lv_obj_set_style_bg_color(mapCacheButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapCacheButton, colorMesh, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapCacheButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -2872,7 +2901,7 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+ 
+     mapInternetButton = lv_btn_create(objects.map_osd_panel);
+     lv_obj_set_pos(mapInternetButton, 7, 166);
+-    lv_obj_set_size(mapInternetButton, 86, 26);
++    lv_obj_set_size(mapInternetButton, 78, 30);
+     lv_obj_set_style_bg_color(mapInternetButton, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapInternetButton, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_width(mapInternetButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -2882,8 +2911,8 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_obj_center(mapInternetButtonLabel);
+ 
+     mapCacheStatusLabel = lv_label_create(objects.map_osd_panel);
+-    lv_obj_set_pos(mapCacheStatusLabel, 100, 168);
+-    lv_obj_set_width(mapCacheStatusLabel, 148);
++    lv_obj_set_pos(mapCacheStatusLabel, 92, 166);
++    lv_obj_set_width(mapCacheStatusLabel, 156);
+     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
+ 
+     mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
+@@ -2944,13 +2973,20 @@ void TFTView_320x240::updateDynamicMapMenu(void)
+     }
+ 
+     if (mapModeButtonLabel)
+-        lv_label_set_text(mapModeButtonLabel, "NEXT VIEW");
++        lv_label_set_text(mapModeButtonLabel, page.button);
+     if (mapCenterButtonLabel)
+         lv_label_set_text(mapCenterButtonLabel, "CENTER");
+ 
++    const bool mapReady = !map || map->redrawComplete();
++    const uint16_t missingTiles = map ? map->getMissingTiles() : 0;
+     if (MapTileSettings::saveOK()) {
+-        lv_snprintf(buf, sizeof(buf), "%s | SD z%d %s", page.name, MapTileSettings::getZoomLevel(),
++        lv_snprintf(buf, sizeof(buf), "%s | SD z%d %s%s", page.name, MapTileSettings::getZoomLevel(),
++                    missingTiles ? "partial " : "",
+                     MapTileSettings::getTileStyle()[0] ? MapTileSettings::getTileStyle() : "default");
++    } else if (!mapReady) {
++        lv_snprintf(buf, sizeof(buf), "%s | drawing tiles", page.name);
++    } else if (missingTiles) {
++        lv_snprintf(buf, sizeof(buf), "%s | %u tiles missing", page.name, (unsigned int)missingTiles);
+     } else if (cardDetected && wifiConnected) {
+         lv_snprintf(buf, sizeof(buf), "%s | WiFi fetch", page.name);
+     } else if (cardDetected) {
+@@ -2989,26 +3025,93 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+         lv_snprintf(gps, sizeof(gps), "GPS off");
+     }
+ 
+-    const char *tiles = wifiConnected ? "WiFi tiles" : cardDetected ? "SD tiles" : "no tiles";
+-    const char *locs = objectsOnMap > 0 ? "nodes located" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
++    uint32_t positionedNodes = 0;
++    uint32_t nearestNode = 0;
++    float nearestKm = 0.0f;
++    const char *nearestName = "none";
++    for (auto &it : nodes) {
++        if (it.first == ownNode || !it.second)
++            continue;
++        int32_t lat = (long)it.second->LV_OBJ_IDX(node_pos1_idx)->user_data;
++        int32_t lon = (long)it.second->LV_OBJ_IDX(node_pos2_idx)->user_data;
++        if (!lat || !lon)
++            continue;
++        positionedNodes++;
++        if (gpsReady) {
++            float dx = 71.5f * 1e-7f * (myLongitude - lon);
++            float dy = 111.3f * 1e-7f * (myLatitude - lat);
++            float dist = sqrt(dx * dx + dy * dy);
++            if (!nearestNode || dist < nearestKm) {
++                nearestNode = it.first;
++                nearestKm = dist;
++                nearestName = lv_label_get_text(it.second->LV_OBJ_IDX(node_lbl_idx));
++            }
++        }
++    }
+ 
+-    lv_obj_set_size(mapStatusOverlayLabel, 212, 38);
+-    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
+-    lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
++    char tileState[48];
++    if (!map) {
++        lv_snprintf(tileState, sizeof(tileState), "map not open");
++    } else if (!map->redrawComplete()) {
++        lv_snprintf(tileState, sizeof(tileState), "drawing %u/%u tiles", (unsigned int)map->getLoadedTiles(),
++                    (unsigned int)map->getTileSlots());
++    } else if (map->getMissingTiles() > 0) {
++        lv_snprintf(tileState, sizeof(tileState), "ready, %u tiles missing", (unsigned int)map->getMissingTiles());
++    } else if (map->getTileSlots() > 0) {
++        lv_snprintf(tileState, sizeof(tileState), "tiles ready");
++    } else if (wifiConnected) {
++        lv_snprintf(tileState, sizeof(tileState), "WiFi tiles");
++    } else {
++        lv_snprintf(tileState, sizeof(tileState), "%s", cardDetected ? "SD tiles" : "grid only");
++    }
++
++    char nearest[56];
++    if (nearestNode) {
++        if (db.config.display.units == meshtastic_Config_DisplayConfig_DisplayUnits_METRIC) {
++            if (nearestKm >= 1.0f)
++                lv_snprintf(nearest, sizeof(nearest), "Nearest %.18s %.1fkm", nearestName, nearestKm);
++            else
++                lv_snprintf(nearest, sizeof(nearest), "Nearest %.18s %um", nearestName,
++                            (unsigned int)round(nearestKm * 1000.0f));
++        } else {
++            float miles = nearestKm * 0.621371f;
++            if (miles >= 0.1f)
++                lv_snprintf(nearest, sizeof(nearest), "Nearest %.18s %.1fmi", nearestName, miles);
++            else
++                lv_snprintf(nearest, sizeof(nearest), "Nearest %.18s %uft", nearestName,
++                            (unsigned int)round(nearestKm * 3280.84f));
++        }
++    } else if (gpsReady && positionedNodes == 0) {
++        lv_snprintf(nearest, sizeof(nearest), "No peer GPS yet");
++    } else if (!gpsReady && positionedNodes > 0) {
++        lv_snprintf(nearest, sizeof(nearest), "Need own GPS for range");
++    } else {
++        lv_snprintf(nearest, sizeof(nearest), "Waiting for positions");
++    }
++
++    const bool nearAlert = zDeckMapPage == 3 && nearestNode && nearestKm <= 0.5f;
++    lv_obj_set_size(mapStatusOverlayLabel, offlineToolPage ? 218 : 212, offlineToolPage ? 92 : 42);
++    lv_obj_set_align(mapStatusOverlayLabel, offlineToolPage ? LV_ALIGN_TOP_LEFT : LV_ALIGN_BOTTOM_LEFT);
++    lv_obj_set_pos(mapStatusOverlayLabel, 4, offlineToolPage ? 4 : -4);
+     lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_border_color(mapStatusOverlayLabel, gpsReady || offlineToolPage ? colorBlueGreen : colorYellow,
++    lv_obj_set_style_border_color(mapStatusOverlayLabel, nearAlert ? colorRed : gpsReady || offlineToolPage ? colorBlueGreen : colorYellow,
+                                   LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_text_color(mapStatusOverlayLabel, gpsReady || offlineToolPage ? colorLightGray : colorYellow,
++    lv_obj_set_style_text_color(mapStatusOverlayLabel, nearAlert ? colorRed : gpsReady || offlineToolPage ? colorLightGray : colorYellow,
+                                 LV_PART_MAIN | LV_STATE_DEFAULT);
+ 
+-    char buf[128];
+-    if (offlineToolPage) {
+-        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", page.name, gps, (unsigned int)objectsOnMap,
+-                    (unsigned int)nodeCount, locs);
++    char buf[160];
++    if (zDeckMapPage == 1) {
++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", page.name, gps, nearest, tileState);
++    } else if (zDeckMapPage == 2) {
++        lv_snprintf(buf, sizeof(buf), "%s | %u/%u positioned\n%s\n%s", page.name, (unsigned int)positionedNodes,
++                    (unsigned int)nodeCount, nearest, tileState);
++    } else if (zDeckMapPage == 3) {
++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", nearAlert ? "DISTANCE WARN" : page.name, gps, nearest, tileState);
+     } else {
+-        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tiles, (unsigned int)objectsOnMap, (unsigned int)nodeCount,
+-                    locs);
++        const char *locs = objectsOnMap > 0 ? "nodes on map" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tileState, (unsigned int)objectsOnMap,
++                    (unsigned int)nodeCount, locs);
+     }
+     lv_label_set_text(mapStatusOverlayLabel, buf);
+     lv_obj_move_foreground(mapStatusOverlayLabel);
+@@ -3153,6 +3256,7 @@ void TFTView_320x240::setZDeckMapPage(uint8_t pageIndex, bool showAlert)
+     db.uiConfig.has_map_data = true;
+     MapTileSettings::setPrefix("/maps");
+     MapTileSettings::setTileStyle(db.uiConfig.map_data.style);
++    zDeckSaveMapPagePreference(zDeckMapPage);
+     if (cardDetected)
+         MapTileSettings::setSaveOK(true);
+     controller->storeUIConfig(db.uiConfig);
+@@ -3160,8 +3264,8 @@ void TFTView_320x240::setZDeckMapPage(uint8_t pageIndex, bool showAlert)
+         map->forceRedraw();
+     updateDynamicMapMenu();
+     if (showAlert) {
+-        char msg[48];
+-        lv_snprintf(msg, sizeof(msg), "Map view: %s", zDeckCurrentMapPage(zDeckMapPage).name);
++        char msg[64];
++        lv_snprintf(msg, sizeof(msg), "Default view: %s", zDeckCurrentMapPage(zDeckMapPage).name);
+         messageAlert(msg, true);
+     }
+ }
+diff --git a/source/graphics/map/MapPanel.cpp b/source/graphics/map/MapPanel.cpp
+index 435f4f9..7680a2c 100644
+--- a/source/graphics/map/MapPanel.cpp
++++ b/source/graphics/map/MapPanel.cpp
+@@ -43,6 +43,14 @@ void MapPanel::redraw(void)
+     };
+ 
+     auto clearRetry = [&](uint32_t hash) { failedTilesRetryAt.erase(hash); };
++    auto recordTileLoad = [&](bool ok) {
++        if (ok) {
++            if (loadedTiles < UINT16_MAX)
++                loadedTiles++;
++        } else if (missingTiles < UINT16_MAX) {
++            missingTiles++;
++        }
++    };
+ 
+     // retry one failed tile per redraw() call
+     auto retryFailedTile = [&]() {
+@@ -64,6 +72,10 @@ void MapPanel::redraw(void)
+             MapTile &tile = *tileIt->second;
+             bool ok = tile.load(panel, tile.getX(), tile.getY(), noTileImage);
+             if (ok) {
++                if (missingTiles > 0)
++                    missingTiles--;
++                if (loadedTiles < tileSlots)
++                    loadedTiles++;
+                 failedTilesRetryAt.erase(it);
+             } else {
+                 it->second = now + RETRY_MS;
+@@ -79,6 +91,9 @@ void MapPanel::redraw(void)
+         y = 0;
+         tiles.clear();
+         failedTilesRetryAt.clear();
++        tileSlots = tilesX * tilesY;
++        loadedTiles = 0;
++        missingTiles = 0;
+     }
+ 
+     if (redrawCompleted) {
+@@ -97,7 +112,9 @@ void MapPanel::redraw(void)
+                 return;
+             }
+             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
+-            if (tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage))
++            bool ok = tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
++            recordTileLoad(ok);
++            if (ok)
+                 clearRetry(hash);
+             else
+                 scheduleRetry(hash);
+@@ -111,7 +128,9 @@ void MapPanel::redraw(void)
+         if (x < tilesX && y < tilesY) {
+             uint32_t hash = HASH(xStart + x, yStart + y);
+             tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
+-            if (tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage))
++            bool ok = tiles[hash]->load(panel, x * size + xOffset, y * size + yOffset, noTileImage);
++            recordTileLoad(ok);
++            if (ok)
+                 clearRetry(hash);
+             else
+                 scheduleRetry(hash);
+@@ -160,7 +179,17 @@ void MapPanel::drawLocation(void)
+     }
+     if (objects.map_location_label) {
+-        char buf[40];
+-        sprintf(buf, "%0.4f %0.4f", scrolled.latitude, scrolled.longitude);
++        char buf[48];
++        int16_t dx = current.xPos - scrolled.xPos;
++        int16_t dy = current.yPos - scrolled.yPos;
++        if (dx < 0)
++            dx = -dx;
++        if (dy < 0)
++            dy = -dy;
++        const bool centeredOnGps = hasGpsPosition && current.zoomLevel == scrolled.zoomLevel && current.xTile == scrolled.xTile &&
++                                   current.yTile == scrolled.yTile && dx <= 1 && dy <= 1;
++        const bool showGpsLabel = hasGpsPosition && (locked || centeredOnGps);
++        const GeoPoint &labelPoint = showGpsLabel ? current : scrolled;
++        snprintf(buf, sizeof(buf), "%s %0.4f %0.4f", showGpsLabel ? "GPS" : "MAP", labelPoint.latitude, labelPoint.longitude);
+         lv_label_set_text(objects.map_location_label, buf);
+         lv_obj_move_foreground(objects.map_location_label);
+     }
+@@ -289,4 +320,5 @@ void MapPanel::setGpsPosition(float lat, float lon)
+ {
++    hasGpsPosition = lat != 0.0f || lon != 0.0f;
+     current = GeoPoint(lat, lon, MapTileSettings::getZoomLevel());
+     if (locked) {
+         moveCurrent();
+@@ -447,7 +479,11 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
+                     yOffset -= size;
+                 }
+                 tiles[hash] = std::move(std::unique_ptr<MapTile>(new MapTile(xStart + x, yStart + y)));
+-                tiles[hash]->load(panel, xpos, ypos, noTileImage);
++                bool ok = tiles[hash]->load(panel, xpos, ypos, noTileImage);
++                if (ok && loadedTiles < UINT16_MAX)
++                    loadedTiles++;
++                else if (!ok && missingTiles < UINT16_MAX)
++                    missingTiles++;
+             } else {
+                 // check if tile is still visible after scrolling
+                 MapTile &tile = *tiles[hash];
+@@ -493,6 +529,7 @@ bool MapPanel::scroll(int16_t deltaX, int16_t deltaY, uint16_t fraction)
+     if (changeYtiles)
+         tilesY--;
+ 
++    tileSlots = tilesX * tilesY;
+     scrolled.move(scrollX, scrollY);
+     drawLocation();
+     drawObjects();
+@@ -603,4 +640,4 @@ void MapPanel::printTiles(void)
+     }
+     ILOG_DEBUG("tiles: %d\n%s", tiles.size(), ss.str().c_str());
+ }
+-#endif
+\ No newline at end of file
++#endif
+

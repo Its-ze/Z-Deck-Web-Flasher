@@ -1,0 +1,9 @@
+{
+  "bootloader.bin": "2a71d69b471e20c2bac7fb469f3c6a807b3ebee780e348e5889db0da849ca363",
+  "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+  "partitions.bin": "bd0f7954aca2ef7d925ee21aaa1f3dc8822d1d6ce5cbbd26a135e5886bfff6ce",
+  "zdeck-factory.bin": "ca82585b60e5ebada4849938ba7b26dd9cc9f43f67e9fa75846f1d4c373bc926",
+  "zdeck-firmware.bin": "c5bfa49bab58e5a4f70dca62d1cd7442a6c03104e63dc794c8c33a5a5d990505",
+  "zdeck-littlefs.bin": "f721cb48714ff131e43819ab1f7f57f9453ac6d9d2dc37307c812f88d3e9f804",
+  "zdeck-meshtastic-metadata.json": "4bcb1b08a2796b065e8323e2d4224a1983cebbfb5add19d11cc6f1e029275640"
+}
