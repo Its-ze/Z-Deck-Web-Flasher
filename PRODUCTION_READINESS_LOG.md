@@ -998,3 +998,33 @@ Validation commands:
 
 Blockers / next check:
 - Live GitHub Pages verification and physical device OTA apply still need to run after this release is pushed.
+
+### 2026-06-22 10:08 -04:00
+
+Scope: zdeck47 OTA apply hotfix after zdeck46 OTA test exposed an old preflight reset.
+
+Concrete feature unit:
+- Confirmed zdeck46 public package and live Pages hashes were valid.
+- Device on `COM17` saw zdeck46 as available: manifest HTTP `200`, payload size `3711792`, and `newer=1`.
+- OTA apply from the old installed app reset twice immediately after `ota/preflight.backup.begin`, before `sd-backup/api.begin`.
+- Confirmed direct `backup` and deferred `backup-queue` both save and verify `/zdeck/backups/preferences.proto`, so the reset is specific to the old OTA apply preflight path.
+- Built zdeck47 to split OTA preflight SD backup from the HTTP/download install frame while keeping the right-sidebar battery safe-zone fix.
+
+Hardware / serial checks:
+- Windows serial port observed: `COM17` normal app mode.
+- Wi-Fi status over USB: enabled/configured/connected, IP present, RSSI reported.
+- OTA apply failure was observed through USB debug without printing credentials or private channel material.
+
+Build / package evidence:
+- WSL PlatformIO build completed successfully from `20260622-zdeck47-ota-preflight-stack-t-deck-tft`.
+- App payload: `firmware\zdeck-2.8.0-zdeck47-public\zdeck-firmware.bin`.
+- App size: `3711824`.
+- App SHA256: `e4cf16a1ed90d89e847ae91461cccb454fff457005ea186968dcea69b0457fc2`.
+- App MD5: `75a833d938888a5af03ccfa005ea8c86`.
+
+Validation commands:
+- `python tools\verify-ota-release.py` pending for zdeck47.
+- Live GitHub Pages verification pending after push.
+
+Blockers / next check:
+- The currently installed zdeck45 app cannot OTA apply past its own preflight reset. Use an app-only USB flash once to bootstrap onto zdeck47, then verify future OTA apply from zdeck47.
