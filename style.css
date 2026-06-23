@@ -321,6 +321,12 @@ input,
   text-decoration: none;
 }
 
+.dongle-actions .primary-link {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 14%, var(--panel-3));
+  color: var(--green);
+}
+
 .console {
   min-height: 132px;
   margin: auto 0 0;

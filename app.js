@@ -110,14 +110,14 @@ openDonglePairing?.addEventListener("click", () => {
   const url = "http://192.168.4.1/";
   window.open(url, "_blank", "noopener,noreferrer");
   if (donglePairingStatus) {
-    donglePairingStatus.textContent = "Opening T-Dongle pairing console at " + url;
+    donglePairingStatus.textContent = "Opening dongle-hosted setup UI at " + url;
   }
   setTicker([
-    "status: T-Dongle pairing requested",
-    "network: connect to CyberDeck-Link or the dongle network adapter",
+    "status: T-Dongle setup requested",
+    "network: use the VoidLink USB network adapter",
     "url: " + url,
-    "steps: Begin Pair -> confirm on T-Deck -> Save Profile",
-    "sd mirror: /zdeck/cyberdeck/dongle-pairing.json"
+    "steps: Enable T-Deck support -> Select T-Deck USB -> Begin Pair",
+    "note: setup runs from the dongle page, not a T-Deck firmware menu"
   ]);
 });
 
