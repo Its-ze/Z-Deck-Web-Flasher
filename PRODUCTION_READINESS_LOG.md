@@ -1103,3 +1103,34 @@ Validation commands:
 
 Blockers / next check:
 - The device is reachable briefly, then drops from both USB and Wi-Fi before OTA can be checked or applied. Next attempt should skip nonessential probes and start with `ota-check` immediately when `COM17` returns, or use a stable power/cable/port path before retrying.
+
+### 2026-06-22 20:26 -04:00
+
+Scope: confirmed zdeck47-to-zdeck48 OTA apply and isolated the USB debug DTR/session issue.
+
+Concrete feature unit:
+- Ran OTA check and OTA apply in one continuous serial session with DTR held, avoiding the previous close/reopen cycle between `ota-check` and `ota-apply`.
+- Device on `COM17` reported zdeck48 available from live `update.json`: HTTP `200`, payload size `3711824`, and `newer=1`.
+- OTA apply completed the SD preflight backup, HTTP firmware download, and app write from `0%` through `100%`.
+- Update finished with `ota/update.end.ok`, then the device rebooted as expected.
+- Post-reboot Meshtastic metadata verified firmware `2.8.0.zdeck48`, hardware `T_DECK`, role `CLIENT`, and PKC present.
+- Post-reboot OTA check verified live manifest current state: HTTP `200`, payload size `3711824`, `newer=0`, and status `Z-Deck is current 0.2.47-cyberdeck`.
+
+Hardware / serial checks:
+- T-Deck target: `COM17`, USB VID:PID `303A:1001`, serial `E072A1CD2AC8`.
+- Wi-Fi before OTA: connected at `192.168.50.204`; RSSI was weak but usable.
+- The earlier failure pattern was reproduced as a host-side tooling issue: `--no-dtr` keeps the port stable but silent, while separate DTR-open/close sessions can cause the T-Deck port to drop before the next command.
+- After the successful OTA and current-state check, `COM17` later dropped again and the device IP became unreachable, so the remaining issue is serial/power/session stability after host serial close, not OTA payload failure.
+
+Validation commands:
+- Combined DTR-held Python serial session sent `itsz zdeck ota check` and `itsz zdeck ota apply` without closing the port between them.
+- `python -m meshtastic --port COM17 --no-nodes --timeout 30 --device-metadata` passed after the reboot and reported `2.8.0.zdeck48`.
+- A second combined serial session sent `itsz zdeck ota check` and confirmed `newer=0`.
+- `python -m py_compile tools\zdeck-usb-debug.py` passed after adding the local helper-side `ota-update` command.
+
+Changed local helper files:
+- `F:\Dropbox\Dev Ops\T-Deck\tools\zdeck-usb-debug.py` now supports `ota-update`, which checks and applies in the same serial session.
+- `F:\Dropbox\Dev Ops\T-Deck\tools\zdeck-usb-debug.ps1` exposes `ota-update` and `-HoldDtrOnClose`.
+
+Blockers / next check:
+- Firmware OTA is confirmed working on zdeck48. The remaining defect to investigate is the T-Deck disappearing from USB/Wi-Fi after host serial close; future USB debug should use `ota-update` or one held-open serial session and avoid separate check/apply helper calls.
