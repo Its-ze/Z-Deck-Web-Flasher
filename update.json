@@ -1,45 +1,39 @@
-﻿{
-    "schema":  1,
-    "product":  "Z-Deck",
-    "channel":  "public",
-    "hardware":  "T_DECK",
-    "environment":  "t-deck-tft",
-    "latest":  {
-                   "title":  "Z-Deck 0.2.47-cyberdeck",
-                   "packVersion":  "0.2.47-cyberdeck",
-                   "firmwareVersion":  "2.8.0.zdeck48",
-                   "released":  "2026-06-22",
-                   "updateMode":  "app-only",
-                   "preserves":  [
-                                     "meshtastic_config",
-                                     "channels",
-                                     "keys",
-                                     "owner_settings",
-                                     "sd_chat_journal",
-                                     "sd_settings_backup",
-                                     "sidebar_layout",
-                                     "map_page_default",
-                                     "owner_home_title"
-                                 ],
-                   "preUpdateBackup":  {
-                                           "enabled":  true,
-                                           "location":  "sd",
-                                           "path":  "/zdeck/backups/preferences.proto",
-                                           "contains":  [
-                                                            "config",
-                                                            "module_config",
-                                                            "channels_psks",
-                                                            "owner",
-                                                            "security_keys"
-                                                        ]
-                                       },
-                   "firmware":  {
-                                    "url":  "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck48-public/zdeck-firmware.bin",
-                                    "path":  "firmware/zdeck-2.8.0-zdeck48-public/zdeck-firmware.bin",
-                                    "size":  3711824,
-                                    "sha256":  "74e60b4942afcee0cd8dae0b037e9fae17502db17a551fb738ebd6bf68ed5b85",
-                                    "md5":  "facb0ec221190f1734beb019f1bafefa"
-                                },
-                   "notes":  "Validation release for OTA apply after zdeck47 split SD preflight backup from the HTTP/download install frame. Includes the zdeck46 right-sidebar battery safe-zone fix so the icon and percentage stay visible. App-only OTA preserves config, channels, keys, owner settings, sidebar/layout preferences, and SD data."
-               }
+{
+  "schema": 1,
+  "product": "Z-Deck",
+  "channel": "public",
+  "hardware": "T_DECK",
+  "environment": "t-deck-tft",
+  "latest": {
+    "title": "Z-Deck 0.2.49-cyberdeck",
+    "packVersion": "0.2.49-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck50",
+    "released": "2026-07-11",
+    "updateMode": "app-only",
+    "preserves": [
+      "meshtastic_config",
+      "channels",
+      "keys",
+      "owner_settings",
+      "sd_chat_journal",
+      "sd_settings_backup",
+      "sidebar_layout",
+      "map_page_default",
+      "owner_home_title"
+    ],
+    "preUpdateBackup": {
+      "enabled": true,
+      "location": "sd",
+      "path": "/zdeck/backups/preferences.proto",
+      "contains": ["config", "module_config", "channels_psks", "owner", "security_keys"]
+    },
+    "firmware": {
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck50-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck50-public/zdeck-firmware.bin",
+      "size": 3713824,
+      "sha256": "53cd50bf20eac9408db1c7cd187c7e517237ee77953ee521fe75a3dbbdbbcf4a",
+      "md5": "dd283cb8f90ee367e52460725f052eaa"
+    },
+    "notes": "Adds guarded on-device switching between Z-Deck app0 and a validated MeshCore app1 image, plus the redesigned standard/dual browser installer. App-only OTA preserves configuration, channels, keys, owner settings, layout preferences, and SD data."
+  }
 }
