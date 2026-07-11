@@ -9,6 +9,19 @@ Rules for each run:
 - Record exact pages, controls, status labels, hardware ports, and visible elements checked.
 - Separate confirmed behavior from blockers that require physical reset, replug, pairing approval, GPS sky view, or another external action.
 
+## 2026-07-11 - zdeck51 UI Audit And Map State Rebuild
+
+- Feature/fix: replaced shared map page/centering flags with `ZDeckMapState`, a standalone C++17 controller for page selection, manual interaction, first-fix GPS recovery, center source, and tile state.
+- On-device pages checked in composed source: Home, Nodes, Node Options, Groups, Group Chat, Chats, Messages, Map, Controller, Settings, Advanced Settings, Mesh Detector, Signal Scanner, Trace Route, Details, Statistics, Packet Log, Initial Setup, and their top status panels.
+- Layout controls checked: left/right 36 px sidebar, 4 px content gutter, 64 px battery safe lane, bounded 85% message composer plus keyboard button, top panels, settings tool controls, map location/status overlays, GPS lock, zoom buttons, OSD, and pan pad.
+- Map controls added: persistent bottom `MAP`, `COMP`, `RADAR`, and `ALERT` buttons. The 30 px bar is outside the 186 px compass/radar tool surface; the 99 px pan pad is raised above it; the 180 px OSD ends above it.
+- GPS behavior: live GPS wins over saved-home and peer-cluster fallbacks; fallback centering remains pending when GPS is expected; manual pan/zoom cancels snapping; Follow GPS resumes it immediately.
+- Distance/tile behavior: mesh nearest-node range now uses the same latitude-aware distance helper as DeFlock; tile state is classified once as closed, drawing, missing, ready, online, SD, or grid.
+- Build evidence: ESP32-S3 controller and test translation units compiled with `-Wall -Wextra -Werror`; the full WSL PlatformIO `t-deck-tft` app and `buildfs` targets passed for `2.8.0.zdeck51` / `0.2.50-cyberdeck`.
+- Artifact evidence: app size `3713312`, SHA256 `ca20c8b842e29cc78eb0f0d695cfc1d241bf94826eb0be23d05da56218abb997`, MD5 `2e6dcadc9f419ca26526981151d7f828`.
+- Storage boundary: OTA metadata references only `zdeck-firmware.bin`; it does not write NVS, LittleFS, SD, app 1, private settings, channels, keys, chats, map defaults, or sidebar preferences.
+- Remaining physical checks: no native T-Deck app port was present at packaging time. Install app-only zdeck51, inspect all four map modes on the display, obtain an outdoor GPS fix, pan then enable Follow GPS, and confirm mode/button touch targets on hardware.
+
 ## 2026-07-11 - zdeck50 Dual-System Switch And Flasher Workspace
 
 - Feature/fix: guarded Z-Deck app 0 to MeshCore app 1 switching, MeshCore return-to-Z-Deck page, separate dual browser installer, and modernized public flasher workspace.

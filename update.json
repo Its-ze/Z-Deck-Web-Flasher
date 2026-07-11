@@ -5,9 +5,9 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.49-cyberdeck",
-    "packVersion": "0.2.49-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck50",
+    "title": "Z-Deck 0.2.50-cyberdeck",
+    "packVersion": "0.2.50-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck51",
     "released": "2026-07-11",
     "updateMode": "app-only",
     "preserves": [
@@ -28,12 +28,12 @@
       "contains": ["config", "module_config", "channels_psks", "owner", "security_keys"]
     },
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck50-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck50-public/zdeck-firmware.bin",
-      "size": 3713824,
-      "sha256": "53cd50bf20eac9408db1c7cd187c7e517237ee77953ee521fe75a3dbbdbbcf4a",
-      "md5": "dd283cb8f90ee367e52460725f052eaa"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck51-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck51-public/zdeck-firmware.bin",
+      "size": 3713312,
+      "sha256": "ca20c8b842e29cc78eb0f0d695cfc1d241bf94826eb0be23d05da56218abb997",
+      "md5": "2e6dcadc9f419ca26526981151d7f828"
     },
-    "notes": "Adds guarded on-device switching between Z-Deck app0 and a validated MeshCore app1 image, plus the redesigned standard/dual browser installer. App-only OTA preserves configuration, channels, keys, owner settings, layout preferences, and SD data."
+    "notes": "Rebuilds the map experience around explicit map, compass, DeFlock radar, and distance-alert states with an always-visible mode bar, first-fix GPS recovery, manual-pan handling, consistent distance calculations, and clearer tile status. App-only OTA preserves configuration, channels, keys, owner settings, layout preferences, and SD data."
   }
 }

@@ -1,5 +1,19 @@
 # Changelog
 
+## Z-Deck 0.2.50-cyberdeck - 2026-07-11
+
+On-device UI audit and map-system rebuild.
+
+- Bumped the T-Deck runtime identity to `2.8.0.zdeck51` and pack label to `0.2.50-cyberdeck`.
+- Replaced scattered map page and auto-center flags with a standalone, host-testable map state controller.
+- Added an always-visible, fixed-size `MAP`, `COMP`, `RADAR`, and `ALERT` mode bar that remains clear of map pan, zoom, OSD, compass, and radar controls.
+- Changed fallback centering so a saved map or peer cluster remains eligible for replacement by the first valid live GPS fix.
+- Made manual pan/zoom stop automatic snapping, while enabling Follow GPS explicitly resumes centering.
+- Unified mesh proximity distance on the latitude-aware distance helper and centralized tile-state classification.
+- Rechecked source geometry for home, nodes, groups, chats, message composer, map, settings, tools, diagnostics, top status lanes, battery safe zone, and left/right sidebar placement.
+- Kept dual-system switching, app-only OTA, SD backup/restore guardrails, selectable themes, Wi-Fi scan/select, newest-first chats, delivery state, and hop counters.
+- No private channel data, PSKs, channel URLs, Wi-Fi credentials, admin keys, or owner-specific settings are bundled.
+
 ## Z-Deck 0.2.49-cyberdeck - 2026-07-11
 
 Dual-system switching and public flasher redesign.
