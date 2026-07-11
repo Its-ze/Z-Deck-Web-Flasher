@@ -17,6 +17,7 @@ Rules for each run:
 - Build evidence: WSL PlatformIO `t-deck-tft` app and `buildfs` targets passed for firmware `2.8.0.zdeck50` / pack `0.2.49-cyberdeck`; app size `3713824` bytes, SHA256 `53cd50bf20eac9408db1c7cd187c7e517237ee77953ee521fe75a3dbbdbbcf4a`.
 - Device evidence: attached T-Deck app 0 flashed and hash-verified at `0x10000` on `COM20`; write range ended before app 1 and no NVS/LittleFS/SD address was written. It returned in app mode on `COM21`.
 - Runtime evidence: narrow Meshtastic readback reported `firmware_version: 2.8.0.zdeck50`, hardware `T_DECK`, role `CLIENT`, GPS mode enabled, and GPS update interval `5`.
+- OTA evidence: the updated T-Deck accepted the redacted USB `itsz zdeck ota check` command and reported `OTA: Z-Deck is current` against the hosted zdeck50 manifest; no apply/write was requested.
 - Public page checked locally at `http://127.0.0.1:4174/`: `Z-Deck` and `Z-Deck + MeshCore` tabs, standard and dual install buttons, write maps, dual switch instructions, recovery buttons, VoidLink controls, feature list, release metadata, and installer ticker.
 - Responsive evidence: desktop screenshot and 390 px mobile screenshot showed no horizontal overflow; install controls stayed within the viewport and the mode panels switched with correct selected/hidden state.
 - Manifest evidence: `tools/verify-ota-release.py` passed app-only size/SHA256/MD5 and storage-preservation checks; `tools/verify-dual-release.py` passed exact offsets `0x0`, `0x8000`, `0xe000`, `0x10000`, and `0x650000` and confirmed no storage partition is written.
