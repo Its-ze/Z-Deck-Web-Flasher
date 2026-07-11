@@ -20,7 +20,10 @@ Rules for each run:
 - Build evidence: ESP32-S3 controller and test translation units compiled with `-Wall -Wextra -Werror`; the full WSL PlatformIO `t-deck-tft` app and `buildfs` targets passed for `2.8.0.zdeck51` / `0.2.50-cyberdeck`.
 - Artifact evidence: app size `3713312`, SHA256 `ca20c8b842e29cc78eb0f0d695cfc1d241bf94826eb0be23d05da56218abb997`, MD5 `2e6dcadc9f419ca26526981151d7f828`.
 - Storage boundary: OTA metadata references only `zdeck-firmware.bin`; it does not write NVS, LittleFS, SD, app 1, private settings, channels, keys, chats, map defaults, or sidebar preferences.
-- Remaining physical checks: no native T-Deck app port was present at packaging time. Install app-only zdeck51, inspect all four map modes on the display, obtain an outdoor GPS fix, pan then enable Follow GPS, and confirm mode/button touch targets on hardware.
+- Public page evidence: local page loaded `0.2.50-cyberdeck` / `2.8.0.zdeck51`, both standard and dual installer tabs switched correctly, the 390 px layout had no horizontal overflow or clipped controls, and the browser console had no errors.
+- Live release evidence: GitHub Pages served zdeck51 `update.json`; the hosted app size, SHA256, and MD5 matched local release metadata and `tools/verify-ota-release.py --live` passed.
+- Hardware blocker: Windows exposed `COM9` via CP210x and `COM3`, but no native T-Deck `303A:1001` app port. A narrow read-only Meshtastic metadata probe did not identify `COM9`, so no device write was attempted.
+- Remaining physical checks: reconnect the T-Deck in app or verified ESP32-S3 bootloader mode, install app-only zdeck51, inspect all four map modes on the display, obtain an outdoor GPS fix, pan then enable Follow GPS, and confirm mode/button touch targets on hardware.
 
 ## 2026-07-11 - zdeck50 Dual-System Switch And Flasher Workspace
 
