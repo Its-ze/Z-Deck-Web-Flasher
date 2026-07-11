@@ -3,276 +3,228 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Z-Deck Firmware Pack Public</title>
+  <meta name="description" content="Install Z-Deck or dual Z-Deck and MeshCore firmware on a LILYGO T-Deck from your browser.">
+  <title>Z-Deck T-Deck Flasher</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260616-zdeck38">
+  <link rel="stylesheet" href="style.css?v=20260711-zdeck50">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
 </head>
 <body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Z-Deck flasher home">
+      <span class="brand-mark" aria-hidden="true">ZD</span>
+      <span><strong>Z-Deck</strong><small>T-Deck firmware console</small></span>
+    </a>
+    <nav class="topnav" aria-label="Project links">
+      <a href="wiki/">Wiki</a>
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/releases" target="_blank" rel="noreferrer">Releases</a>
+      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/issues/new/choose" target="_blank" rel="noreferrer">Report issue</a>
+    </nav>
+  </header>
+
   <main class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="./" aria-label="Z-Deck web flasher home">
-        <span class="brand-mark">ZD</span>
-        <span>
-          <strong>Z-Deck</strong>
-          <small>Public T-Deck flasher</small>
-        </span>
-      </a>
-      <nav class="topnav" aria-label="Project links">
-        <a href="wiki/">Wiki</a>
-        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher" target="_blank" rel="noreferrer">GitHub</a>
-        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/releases" target="_blank" rel="noreferrer">Releases</a>
-        <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/issues/new/choose" target="_blank" rel="noreferrer">Report</a>
-      </nav>
-    </header>
+    <section class="release-bar" aria-label="Current release">
+      <div>
+        <span class="status-dot" aria-hidden="true"></span>
+        <strong data-release-title>Loading current Z-Deck release...</strong>
+      </div>
+      <div class="release-meta">
+        <span data-firmware-version>firmware</span>
+        <span>ESP32-S3</span>
+        <span>app-only OTA</span>
+      </div>
+    </section>
 
-    <section class="flash-grid" aria-label="Z-Deck flasher">
-      <div class="flash-panel">
-        <p class="eyebrow">Current public build</p>
-        <h1>Flash Z-Deck 0.2.37</h1>
-          <p class="lead">Browser-based installer for the LILYGO T-Deck/T-Deck Plus t-deck-tft build. First install by USB, scan for Wi-Fi from device Settings, then update from Settings &gt; Z-Deck OTA.</p>
-
-        <div class="release-badges" aria-label="Release summary">
-          <span>2.8.0.zdeck38</span>
-          <span>0.2.37-cyberdeck</span>
-          <span>ESP32-S3</span>
-          <span>LongFast public</span>
+    <section class="workspace" aria-labelledby="installerTitle">
+      <div class="installer">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">USB installer</p>
+            <h1 id="installerTitle">Choose the system layout</h1>
+          </div>
+          <span class="browser-note">Chrome or Edge required</span>
         </div>
 
-        <div class="install-row">
+        <div class="mode-tabs" role="tablist" aria-label="Firmware layout">
+          <button type="button" role="tab" aria-selected="true" aria-controls="standardPanel" data-install-mode="standard">
+            <i data-lucide="radio" aria-hidden="true"></i>
+            Z-Deck
+          </button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="dualPanel" data-install-mode="dual">
+            <i data-lucide="columns-2" aria-hidden="true"></i>
+            Z-Deck + MeshCore
+          </button>
+        </div>
+
+        <div id="standardPanel" class="install-panel active" role="tabpanel" data-mode-panel="standard">
+          <div class="install-copy">
+            <p class="eyebrow">Standard layout</p>
+            <h2>Z-Deck on both app slots</h2>
+            <p>Best for a first install or a dedicated Meshtastic T-Deck. The browser bundle includes the bootloader, partition table, Z-Deck app, and public LittleFS assets.</p>
+            <ul class="write-map" aria-label="Standard flash contents">
+              <li><span>App 0</span><strong>Z-Deck</strong></li>
+              <li><span>App 1</span><strong>Z-Deck recovery slot</strong></li>
+              <li><span>LittleFS</span><strong>Public UI assets</strong></li>
+            </ul>
+          </div>
           <esp-web-install-button id="installButton" manifest="manifest.json">
-            <button slot="activate" class="action">Connect and flash</button>
-            <span slot="unsupported">Use Chrome or Edge with Web Serial enabled.</span>
+            <button slot="activate" class="action"><i data-lucide="usb" aria-hidden="true"></i> Connect and flash Z-Deck</button>
+            <span slot="unsupported">Web Serial is unavailable. Use current Chrome or Edge.</span>
             <span slot="not-allowed">Serial access was blocked. Reload and allow the browser prompt.</span>
           </esp-web-install-button>
-          <p>Use bootloader mode if the serial port does not appear: hold the center trackball/BOOT, tap RESET, then release BOOT after the port shows up.</p>
         </div>
 
-        <div class="custom-manifest">
-          <label for="customManifest">Custom ESP Web Tools manifest</label>
+        <div id="dualPanel" class="install-panel" role="tabpanel" data-mode-panel="dual" hidden>
+          <div class="install-copy">
+            <p class="eyebrow amber">Dual-system layout</p>
+            <h2>Z-Deck with MeshCore in app 1</h2>
+            <p>Switch systems from the T-Deck without reflashing. This installer deliberately does not write LittleFS or NVS, preserving existing Z-Deck settings, channels, keys, chats, and SD files.</p>
+            <ul class="write-map" aria-label="Dual flash contents">
+              <li><span>App 0</span><strong>Z-Deck</strong></li>
+              <li><span>App 1</span><strong>MeshCore</strong></li>
+              <li><span>Storage</span><strong>Not written</strong></li>
+            </ul>
+          </div>
+          <esp-web-install-button id="dualInstallButton" manifest="manifest-dual.json">
+            <button slot="activate" class="action dual"><i data-lucide="shuffle" aria-hidden="true"></i> Install dual system</button>
+            <span slot="unsupported">Web Serial is unavailable. Use current Chrome or Edge.</span>
+            <span slot="not-allowed">Serial access was blocked. Reload and allow the browser prompt.</span>
+          </esp-web-install-button>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced manifest</summary>
           <div class="manifest-form">
-            <input id="customManifest" type="url" placeholder="https://example.com/manifest.json" autocomplete="off">
-            <button id="applyManifest" type="button">Use URL</button>
+            <label for="customManifest">Trusted ESP Web Tools manifest URL</label>
+            <div>
+              <input id="customManifest" type="url" placeholder="https://example.com/manifest.json" autocomplete="off">
+              <button id="applyManifest" type="button">Use URL</button>
+            </div>
+            <p id="manifestStatus" class="muted">Applies to the standard Z-Deck installer.</p>
           </div>
-          <p id="manifestStatus" class="muted">Default manifest: bundled Z-Deck firmware.</p>
-        </div>
-
-        <div class="dongle-pairing" aria-label="T-Dongle USB network setup">
-          <div>
-            <p class="eyebrow">T-Dongle USB adapter</p>
-            <h2>Flash VoidLink separately</h2>
-            <p>Use the separate VoidLink flasher for the T-Dongle. After flashing, the dongle appears as a USB network adapter and serves its own setup page at 192.168.4.1 with T-Deck support, USB selection, and pairing buttons.</p>
-          </div>
-          <div class="dongle-actions">
-            <a class="mode-button primary-link" href="https://its-ze.github.io/tdongle-usb-adapter/" target="_blank" rel="noreferrer">Flash VoidLink</a>
-            <button id="openDonglePairing" class="mode-button" type="button">Open dongle UI</button>
-          </div>
-          <p id="donglePairingStatus" class="muted">Dongle UI after flash: http://192.168.4.1/</p>
-        </div>
-
-        <pre id="ticker" class="console">waiting for deck...</pre>
+        </details>
       </div>
 
-      <aside class="device-panel" aria-label="Release device preview">
-        <div class="device-stage">
-          <svg class="device-art" viewBox="0 0 320 520" role="img" aria-label="Stylized LILYGO T-Deck with Z-Deck screen">
-            <path class="device-shadow" d="M57 494h206l34 16H23z"/>
-            <path class="device-case" d="M76 18h168l42 40v396l-34 44H68l-34-44V58z"/>
-            <path class="device-rim" d="M84 34h152l31 30v382l-25 34H78l-25-34V64z"/>
-            <rect class="speaker" x="123" y="50" width="74" height="5" rx="2"/>
-            <text class="device-logo" x="160" y="76">LILYGO</text>
-            <path class="screen-frame" d="M65 96h190l10 10v118l-10 10H65l-10-10V106z"/>
-            <rect class="screen" x="75" y="112" width="170" height="92" rx="4"/>
-            <text class="screen-title" x="90" y="139">Z-DECK</text>
-            <text class="screen-subtitle" x="90" y="160">0.2.37 Z38</text>
-            <path class="screen-line" d="M90 182h42l17-15 23 11 33-27 29 22"/>
-            <path class="control-rail" d="M61 262h198l15 16-15 36H61l-15-36z"/>
-            <path class="chev-left" d="M82 277h31l-15 18 15 18H82l15-18zm39 0h31l-15 18 15 18h-31l15-18z"/>
-            <path class="chev-right" d="M239 277h-31l15 18-15 18h31l-15-18zm-39 0h-31l15 18-15 18h31l-15-18z"/>
-            <circle class="track-ring" cx="160" cy="296" r="25"/>
-            <circle class="track" cx="160" cy="296" r="15"/>
-            <g class="keys">
-              <path d="M66 346h188l8 21H58z"/>
-              <path d="M78 383h164l7 21H71z"/>
-              <path d="M94 420h132l7 21H87z"/>
-              <rect x="113" y="455" width="94" height="21" rx="4"/>
-            </g>
-          </svg>
+      <aside class="deck-status" aria-label="Installer status">
+        <div class="device-visual" aria-hidden="true">
+          <div class="device-screen">
+            <span>Z-DECK</span>
+            <strong data-screen-version>loading</strong>
+            <div class="signal-line"></div>
+          </div>
+          <div class="device-controls"><span></span><b></b><span></span></div>
+          <div class="device-keys"></div>
         </div>
-
-        <div class="payload-card">
-          <p class="eyebrow">Payload</p>
-          <dl>
-            <div><dt>Update mode</dt><dd>App-only OTA</dd></div>
-            <div><dt>OTA manifest</dt><dd><a class="inline-link" href="update.json">update.json</a></dd></div>
-            <div><dt>Backup path</dt><dd>/zdeck/backups/preferences.proto</dd></div>
-            <div><dt>Firmware SHA256</dt><dd>b4d2d77e...ce9c7b14</dd></div>
-          </dl>
+        <div class="console-heading">
+          <span>Installer activity</span>
+          <span class="live-label">LIVE</span>
         </div>
+        <pre id="ticker" class="console" aria-live="polite">&gt; loading release metadata...</pre>
       </aside>
     </section>
 
-    <section class="status-strip" aria-label="Install checkpoints">
-      <article>
-        <span>1</span>
-        <strong>USB flash</strong>
-        <p>Install the full bootloader, app slots, and LittleFS bundle from the browser.</p>
-      </article>
-      <article>
-        <span>2</span>
-        <strong>Configure mesh</strong>
-        <p>Set owner, region, GPS, channels, and private keys outside this public repo.</p>
-      </article>
-      <article>
-        <span>3</span>
-        <strong>Back up to SD</strong>
-        <p>Use Settings &gt; Z-Deck OTA to check, apply, or write a local settings backup.</p>
-      </article>
-      <article>
-        <span>4</span>
-        <strong>Update over Wi-Fi</strong>
-        <p>Check and apply app-only updates while preserving config and SD files.</p>
-      </article>
+    <section class="checkpoint-band" aria-label="Install checkpoints">
+      <article><span>01</span><div><strong>Connect USB</strong><p>Select the T-Deck serial port.</p></div></article>
+      <article><span>02</span><div><strong>Flash and verify</strong><p>Keep USB connected through verification.</p></div></article>
+      <article><span>03</span><div><strong>Normal boot</strong><p>Release BOOT and tap RESET.</p></div></article>
+      <article><span>04</span><div><strong>Configure locally</strong><p>Add private settings after public flash.</p></div></article>
     </section>
 
-    <section class="section-block recovery-assistant" aria-labelledby="recoveryTitle">
+    <section class="system-band" aria-labelledby="switchTitle">
       <div class="section-heading">
-        <div>
-          <p class="eyebrow">Recovery assistant</p>
-          <h2 id="recoveryTitle">When the device stays in programming mode</h2>
+        <div><p class="eyebrow">Dual-system control</p><h2 id="switchTitle">Switch without another flash</h2></div>
+        <p>Both systems validate the destination app before changing the ESP32 boot slot.</p>
+      </div>
+      <div class="switch-flow">
+        <article>
+          <i data-lucide="monitor-up" aria-hidden="true"></i>
+          <span>Z-Deck to MeshCore</span>
+          <strong>Settings &gt; Z-Deck OTA</strong>
+          <p>Press <b>SWITCH TO MESHCORE</b> twice to confirm and reboot.</p>
+        </article>
+        <i class="flow-arrow" data-lucide="arrow-left-right" aria-hidden="true"></i>
+        <article>
+          <i data-lucide="radio-tower" aria-hidden="true"></i>
+          <span>MeshCore to Z-Deck</span>
+          <strong>Open the Z-Deck page</strong>
+          <p>Press and release Enter to validate app 0 and reboot.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="tools-grid">
+      <article class="tool-block" aria-labelledby="recoveryTitle">
+        <div class="section-heading compact">
+          <div><p class="eyebrow">Recovery</p><h2 id="recoveryTitle">Boot state assistant</h2></div>
         </div>
-        <p class="section-note">Use this when flashing completes but the board still shows the ESP32-S3 ROM loader or never reaches the Meshtastic app.</p>
-      </div>
-      <div class="recovery-grid">
-        <article>
-          <h3>Pick the state you see</h3>
-          <p>If the flash log says verified but the same USB serial port stays available for flashing, the BOOT/trackball/GPIO0 line is probably still held low.</p>
-          <div class="mode-actions" aria-label="Recovery mode choices">
-            <button class="mode-button active" type="button" data-recovery="normal" aria-pressed="true">Normal boot</button>
-            <button class="mode-button" type="button" data-recovery="bootloader" aria-pressed="false">Enter bootloader</button>
-            <button class="mode-button" type="button" data-recovery="verify" aria-pressed="false">Verify app mode</button>
-          </div>
-        </article>
-        <article class="mode-readout" aria-live="polite">
-          <p id="recoveryModeLabel" class="eyebrow">Normal boot</p>
-          <ol id="recoverySteps">
-            <li>Release the center trackball / BOOT control completely.</li>
-            <li>Tap RESET once, or unplug and reconnect USB normally.</li>
-            <li>Wait for the Z-Deck screen instead of selecting the port again.</li>
-            <li>Use the Meshtastic app or CLI only after the app-side port appears.</li>
-          </ol>
-          <p id="recoveryHint" class="muted">Do not reflash just because the ROM loader still answers; a verified flash usually means the bytes are already on the board.</p>
-        </article>
-      </div>
+        <div class="mode-actions" aria-label="Recovery mode choices">
+          <button class="active" type="button" data-recovery="normal" aria-pressed="true">Normal boot</button>
+          <button type="button" data-recovery="bootloader" aria-pressed="false">Bootloader</button>
+          <button type="button" data-recovery="verify" aria-pressed="false">Verify app</button>
+        </div>
+        <div class="recovery-readout" aria-live="polite">
+          <strong id="recoveryModeLabel">Normal boot</strong>
+          <ol id="recoverySteps"></ol>
+          <p id="recoveryHint" class="muted"></p>
+        </div>
+      </article>
+
+      <article class="tool-block dongle-block">
+        <div><p class="eyebrow cyan">T-Dongle adapter</p><h2>VoidLink has its own flasher</h2></div>
+        <p>Flash the dongle separately. It then appears as a USB network adapter and serves pairing and T-Deck controls from its local web UI.</p>
+        <div class="button-row">
+          <a class="secondary-action" href="https://its-ze.github.io/tdongle-usb-adapter/" target="_blank" rel="noreferrer"><i data-lucide="hard-drive-download" aria-hidden="true"></i> Open VoidLink flasher</a>
+          <button id="openDonglePairing" class="icon-action" type="button" title="Open the dongle web interface"><i data-lucide="external-link" aria-hidden="true"></i><span>Open 192.168.4.1</span></button>
+        </div>
+        <p id="donglePairingStatus" class="muted">Available after the VoidLink USB network adapter starts.</p>
+      </article>
     </section>
 
-    <section class="section-block" aria-labelledby="featuresTitle">
+    <section class="capabilities" aria-labelledby="featuresTitle">
       <div class="section-heading">
-        <p class="eyebrow">Feature set</p>
-        <h2 id="featuresTitle">What this build does</h2>
+        <div><p class="eyebrow">Current build</p><h2 id="featuresTitle">Production feature coverage</h2></div>
+        <a href="PRODUCTION_READINESS_LOG.md">Read verification log</a>
       </div>
-      <div class="feature-matrix">
-        <article>
-          <h3>Right-side sidebar</h3>
-          <p>System setting controls sidebar placement, defaults to the right side, persists in /zdeck_sidebar.cfg, and keeps top panels clear of the rail.</p>
-        </article>
-        <article>
-          <h3>Safe header lane</h3>
-          <p>The home header clips the owner title between the battery/percent block and right-side status icons.</p>
-        </article>
-        <article>
-          <h3>SD settings backup</h3>
-          <p>Backup and restore Meshtastic preferences from /zdeck/backups/preferences.proto on the SD card.</p>
-        </article>
-        <article>
-          <h3>Safer updates</h3>
-          <p>The Settings OTA block shows CHECK, APPLY, STATUS, BACKUP SD, and guarded RESTORE SD controls with a live readout.</p>
-        </article>
-        <article>
-          <h3>Wi-Fi scan setup</h3>
-          <p>The T-Deck Wi-Fi popup can scan nearby networks, show signal strength and open/locked status, and fill the selected SSID for you.</p>
-        </article>
-        <article>
-          <h3>Bluetooth readiness</h3>
-          <p>Production checks track the Windows adapter, BLE scan path, and T-Deck Bluetooth config so pairing issues are visible instead of silent.</p>
-        </article>
-        <article>
-          <h3>Cleaner home screen</h3>
-          <p>Modern Field UI, clipped LoRa RX text, clearer TX/RX chips, and fixed front-page spacing.</p>
-        </article>
-        <article>
-          <h3>More themes</h3>
-          <p>Amber Terminal, Slate Signal, and Arctic High are selectable from the on-device theme menu alongside the existing themes.</p>
-        </article>
-        <article>
-          <h3>Map pages</h3>
-          <p>Mesh map, Live compass, DF/Radar, and Distance alert views with persistent default selection, Center, GPS/MAP coordinate labels, GPS/node recenter recovery, and tile progress readouts.</p>
-        </article>
-        <article>
-          <h3>GPS startup</h3>
-          <p>Fresh T-Deck installs keep GPS active on RX44/TX43 instead of inheriting power-save mode.</p>
-        </article>
-        <article>
-          <h3>SD field storage</h3>
-          <p>Visible SD setup progress, prepared-card detection, map folders, ringtones, logs, and chat history.</p>
-        </article>
-        <article>
-          <h3>Better chats</h3>
-          <p>Newest-first direct/group chat pickers, stable node-name fallback labels, and clearer hop/send status.</p>
-        </article>
-        <article>
-          <h3>T-Dongle adapter</h3>
-          <p>Use the VoidLink flasher for the dongle; its own USB network page handles T-Deck support and pairing.</p>
-        </article>
+      <div class="feature-list">
+        <article><i data-lucide="map" aria-hidden="true"></i><div><strong>Field maps</strong><p>Legible overlays, GPS recentering, mesh, compass, DF radar, and distance views.</p></div></article>
+        <article><i data-lucide="navigation" aria-hidden="true"></i><div><strong>GPS and compass</strong><p>T-Deck defaults, live heading, coordinate status, and missing-fix diagnostics.</p></div></article>
+        <article><i data-lucide="message-square" aria-hidden="true"></i><div><strong>Mesh chat</strong><p>Newest-first conversations, stable names, hop count, and delivery state.</p></div></article>
+        <article><i data-lucide="wifi" aria-hidden="true"></i><div><strong>Wi-Fi setup</strong><p>Search, signal strength, secured/open state, selection, and OTA checks.</p></div></article>
+        <article><i data-lucide="database-backup" aria-hidden="true"></i><div><strong>SD resilience</strong><p>Guarded local backup and restore with progress and private-data warnings.</p></div></article>
+        <article><i data-lucide="panel-right" aria-hidden="true"></i><div><strong>Display controls</strong><p>Right-side rail option, battery safe zone, compact status lanes, and themes.</p></div></article>
       </div>
-    </section>
-
-    <section class="two-column">
-      <article class="info-panel">
-        <p class="eyebrow">Before flashing</p>
-        <h2>Keep recovery simple</h2>
-        <ol>
-          <li>Use Chrome or Edge with Web Serial.</li>
-          <li>Confirm this is a T-Deck/T-Deck Plus class ESP32-S3 device.</li>
-          <li>Keep bootloader mode available for rollback.</li>
-          <li>Do not put private channel URLs or PSKs in public issues.</li>
-        </ol>
-      </article>
-      <article class="info-panel warning-panel">
-        <p class="eyebrow">Local privacy</p>
-        <h2>SD backups are sensitive</h2>
-        <p>The settings backup contains Meshtastic config, channels, PSKs, owner data, and security keys. Treat the card as private local storage.</p>
-        <code>/zdeck/backups/preferences.proto</code>
-        <code>/itsz/history/messages.jsonl</code>
-      </article>
-    </section>
-
-    <section class="docs-row" aria-label="Release documents">
-      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/COMPATIBILITY.md" target="_blank" rel="noreferrer">Compatibility</a>
-      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/RECOVERY.md" target="_blank" rel="noreferrer">Recovery</a>
-      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/KNOWN_ISSUES.md" target="_blank" rel="noreferrer">Known Issues</a>
-      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/PRODUCTION_READINESS_LOG.md" target="_blank" rel="noreferrer">Readiness Log</a>
-      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">Privacy</a>
-      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/SOURCE.md" target="_blank" rel="noreferrer">Source</a>
-      <a href="https://github.com/Its-ze/Z-Deck-Web-Flasher/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">Changelog</a>
-      <a href="wiki/">Wiki</a>
     </section>
 
     <section class="release-grid">
-      <article class="info-panel">
-        <p class="eyebrow">Release notes</p>
-        <h2>Z-Deck 0.2.37-cyberdeck</h2>
-        <p>Firmware 2.8.0.zdeck38 fixes SD settings backup and restore by reading the actual backup file size before protobuf decode, so BACKUP SD verification and guarded RESTORE SD can use the saved /zdeck/backups/preferences.proto file. It keeps duplicate found-device cleanup, selectable themes, GPS/MAP coordinate label, real compass/radar/alert position pages, compact map options overlay, GPS/map recovery, visible Settings OTA, Wi-Fi scan/select, app-only Wi-Fi updates, SD chat history, newest-first chats, stable node names, clearer send status, hop counters, Modern Field UI, battery/header fixes, sidebar gutter fixes, home RX overlap fixes, diagnostics, and disabled USB SD mass storage.</p>
+      <article>
+        <p class="eyebrow">Release contract</p>
+        <h2 data-release-title>Current release</h2>
+        <p id="releaseNotes">Loading signed release metadata from this site...</p>
+        <dl class="release-details">
+          <div><dt>OTA payload</dt><dd><a href="update.json">update.json</a></dd></div>
+          <div><dt>Backup path</dt><dd>/zdeck/backups/preferences.proto</dd></div>
+          <div><dt>OTA storage</dt><dd>App partition only</dd></div>
+        </dl>
       </article>
-      <article class="info-panel">
-        <p class="eyebrow">GitHub history</p>
+      <article>
+        <p class="eyebrow">Repository</p>
         <h2>Recent changes</h2>
-        <ul id="commitList" class="commit-list">
-          <li>Loading GitHub change history...</li>
-        </ul>
+        <ul id="commitList" class="commit-list"><li>Loading GitHub history...</li></ul>
       </article>
     </section>
+
+    <footer class="docs-row" aria-label="Project documents">
+      <a href="COMPATIBILITY.md">Compatibility</a>
+      <a href="RECOVERY.md">Recovery</a>
+      <a href="KNOWN_ISSUES.md">Known issues</a>
+      <a href="PRIVACY.md">Privacy</a>
+      <a href="SOURCE.md">Source</a>
+      <a href="CHANGELOG.md">Changelog</a>
+      <a href="wiki/">Wiki</a>
+    </footer>
   </main>
-  <script src="app.js?v=20260616-zdeck38"></script>
+  <script src="app.js?v=20260711-zdeck50"></script>
 </body>
 </html>
