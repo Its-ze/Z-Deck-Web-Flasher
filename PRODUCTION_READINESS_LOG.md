@@ -22,6 +22,7 @@ Rules for each run:
 - Artifact evidence: Z-Deck app size `3713424`, SHA256 `5a278b5b6ba4a888297a1f0d14a93af66f4350ee65a82ddd4aed80f67f068d48`; MeshCore app SHA256 `a5680eb4644864acf3311ac9e34eaa153942b769969bde0c927559609ef54730`.
 - Release validation: `verify-ota-release.py` passed the app-only OTA path, size/hash metadata, required preservation list, SD preflight backup contract, and current-version comparison. `verify-dual-release.py` passed bootloader, partition table, app 0 at `0x10000`, and MeshCore app 1 at `0x650000`; no storage partition is written.
 - Public flasher page checked locally at desktop `1280x720` and mobile `390x844`: `Z-Deck 0.2.51-cyberdeck`, `2.8.0.zdeck52`, the `Z-Deck + MeshCore` layout tab, storage `Not written`, and both switch directions were visible. Both viewports had zero horizontal overflow and the browser console had no errors.
+- Live publication evidence: `verify-ota-release.py --live` matched the GitHub Pages `update.json` and Z-Deck app size, SHA256, and MD5. The live `0.2.51-cyberdeck-dual` manifest exposes the ESP32-S3 MeshCore app at `0x650000`; its downloaded size and SHA256 match the local release.
 - Release-scoped secret scan passed for manifests, page copy, source archive, and patch files; no private channel data or credentials are included.
 - Remaining physical check: install the dual zdeck52 package on a verified T-Deck, switch Z-Deck to MeshCore, then use MeshCore's Z-Deck page to return and confirm both network configurations remain intact.
 
