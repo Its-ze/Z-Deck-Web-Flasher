@@ -2,9 +2,9 @@
     "name":  "zdeck-public-stack",
     "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced LongFast public default behavior, on-device WiFi scan/select, GPS/compass refresh fixes, map page switching, persistent map page defaults, offline/SD map prep, tile progress and missing-tile status, compact map/cache overlays, real compass/radar/distance-alert position pages, coordinate-aware map GPS/MAP readout, stale saved-home map recovery, clearer message delivery labels, hop counters where packet route data exposes them, latest-activity chat ordering, node-name fallback cleanup, SD message journal support, SD settings backup/restore support, SD prepare/reset tools, SD setup detection/progress readouts, SD-card notice controls, SD ringtone folder support, screen correction tools, serial recovery, a boot progress bar, the Modern Field on-device theme/layout, a public on-device health panel, app-only Wi-Fi updates exposed in the active LVGL Settings screen, OTA/backup button release and progress repaint fixes, home LoRa RX overlap fixes, persistent sidebar-left/right placement with a fixed gutter, a home header that shows the configured owner name instead of a hard-coded CyberDeck label, and a bounded top header that keeps battery icon/percent visible.",
     "release":  {
-                    "label":  "Z-Deck 0.2.47-cyberdeck",
-                    "firmwareVersion":  "2.8.0.zdeck48",
-                    "packVersion":  "0.2.47-cyberdeck",
+                    "label":  "Z-Deck 0.2.49-cyberdeck",
+                    "firmwareVersion":  "2.8.0.zdeck50",
+                    "packVersion":  "0.2.49-cyberdeck",
                     "channelDefaults":  "LongFast public setup; users add private/admin channels after flashing",
                     "privateChannelsBundled":  false,
                     "privateKeysBundled":  false,
@@ -24,9 +24,9 @@
                    "patchBase":  "origin/2.8"
                },
     "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck48-public",
-                  "latestBuiltFrom":  "20260622-zdeck48-ota-apply-validation-t-deck-tft",
-                  "status":  "WSL PlatformIO build completed successfully from the public patch stack. This public-safe zdeck48 validation build keeps the zdeck46 right-sidebar battery safe-zone fix and the zdeck47 OTA preflight split, so a device already on zdeck47 can test the full Wi-Fi OTA apply path to zdeck48 without changing LittleFS or private settings."
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck50-public",
+                  "latestBuiltFrom":  "20260711-zdeck50-dual-mesh-ui-t-deck-tft",
+                  "status":  "WSL PlatformIO app and LittleFS builds completed successfully from the public patch stack. The zdeck50 app adds guarded dual-system switching and a MeshCore signature check while preserving app-only OTA and SD backup guardrails."
               },
     "patchFiles":  [
                        "device-ui-map.patch",
@@ -52,9 +52,12 @@
                        "device-ui-sidebar-layout.patch",
                        "device-ui-ota-controls.patch",
                        "device-ui-state-diagnostics.patch",
+                       "device-ui-map-legibility.patch",
+                       "device-ui-dual-mesh-switch.patch",
+                       "meshcore-zdeck-return.patch",
                        "zdeck-full-source.patch"
                    ],
-    "sourceArchive":  "source/patches/2026-06-22-zdeck48-public",
+    "sourceArchive":  "source/patches/2026-07-11-zdeck50-public",
     "publicSetup":  {
                         "ownerDefault":  "Meshtastic xxxx until the owner name is configured",
                         "shortNameDefault":  "xxxx until the short name is configured",

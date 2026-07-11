@@ -9,6 +9,21 @@ Rules for each run:
 - Record exact pages, controls, status labels, hardware ports, and visible elements checked.
 - Separate confirmed behavior from blockers that require physical reset, replug, pairing approval, GPS sky view, or another external action.
 
+## 2026-07-11 - zdeck50 Dual-System Switch And Flasher Workspace
+
+- Feature/fix: guarded Z-Deck app 0 to MeshCore app 1 switching, MeshCore return-to-Z-Deck page, separate dual browser installer, and modernized public flasher workspace.
+- On-device page changed: `Settings > Z-Deck OTA`; added full-width `SWITCH TO MESHCORE` below `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, and `RESTORE SD`.
+- Guardrail evidence: first switch press arms confirmation; second press validates app 1 and reboots. App 1 must be bootable and contain the MeshCore image marker in its first 2048 bytes. The bundled MeshCore image marker is at `0x4f8`; the Z-Deck image's first marker is at `0xc9006`, so a standard Z-Deck recovery slot is rejected.
+- Build evidence: WSL PlatformIO `t-deck-tft` app and `buildfs` targets passed for firmware `2.8.0.zdeck50` / pack `0.2.49-cyberdeck`; app size `3713824` bytes, SHA256 `53cd50bf20eac9408db1c7cd187c7e517237ee77953ee521fe75a3dbbdbbcf4a`.
+- Device evidence: attached T-Deck app 0 flashed and hash-verified at `0x10000` on `COM20`; write range ended before app 1 and no NVS/LittleFS/SD address was written. It returned in app mode on `COM21`.
+- Runtime evidence: narrow Meshtastic readback reported `firmware_version: 2.8.0.zdeck50`, hardware `T_DECK`, role `CLIENT`, GPS mode enabled, and GPS update interval `5`.
+- Public page checked locally at `http://127.0.0.1:4174/`: `Z-Deck` and `Z-Deck + MeshCore` tabs, standard and dual install buttons, write maps, dual switch instructions, recovery buttons, VoidLink controls, feature list, release metadata, and installer ticker.
+- Responsive evidence: desktop screenshot and 390 px mobile screenshot showed no horizontal overflow; install controls stayed within the viewport and the mode panels switched with correct selected/hidden state.
+- Manifest evidence: `tools/verify-ota-release.py` passed app-only size/SHA256/MD5 and storage-preservation checks; `tools/verify-dual-release.py` passed exact offsets `0x0`, `0x8000`, `0xe000`, `0x10000`, and `0x650000` and confirmed no storage partition is written.
+- Flash-helper evidence: generated dual package validates all five SHA256 values, parses successfully, and completes dry run. The helper now uses `usb-reset`, defaults to `460800`, and throws on nonzero `esptool` exit.
+- Security boundary: no PSK, channel URL, private key, Wi-Fi password, owner value, raw backup, or full Meshtastic info output was printed or added.
+- Remaining physical check: use the on-device control to enter MeshCore and the MeshCore `Z-Deck` page to return; this requires direct keyboard/display interaction and was not forced over USB during this run.
+
 ## 2026-06-16 - zdeck38 SD Backup/Restore Decode Hotfix
 
 - Feature/fix: `Settings > Z-Deck OTA` `BACKUP SD`, guarded `RESTORE SD`, and OTA preflight settings backup verification.

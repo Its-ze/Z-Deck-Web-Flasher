@@ -1,0 +1,167 @@
+﻿diff --git a/source/graphics/TFT/TFTView_320x240.cpp b/source/graphics/TFT/TFTView_320x240.cpp
+index 4ee4260..665e47d 100644
+--- a/source/graphics/TFT/TFTView_320x240.cpp
++++ b/source/graphics/TFT/TFTView_320x240.cpp
+@@ -198,6 +198,12 @@ ZDeckDeflockHit zDeckLastDeflockHit;
+ uint32_t zDeckLastDeflockScanMs = 0;
+ int32_t zDeckLastDeflockScanLat = 0;
+ int32_t zDeckLastDeflockScanLon = 0;
++constexpr int16_t zDeckMapOverlayX = 4;
++constexpr int16_t zDeckMapOverlayY = 26;
++constexpr int16_t zDeckMapOverlayWidth = 236;
++constexpr int16_t zDeckMapOverlayHeight = 58;
++constexpr int16_t zDeckMapLocationWidth = 210;
++constexpr lv_opa_t zDeckMapOverlayOpacity = 242;
+ 
+ constexpr size_t zDeckMapPageCount()
+ {
+@@ -239,6 +245,27 @@ const ZDeckMapPage &zDeckCurrentMapPage(uint8_t pageIndex)
+     return zDeckMapPages[pageIndex % zDeckMapPageCount()];
+ }
+ 
++void zDeckStyleReadableMapLabel(lv_obj_t *label, lv_color_t accent, const lv_font_t *font)
++{
++    if (!label)
++        return;
++    lv_obj_set_style_bg_color(label, LV_COLOR_HEX(0x071010), LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_bg_opa(label, zDeckMapOverlayOpacity, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_color(label, accent, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_opa(label, 210, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_border_width(label, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_radius(label, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_left(label, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_right(label, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_top(label, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_pad_bottom(label, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_font(label, font, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_line_space(label, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_color(label, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_opa(label, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
++}
++
+ float zDeckWrapRadians(float angle)
+ {
+     const float fullTurn = 2.0f * PI;
+@@ -3165,23 +3192,23 @@ void TFTView_320x240::setupDynamicMapMenu(void)
+     lv_label_set_long_mode(mapCacheStatusLabel, LV_LABEL_LONG_DOT);
+     lv_obj_set_style_text_font(mapCacheStatusLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+ 
++    if (objects.map_location_label) {
++        lv_obj_set_size(objects.map_location_label, zDeckMapLocationWidth, 18);
++        lv_obj_set_align(objects.map_location_label, LV_ALIGN_TOP_LEFT);
++        lv_obj_set_pos(objects.map_location_label, zDeckMapOverlayX, 4);
++        lv_label_set_long_mode(objects.map_location_label, LV_LABEL_LONG_DOT);
++        zDeckStyleReadableMapLabel(objects.map_location_label, colorBlueGreen, &lv_font_montserrat_10);
++        lv_obj_set_style_pad_top(objects.map_location_label, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
++        lv_obj_set_style_pad_bottom(objects.map_location_label, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
++    }
++
+     mapStatusOverlayLabel = lv_label_create(objects.raw_map_panel);
+-    lv_obj_set_size(mapStatusOverlayLabel, 212, 38);
+-    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_BOTTOM_LEFT);
+-    lv_obj_set_pos(mapStatusOverlayLabel, 4, -4);
+-    lv_obj_set_style_bg_color(mapStatusOverlayLabel, colorDarkGray, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_bg_opa(mapStatusOverlayLabel, 230, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_border_color(mapStatusOverlayLabel, colorBlueGreen, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_radius(mapStatusOverlayLabel, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_pad_left(mapStatusOverlayLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_pad_right(mapStatusOverlayLabel, 6, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_pad_top(mapStatusOverlayLabel, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_text_align(mapStatusOverlayLabel, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_text_font(mapStatusOverlayLabel, &lv_font_montserrat_10, LV_PART_MAIN | LV_STATE_DEFAULT);
+-    lv_obj_set_style_text_color(mapStatusOverlayLabel, colorLightGray, LV_PART_MAIN | LV_STATE_DEFAULT);
++    lv_obj_set_size(mapStatusOverlayLabel, zDeckMapOverlayWidth, zDeckMapOverlayHeight);
++    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_TOP_LEFT);
++    lv_obj_set_pos(mapStatusOverlayLabel, zDeckMapOverlayX, zDeckMapOverlayY);
++    zDeckStyleReadableMapLabel(mapStatusOverlayLabel, colorBlueGreen, &ui_font_montserrat_12);
+     lv_label_set_long_mode(mapStatusOverlayLabel, LV_LABEL_LONG_WRAP);
+-    lv_label_set_text(mapStatusOverlayLabel, "Mesh map | SD/offline first");
++    lv_label_set_text(mapStatusOverlayLabel, "MESH | waiting\nGPS and tile status will appear here");
+ 
+     setupZDeckMapToolPanel();
+     updateDynamicMapMenu();
+@@ -3419,30 +3446,30 @@ void TFTView_320x240::updateDynamicMapMenu(void)
+     char buf[144];
+     if (!hasNetwork) {
+         lv_label_set_text(mapInternetStatusLabel, "WiFi: no radio - SD/offline tiles only");
+-        lv_label_set_text(mapInternetButtonLabel, "NO WIFI");
++        lv_label_set_text(mapInternetButtonLabel, "N/A");
+     } else if (!hasWifiConfig) {
+         lv_label_set_text(mapInternetStatusLabel, "WiFi: not set - hotspot cannot be used yet");
+-        lv_label_set_text(mapInternetButtonLabel, "SET WIFI");
++        lv_label_set_text(mapInternetButtonLabel, "SET");
+     } else if (wifiConnected) {
+         uint32_t ip = db.connectionStatus.wifi.status.ip_address;
+         lv_snprintf(buf, sizeof(buf), "WiFi: %s %d.%d.%d.%d %ddBm", ssid, ip & 0xff, (ip & 0xff00) >> 8,
+                     (ip & 0xff0000) >> 16, (ip & 0xff000000) >> 24, db.connectionStatus.wifi.rssi);
+         lv_label_set_text(mapInternetStatusLabel, buf);
+-        lv_label_set_text(mapInternetButtonLabel, "WIFI OFF");
++        lv_label_set_text(mapInternetButtonLabel, "OFF");
+     } else if (db.config.network.wifi_enabled) {
+         lv_snprintf(buf, sizeof(buf), "WiFi: %s connecting - no new tiles yet", ssid);
+         lv_label_set_text(mapInternetStatusLabel, buf);
+-        lv_label_set_text(mapInternetButtonLabel, "EDIT WIFI");
++        lv_label_set_text(mapInternetButtonLabel, "EDIT");
+     } else {
+         lv_snprintf(buf, sizeof(buf), "WiFi: %s saved but off", ssid);
+         lv_label_set_text(mapInternetStatusLabel, buf);
+-        lv_label_set_text(mapInternetButtonLabel, "WIFI ON");
++        lv_label_set_text(mapInternetButtonLabel, "ON");
+     }
+ 
+     if (mapModeButtonLabel)
+         lv_label_set_text(mapModeButtonLabel, page.button);
+     if (mapCenterButtonLabel)
+-        lv_label_set_text(mapCenterButtonLabel, "CENTER");
++        lv_label_set_text(mapCenterButtonLabel, "CTR");
+ 
+     const bool mapReady = !map || map->redrawComplete();
+     const uint16_t missingTiles = map ? map->getMissingTiles() : 0;
+@@ -3584,9 +3611,9 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+                                           : gpsReady || positionedNodes || deflockReady ? itsz::zdeck_state::State::Ready
+                                                                         : itsz::zdeck_state::State::Waiting,
+                               zdeckMapState);
+-    lv_obj_set_size(mapStatusOverlayLabel, offlineToolPage ? 218 : 212, offlineToolPage ? 92 : 42);
+-    lv_obj_set_align(mapStatusOverlayLabel, offlineToolPage ? LV_ALIGN_TOP_LEFT : LV_ALIGN_BOTTOM_LEFT);
+-    lv_obj_set_pos(mapStatusOverlayLabel, 4, offlineToolPage ? 4 : -4);
++    lv_obj_set_size(mapStatusOverlayLabel, zDeckMapOverlayWidth, offlineToolPage ? 86 : zDeckMapOverlayHeight);
++    lv_obj_set_align(mapStatusOverlayLabel, LV_ALIGN_TOP_LEFT);
++    lv_obj_set_pos(mapStatusOverlayLabel, zDeckMapOverlayX, zDeckMapOverlayY);
+     lv_obj_set_style_border_width(mapStatusOverlayLabel, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+     lv_obj_set_style_border_color(mapStatusOverlayLabel, nearAlert ? colorRed : gpsReady || offlineToolPage ? colorBlueGreen : colorYellow,
+                                   LV_PART_MAIN | LV_STATE_DEFAULT);
+@@ -3596,13 +3623,13 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+ 
+     char buf[160];
+     if (zDeckMapPage == 1) {
+-        lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", page.name, gps, nearest, tileState);
++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", page.button, gps, nearest, tileState);
+     } else if (zDeckMapPage == 2) {
+         if (deflockReady) {
+-            lv_snprintf(buf, sizeof(buf), "%s | %.0fm\n%.24s\n%s", nearAlert ? "DEFLOCK ALERT" : page.name,
++            lv_snprintf(buf, sizeof(buf), "%s | %.0fm\n%.24s\n%s", nearAlert ? "DEFLOCK ALERT" : page.button,
+                         deflock.distanceKm * 1000.0f, deflock.name, tileState);
+         } else {
+-            lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n/zdeck/deflock.csv", page.name, gps,
++            lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n/zdeck/deflock.csv", page.button, gps,
+                         deflock.cachePresent ? "No ALPR rows nearby" : "No DeFlock cache");
+         }
+     } else if (zDeckMapPage == 3) {
+@@ -3610,12 +3637,12 @@ void TFTView_320x240::updateMapStatusOverlay(uint32_t objectsOnMap)
+             lv_snprintf(buf, sizeof(buf), "%s | ALPR %.0fm\n%.22s\n%s", nearAlert ? "DISTANCE WARN" : page.name,
+                         deflock.distanceKm * 1000.0f, deflock.name, nearest);
+         } else {
+-            lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", nearAlert ? "DISTANCE WARN" : page.name, gps, nearest, tileState);
++            lv_snprintf(buf, sizeof(buf), "%s | %s\n%s\n%s", nearAlert ? "DISTANCE WARN" : page.button, gps, nearest, tileState);
+         }
+     } else {
+         const char *locs = objectsOnMap > 0 ? "nodes on map" : nodeCount > 0 ? "nodes lack GPS" : "no node coords";
+-        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s", gps, tileState, (unsigned int)objectsOnMap,
+-                    (unsigned int)nodeCount, locs);
++        lv_snprintf(buf, sizeof(buf), "%s | %s\n%u/%u %s\n%s", page.button, gps, (unsigned int)objectsOnMap,
++                    (unsigned int)nodeCount, locs, tileState);
+     }
+     lv_label_set_text(mapStatusOverlayLabel, buf);
+     lv_obj_move_foreground(mapStatusOverlayLabel);
