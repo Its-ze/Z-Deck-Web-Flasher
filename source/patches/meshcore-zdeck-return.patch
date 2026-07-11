@@ -1,5 +1,5 @@
 diff --git a/examples/companion_radio/ui-new/UITask.cpp b/examples/companion_radio/ui-new/UITask.cpp
-index 7c842019..e092e35e 100644
+index 7c842019..29c2f8c2 100644
 --- a/examples/companion_radio/ui-new/UITask.cpp
 +++ b/examples/companion_radio/ui-new/UITask.cpp
 @@ -5,6 +5,9 @@
@@ -56,10 +56,10 @@ index 7c842019..e092e35e 100644
 +      display.drawTextCentered(display.width() / 2, 20, "Z-Deck");
 +      display.setColor(DisplayDriver::LIGHT);
 +      display.setTextSize(1);
-+      display.drawTextCentered(display.width() / 2, 43, "switch:" PRESS_LABEL);
++      display.drawTextCentered(display.width() / 2, 43, "hot switch:" PRESS_LABEL);
 +      if (_zdeck_switch_init) {
 +        display.setColor(DisplayDriver::YELLOW);
-+        display.drawTextCentered(display.width() / 2, 54, "release to reboot");
++        display.drawTextCentered(display.width() / 2, 54, "release: switching");
 +      }
      } else if (_page == HomePage::SHUTDOWN) {
        display.setColor(DisplayDriver::GREEN);
@@ -75,7 +75,7 @@ index 7c842019..e092e35e 100644
      if (c == KEY_ENTER && _page == HomePage::SHUTDOWN) {
        _shutdown_init = true;  // need to wait for button to be released
        return true;
-@@ -703,6 +727,33 @@ void UITask::shutdown(bool restart){
+@@ -703,6 +727,53 @@ void UITask::shutdown(bool restart){
    }
  }
  
@@ -90,6 +90,26 @@ index 7c842019..e092e35e 100644
 +  esp_app_desc_t appDesc = {};
 +  if (esp_ota_get_partition_description(part, &appDesc) != ESP_OK) {
 +    showAlert("Z-Deck slot invalid", 2000);
++    return;
++  }
++
++  constexpr char marker[] = "zdeck";
++  bool zdeckVersion = false;
++  for (size_t offset = 0; offset < sizeof(appDesc.version) && appDesc.version[offset] != '\0' && !zdeckVersion; ++offset) {
++    size_t index = 0;
++    while (marker[index] != '\0' && offset + index < sizeof(appDesc.version) &&
++           appDesc.version[offset + index] != '\0') {
++      char value = appDesc.version[offset + index];
++      if (value >= 'A' && value <= 'Z')
++        value = static_cast<char>(value + ('a' - 'A'));
++      if (value != marker[index])
++        break;
++      ++index;
++    }
++    zdeckVersion = marker[index] == '\0';
++  }
++  if (!zdeckVersion) {
++    showAlert("App0 is not Z-Deck", 2000);
 +    return;
 +  }
 +
@@ -121,3 +141,5 @@ index a77ad6e7..b514c7bc 100644
  
  
    // from AbstractUITask
+warning: in the working copy of 'examples/companion_radio/ui-new/UITask.cpp', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'examples/companion_radio/ui-new/UITask.h', LF will be replaced by CRLF the next time Git touches it

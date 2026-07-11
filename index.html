@@ -6,7 +6,7 @@
   <meta name="description" content="Install Z-Deck or dual Z-Deck and MeshCore firmware on a LILYGO T-Deck from your browser.">
   <title>Z-Deck T-Deck Flasher</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260711-zdeck51">
+  <link rel="stylesheet" href="style.css?v=20260711-zdeck52">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
 </head>
@@ -135,21 +135,21 @@
     <section class="system-band" aria-labelledby="switchTitle">
       <div class="section-heading">
         <div><p class="eyebrow">Dual-system control</p><h2 id="switchTitle">Switch without another flash</h2></div>
-        <p>Both systems validate the destination app before changing the ESP32 boot slot.</p>
+        <p>Both systems validate the destination app before a quick reboot into the other mesh network.</p>
       </div>
       <div class="switch-flow">
         <article>
           <i data-lucide="monitor-up" aria-hidden="true"></i>
           <span>Z-Deck to MeshCore</span>
-          <strong>Settings &gt; Z-Deck OTA</strong>
-          <p>Press <b>SWITCH TO MESHCORE</b> twice to confirm and reboot.</p>
+          <strong>Home: MESH &gt;</strong>
+          <p>Press once to validate MeshCore, select app 1, and reboot.</p>
         </article>
         <i class="flow-arrow" data-lucide="arrow-left-right" aria-hidden="true"></i>
         <article>
           <i data-lucide="radio-tower" aria-hidden="true"></i>
           <span>MeshCore to Z-Deck</span>
           <strong>Open the Z-Deck page</strong>
-          <p>Press and release Enter to validate app 0 and reboot.</p>
+          <p>Press Enter, or long-press and release the trackball, to validate Z-Deck and reboot.</p>
         </article>
       </div>
     </section>
@@ -225,6 +225,6 @@
       <a href="wiki/">Wiki</a>
     </footer>
   </main>
-  <script src="app.js?v=20260711-zdeck51"></script>
+  <script src="app.js?v=20260711-zdeck52"></script>
 </body>
 </html>

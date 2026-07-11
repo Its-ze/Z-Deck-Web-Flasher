@@ -2,9 +2,9 @@
     "name":  "zdeck-public-stack",
     "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Adds the Z-Deck identity/version surface, forced LongFast public default behavior, on-device WiFi scan/select, a state-driven map/compass/DeFlock/distance-alert controller with persistent mode tabs and first-fix GPS recovery, persistent map page defaults, offline/SD map prep, tile progress and missing-tile status, compact map/cache overlays, coordinate-aware GPS readout, clearer message delivery labels, hop counters where packet route data exposes them, latest-activity chat ordering, node-name fallback cleanup, SD message journal support, SD settings backup/restore support, SD prepare/reset tools, screen correction tools, serial recovery, a boot progress bar, selectable themes, a public on-device health panel, app-only Wi-Fi updates, home LoRa RX overlap fixes, persistent sidebar-left/right placement, and a bounded top header that keeps battery icon/percent visible.",
     "release":  {
-                    "label":  "Z-Deck 0.2.50-cyberdeck",
-                    "firmwareVersion":  "2.8.0.zdeck51",
-                    "packVersion":  "0.2.50-cyberdeck",
+                    "label":  "Z-Deck 0.2.51-cyberdeck",
+                    "firmwareVersion":  "2.8.0.zdeck52",
+                    "packVersion":  "0.2.51-cyberdeck",
                     "channelDefaults":  "LongFast public setup; users add private/admin channels after flashing",
                     "privateChannelsBundled":  false,
                     "privateKeysBundled":  false,
@@ -24,9 +24,9 @@
                    "patchBase":  "origin/2.8"
                },
     "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck51-public",
-                  "latestBuiltFrom":  "20260711-zdeck51-ui-map-rebuild-t-deck-tft",
-                  "status":  "WSL PlatformIO app and LittleFS builds completed successfully from the public patch stack. The zdeck51 app adds the map state controller and persistent four-mode navigation while preserving dual-system switching, app-only OTA, and SD backup guardrails."
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck52-public",
+                  "latestBuiltFrom":  "20260711-zdeck52-dual-mesh-hotswap-t-deck-tft",
+                  "status":  "WSL PlatformIO app and LittleFS builds completed successfully from the public patch stack. The zdeck52 app adds one-press validated MeshCore handoff controls on Home and Settings; the matching MeshCore build validates the Z-Deck app descriptor before returning."
               },
     "patchFiles":  [
                        "device-ui-map.patch",
@@ -55,10 +55,11 @@
                        "device-ui-map-legibility.patch",
                        "device-ui-dual-mesh-switch.patch",
                        "device-ui-map-rebuild.patch",
+                       "device-ui-dual-mesh-hotswap.patch",
                        "meshcore-zdeck-return.patch",
                        "zdeck-full-source.patch"
                    ],
-    "sourceArchive":  "source/patches/2026-07-11-zdeck51-public",
+    "sourceArchive":  "source/patches/2026-07-11-zdeck52-public",
     "publicSetup":  {
                         "ownerDefault":  "Meshtastic xxxx until the owner name is configured",
                         "shortNameDefault":  "xxxx until the short name is configured",
