@@ -9,6 +9,22 @@ Rules for each run:
 - Record exact pages, controls, status labels, hardware ports, and visible elements checked.
 - Separate confirmed behavior from blockers that require physical reset, replug, pairing approval, GPS sky view, or another external action.
 
+## 2026-07-11 - zdeck52 Validated Dual-Mesh Quick Handoff
+
+- Feature/fix: fast switching between Z-Deck/Meshtastic app 0 and MeshCore app 1 without reflashing or erasing shared storage.
+- Z-Deck Home control: compact `MESH >` button in `TopPanel`, positioned left of the centered logo/title and outside the sidebar and 64 px battery safe lane.
+- Z-Deck Settings control: full-width `MESHCORE >` in `Settings > Z-Deck OTA`; one press validates MeshCore, displays transition status, selects app 1, disables duplicate input, and schedules reboot after 750 ms.
+- MeshCore control: `Z-Deck` Home page displays `hot switch`; Enter or trackball long-press/release validates app 0, requires `appDesc.version` to contain `zdeck`, selects app 0, and reboots.
+- Architecture boundary: this is a quick A/B reboot handoff, not simultaneous protocol execution. Meshtastic and MeshCore require exclusive LoRa-radio ownership.
+- Storage boundary: handoff uses `esp_ota_set_boot_partition` only. No NVS, LittleFS, SD, channel, key, owner, chat, map, or layout partition is written.
+- Z-Deck build evidence: full WSL PlatformIO `t-deck-tft` app and `buildfs` targets passed; binary contains `2.8.0.zdeck52`, `0.2.51-cyberdeck`, `MESH >`, `MESHCORE >`, and the transition status.
+- MeshCore build evidence: `LilyGo_TDeck_companion_radio_usb` passed; app size `624864` and binary contains `hot switch`, `release: switching`, `App0 is not Z-Deck`, and `Booting Z-Deck`.
+- Artifact evidence: Z-Deck app size `3713424`, SHA256 `5a278b5b6ba4a888297a1f0d14a93af66f4350ee65a82ddd4aed80f67f068d48`; MeshCore app SHA256 `a5680eb4644864acf3311ac9e34eaa153942b769969bde0c927559609ef54730`.
+- Release validation: `verify-ota-release.py` passed the app-only OTA path, size/hash metadata, required preservation list, SD preflight backup contract, and current-version comparison. `verify-dual-release.py` passed bootloader, partition table, app 0 at `0x10000`, and MeshCore app 1 at `0x650000`; no storage partition is written.
+- Public flasher page checked locally at desktop `1280x720` and mobile `390x844`: `Z-Deck 0.2.51-cyberdeck`, `2.8.0.zdeck52`, the `Z-Deck + MeshCore` layout tab, storage `Not written`, and both switch directions were visible. Both viewports had zero horizontal overflow and the browser console had no errors.
+- Release-scoped secret scan passed for manifests, page copy, source archive, and patch files; no private channel data or credentials are included.
+- Remaining physical check: install the dual zdeck52 package on a verified T-Deck, switch Z-Deck to MeshCore, then use MeshCore's Z-Deck page to return and confirm both network configurations remain intact.
+
 ## 2026-07-11 - zdeck51 UI Audit And Map State Rebuild
 
 - Feature/fix: replaced shared map page/centering flags with `ZDeckMapState`, a standalone C++17 controller for page selection, manual interaction, first-fix GPS recovery, center source, and tile state.

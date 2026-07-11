@@ -1,5 +1,17 @@
 # Changelog
 
+## Z-Deck 0.2.51-cyberdeck - 2026-07-11
+
+Validated quick switching between Meshtastic and MeshCore.
+
+- Bumped the T-Deck runtime identity to `2.8.0.zdeck52` and pack label to `0.2.51-cyberdeck`.
+- Added a compact `MESH >` button to the Z-Deck Home header, clear of the logo, sidebar, and battery safe lane.
+- Changed the Settings control to one-press `MESHCORE >`; it validates app 1, selects it, disables both switch controls, and reboots after the transition status is rendered.
+- Updated the MeshCore Z-Deck page to show the hot-switch state and reject app 0 unless its application descriptor identifies a `zdeck` firmware version.
+- Kept the serial `itsz zdeck switch meshcore` recovery/control path and the existing app-image validation.
+- Switching changes the ESP32 boot partition only. It does not reflash or erase NVS, LittleFS, SD data, channels, keys, chats, map defaults, or sidebar preferences.
+- No private channel data, PSKs, channel URLs, Wi-Fi credentials, admin keys, or owner-specific settings are bundled.
+
 ## Z-Deck 0.2.50-cyberdeck - 2026-07-11
 
 On-device UI audit and map-system rebuild.
