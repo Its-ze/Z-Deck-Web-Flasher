@@ -1,5 +1,19 @@
 # Changelog
 
+## Z-Deck 0.2.49-cyberdeck - 2026-07-11
+
+Dual-system switching and public flasher redesign.
+
+- Bumped the T-Deck runtime identity to `2.8.0.zdeck50` and pack label to `0.2.49-cyberdeck`.
+- Added a validated app-slot switch module shared by the USB console and the on-device Settings page.
+- Added a two-press `SWITCH TO MESHCORE` control under `Settings > Z-Deck OTA`; unavailable or invalid app 1 images are rejected without rebooting.
+- Added a separate `manifest-dual.json` browser path that writes Z-Deck to app 0 and MeshCore to app 1 without writing NVS or LittleFS.
+- Redesigned the public flasher around the actual install workflow with standard/dual tabs, storage write maps, recovery controls, VoidLink handoff, and responsive mobile layout.
+- Made release labels load from `update.json` instead of stale hard-coded HTML and JavaScript values.
+- Fixed the dual-package flash helper to validate every package SHA256, use ESP32-S3 USB reset at a stable baud rate, and fail on any nonzero `esptool` result.
+- Kept the existing map legibility, GPS/compass, chat, Wi-Fi, OTA, SD, diagnostics, battery/header, sidebar, and theme improvements.
+- No private channel data, PSKs, channel URLs, Wi-Fi credentials, admin keys, or owner-specific settings are bundled.
+
 ## Z-Deck 0.2.37-cyberdeck - 2026-06-16
 
 SD backup/restore decode hotfix.

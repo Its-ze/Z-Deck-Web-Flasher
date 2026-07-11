@@ -1,79 +1,93 @@
 # Z-Deck Web Flasher
 
-Public GitHub Pages flasher for **Z-Deck Firmware Pack 0.2.37-cyberdeck**.
+Public browser installer and OTA release source for the LILYGO T-Deck/T-Deck Plus `t-deck-tft` build.
 
-This repo intentionally contains only the browser flashing site, non-secret firmware artifacts, and source patches needed to understand/rebuild the shipped public build. It does not include private Meshtastic channels, PSKs, channel URLs, admin keys, or private setup data.
+- Live flasher: https://its-ze.github.io/Z-Deck-Web-Flasher/
+- Wiki: https://its-ze.github.io/Z-Deck-Web-Flasher/wiki/
+- Release metadata: [`update.json`](update.json)
+- Production checks: [`PRODUCTION_READINESS_LOG.md`](PRODUCTION_READINESS_LOG.md)
 
-Live flasher:
+This repository contains public firmware only. It must not contain private Meshtastic channels, PSKs, channel URLs, owner-specific settings, Wi-Fi credentials, admin keys, or private setup exports.
 
-https://its-ze.github.io/Z-Deck-Web-Flasher/
+## Install Modes
 
-Hosted wiki:
+### Standard Z-Deck
 
-https://its-ze.github.io/Z-Deck-Web-Flasher/wiki/
+Use `manifest.json` for a first install or a dedicated Z-Deck device. It writes:
 
-## Release Status
+- Bootloader and the shared 16 MB partition table.
+- Z-Deck to app 0 and app 1.
+- The public LittleFS image.
 
-This is **beta / experimental firmware**, not a stable production Meshtastic release.
+Configure private settings locally after the public flash.
 
-Use it if you are comfortable recovering an ESP32-S3 T-Deck through bootloader mode. Keep a known-good Meshtastic release nearby in case you need to roll back.
+### Z-Deck + MeshCore
 
-## Use
+Use `manifest-dual.json` to install the dual-system layout:
 
-Open the GitHub Pages site in Chrome or Edge, connect the T-Deck over USB, put it in ESP32-S3 bootloader mode, then choose **Connect and flash**.
+- Z-Deck in app 0 at `0x10000`.
+- MeshCore in app 1 at `0x650000`.
+- No write to NVS or LittleFS.
 
-Bootloader mode:
+The dual installer preserves existing Z-Deck configuration, channels, keys, chats, and SD files because it does not write their storage partitions.
 
-1. Plug in the T-Deck over USB.
-2. Hold the center trackball / BOOT control.
-3. Tap RESET, then release RESET.
-4. Release BOOT after the serial port appears.
+Switch from Z-Deck in `Settings > Z-Deck OTA` by pressing `SWITCH TO MESHCORE` twice. Return from MeshCore on its `Z-Deck` page by pressing and releasing Enter. Both systems validate the destination image before changing the ESP32 boot partition.
 
-If the flash verifies but the device keeps showing the ESP32-S3 programming/ROM-loader port, use the page's Recovery assistant. Choose **Normal boot**, release BOOT/trackball/GPIO0 completely, then tap RESET or unplug/replug normally before trying Meshtastic API or private setup.
+## Browser Flash
 
-## Custom Firmware
+1. Open the live flasher in current Chrome or Edge.
+2. Select the standard or dual-system layout.
+3. Connect the T-Deck over USB and choose its serial port.
+4. Keep USB connected until ESP Web Tools completes verification.
+5. Release BOOT/trackball and tap RESET for a normal boot.
 
-The page defaults to `manifest.json`. The advanced field can point to another HTTPS ESP Web Tools manifest if you want to flash a different hosted build.
+Bootloader entry when the port does not appear:
 
-For arbitrary local firmware files, use the Windows installer from the firmware pack:
+1. Hold the center trackball / BOOT control.
+2. Tap RESET and release RESET.
+3. Release BOOT after the serial port appears.
+
+Do not erase the device for a normal firmware upgrade. Erasing also removes local configuration and keys.
+
+## OTA Updates
+
+After the initial USB install, connect Wi-Fi from the T-Deck and open `Settings > Z-Deck OTA`:
+
+- `CHECK` reads the hosted `update.json`.
+- `APPLY` downloads and verifies the app-only payload.
+- `STATUS` shows the current updater state.
+- `BACKUP SD` writes `/zdeck/backups/preferences.proto`.
+- `RESTORE SD` requires a second confirmation press.
+
+App-only OTA updates do not write NVS, LittleFS, or SD. The updater requests an SD settings backup before installing. Treat that backup as sensitive because it can contain channels, PSKs, owner data, and security keys.
+
+## Current Feature Areas
+
+- Mesh map, live compass, DF/radar, and distance warning position pages.
+- GPS startup defaults, live fix status, map recentering, and coordinate source labels.
+- Newest-first direct/group chats, stable node names, delivery state, and hop count.
+- Wi-Fi scan/select and visible OTA progress/status.
+- Guarded SD preparation, settings backup/restore, and local chat journal.
+- Right-side navigation option, battery safe zone, compact status lanes, and selectable themes.
+- On-device diagnostics and redacted USB debug commands.
+- Separate VoidLink T-Dongle USB network adapter flasher and pairing UI.
+
+## Verification
+
+Run the public release checks from this directory:
 
 ```powershell
-.\Install-ZDeck.ps1 -FirmwareDir .\firmware\your-build
+python tools\verify-ota-release.py
+python tools\verify-dual-release.py
 ```
 
-## Included Build
-
-- Release label: `Z-Deck 0.2.37-cyberdeck`
-- Firmware base version: `2.8.0.zdeck38`
-- Target: `t-deck-tft`
-- LoRa region: `US` compiled default for public LongFast reliability
-- Chip: `ESP32-S3`
-- Layout: bootloader, partitions, boot_app0, OTA app slots, LittleFS
-- Sidebar: System setting controls left/right placement, defaults to right-side placement, persists at `/zdeck_sidebar.cfg`, and uses a fixed gutter so the right rail does not cover top/header panels.
-- Home identity: the home header shows the configured Meshtastic owner name instead of a hard-coded CyberDeck title.
-- Header safety: the owner title is clipped into the lane between the battery/percent block and the right-side status icons, and full batteries show clamped percent instead of USB-only status.
-- Build skin: Modern Field dark theme and compact on-device status layout with a full-row front-page LoRa RX slot to prevent icon overlap. The on-device theme menu also includes Amber Terminal, Slate Signal, and Arctic High.
-- Map/position pages: Mesh map, Live compass, DF/Radar, and Distance alert are switched with the Map tab or the compact map menu without changing the real SD tile style. The default page persists across restarts. The map page includes Center, which moves to live GPS, positioned mesh nodes, then saved map area. The coordinate readout now says `GPS` when it is showing the live centered GPS fix and `MAP` when it is showing the manually scrolled map center. Compass/Radar/Alert pages render a real ring, heading/status text, and nearest positioned mesh-node bearing/range when data is available instead of showing a stuck map underneath.
-- Wi-Fi setup: the T-Deck Wi-Fi popup can scan nearby networks, show RSSI and open/locked status, and fill the selected SSID. Open networks can save with a blank password, while manual SSID/password entry still works.
-- GPS defaults: fresh T-Deck installs keep GPS enabled on RX44/TX43 and disable the inherited T-Deck power-saving default so the receiver stays active.
-- Offline maps: SD preparation creates Z-Deck map folders, while the real tile loader stays on `/maps/zdeck-mesh` by default and filters non-tile page folders from the tile-style dropdown. The on-device map reports drawing, ready, missing-tile, and cached-tile status instead of staying stuck on a loading message. If GPS or peer locations arrive after opening the map, the view recenters and stale saved map-home data no longer prevents recovery to the live GPS or located mesh-node area.
-- Chats: group and direct chat pickers sort newest active thread first, and missing node names fall back to stable `Node xxxx` labels instead of `?? ??`.
-- Found devices: repeated NodeDB records are deduped before the on-device node list, message destination picker, and favorite-node pages render them, so the same T-Deck or local device does not appear multiple times.
-- Message UI: received packets show measured hop count as `H#`; unknown route data shows `H?`; outbound limits use `TTL#`.
-- Audio: T-Deck I2S ringtone playback uses full tone sequences instead of stopping on the first note.
-- SD card: Tools includes a two-press `Prepare / Reset SD` action that shows setup progress, formats the card, builds Z-Deck folders, writes a README, labels supported FAT cards as `TDECKSDCARD`, stores local message history, discovers ringtones from the SD card, and recognizes the same prepared card on later inserts.
-- Settings backup: the active T-Deck Settings screen has a visible `Z-Deck OTA` block with `BACKUP SD` and guarded `RESTORE SD` controls. Backups are written to `/zdeck/backups/preferences.proto` and include Meshtastic config, module config, channels/PSKs, owner data, and security keys. `0.2.37-cyberdeck` fixes backup verification and restore by decoding the actual SD file size. Treat the SD card as private.
-- Updates: after this build is installed once by USB, use the Wi-Fi settings popup to scan/select your network, then open `Settings > Z-Deck OTA` and use `CHECK`, `APPLY`, or `STATUS`. The hosted updater is app-only and writes/verifies the SD settings backup before downloading firmware. App-only updates preserve Meshtastic config, channels, keys, owner settings, sidebar placement, map page default, and SD chat history unless a future manifest explicitly declares a different update mode.
-- OTA and backup controls: CHECK, APPLY, BACKUP SD, and RESTORE SD release the pressed button and repaint the status readout before long Wi-Fi, flash, or SD work starts. OTA progress also pumps the screen during download/write.
-- USB storage: disabled by default so Web Serial and Meshtastic API sessions stay stable; SD prep/journal/ringtone/backup features still use the card internally.
-- On-device notices: USB connected and SD inserted/setup prompts can be disabled in settings.
-- T-Dongle bridge: the public flasher exposes a separate **Open pairing UI** button for the CyberDeck Link dongle console at `http://192.168.4.1/`, plus a public handoff to the VoidLink T-Dongle USB network-card installer. Pairing/profile files are expected to mirror under `/zdeck/cyberdeck/` on the T-Deck SD card; do not publish the private contents.
+Add `--live` to `verify-ota-release.py` only after publishing when you need to compare local and GitHub Pages bytes.
 
 ## Documentation
 
 - [Compatibility](COMPATIBILITY.md)
 - [Recovery and rollback](RECOVERY.md)
 - [Known issues](KNOWN_ISSUES.md)
-- [Privacy and SD message journal](PRIVACY.md)
-- [Release notes](CHANGELOG.md)
+- [Privacy](PRIVACY.md)
 - [Source and attribution](SOURCE.md)
+- [Changelog](CHANGELOG.md)

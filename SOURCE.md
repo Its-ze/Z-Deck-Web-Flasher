@@ -34,6 +34,9 @@ The public beta includes the Z-Deck source patch set under [source/patches](sour
 - `device-ui-ota-controls.patch`
 - `device-ui-wifi-scan.patch`
 - `device-ui-state-diagnostics.patch`
+- `device-ui-deflock-radar.patch`
+- `device-ui-map-legibility.patch`
+- `device-ui-dual-mesh-switch.patch`
 
 These patches document the custom changes layered on top of upstream Meshtastic firmware. The shipped binaries should be treated as GPLv3 firmware derived from Meshtastic plus these Z-Deck changes.
 
