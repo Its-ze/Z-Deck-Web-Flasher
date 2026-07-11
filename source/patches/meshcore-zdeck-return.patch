@@ -1,0 +1,123 @@
+diff --git a/examples/companion_radio/ui-new/UITask.cpp b/examples/companion_radio/ui-new/UITask.cpp
+index 7c842019..e092e35e 100644
+--- a/examples/companion_radio/ui-new/UITask.cpp
++++ b/examples/companion_radio/ui-new/UITask.cpp
+@@ -5,6 +5,9 @@
+ #ifdef WIFI_SSID
+   #include <WiFi.h>
+ #endif
++#ifdef ESP32
++  #include <esp_ota_ops.h>
++#endif
+ 
+ #ifndef AUTO_OFF_MILLIS
+   #define AUTO_OFF_MILLIS     15000   // 15 seconds
+@@ -96,6 +99,7 @@ class HomeScreen : public UIScreen {
+ #if UI_SENSORS_PAGE == 1
+     SENSORS,
+ #endif
++    ZDECK,
+     SHUTDOWN,
+     Count    // keep as last
+   };
+@@ -106,6 +110,7 @@ class HomeScreen : public UIScreen {
+   NodePrefs* _node_prefs;
+   uint8_t _page;
+   bool _shutdown_init;
++  bool _zdeck_switch_init;
+   AdvertPath recent[UI_RECENT_LIST_SIZE];
+ 
+ 
+@@ -179,12 +184,16 @@ class HomeScreen : public UIScreen {
+ public:
+   HomeScreen(UITask* task, mesh::RTCClock* rtc, SensorManager* sensors, NodePrefs* node_prefs)
+      : _task(task), _rtc(rtc), _sensors(sensors), _node_prefs(node_prefs), _page(0),
+-       _shutdown_init(false), sensors_lpp(200) {  }
++       _shutdown_init(false), _zdeck_switch_init(false), sensors_lpp(200) {  }
+ 
+   void poll() override {
+     if (_shutdown_init && !_task->isButtonPressed()) {  // must wait for USR button to be released
+       _task->shutdown();
+     }
++    if (_zdeck_switch_init && !_task->isButtonPressed()) {
++      _task->switchToZDeck();
++      _zdeck_switch_init = false;
++    }
+   }
+ 
+   int render(DisplayDriver& display) override {
+@@ -400,6 +409,17 @@ public:
+       if (sensors_scroll) sensors_scroll_offset = (sensors_scroll_offset+1)%sensors_nb;
+       else sensors_scroll_offset = 0;
+ #endif
++    } else if (_page == HomePage::ZDECK) {
++      display.setColor(DisplayDriver::BLUE);
++      display.setTextSize(2);
++      display.drawTextCentered(display.width() / 2, 20, "Z-Deck");
++      display.setColor(DisplayDriver::LIGHT);
++      display.setTextSize(1);
++      display.drawTextCentered(display.width() / 2, 43, "switch:" PRESS_LABEL);
++      if (_zdeck_switch_init) {
++        display.setColor(DisplayDriver::YELLOW);
++        display.drawTextCentered(display.width() / 2, 54, "release to reboot");
++      }
+     } else if (_page == HomePage::SHUTDOWN) {
+       display.setColor(DisplayDriver::GREEN);
+       display.setTextSize(1);
+@@ -455,6 +475,10 @@ public:
+       return true;
+     }
+ #endif
++    if (c == KEY_ENTER && _page == HomePage::ZDECK) {
++      _zdeck_switch_init = true;
++      return true;
++    }
+     if (c == KEY_ENTER && _page == HomePage::SHUTDOWN) {
+       _shutdown_init = true;  // need to wait for button to be released
+       return true;
+@@ -703,6 +727,33 @@ void UITask::shutdown(bool restart){
+   }
+ }
+ 
++void UITask::switchToZDeck() {
++#ifdef ESP32
++  const esp_partition_t* part = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, NULL);
++  if (part == NULL) {
++    showAlert("Z-Deck slot missing", 2000);
++    return;
++  }
++
++  esp_app_desc_t appDesc = {};
++  if (esp_ota_get_partition_description(part, &appDesc) != ESP_OK) {
++    showAlert("Z-Deck slot invalid", 2000);
++    return;
++  }
++
++  if (esp_ota_set_boot_partition(part) != ESP_OK) {
++    showAlert("Switch failed", 2000);
++    return;
++  }
++
++  showAlert("Booting Z-Deck", 500);
++  delay(250);
++  _board->reboot();
++#else
++  showAlert("ESP32 only", 2000);
++#endif
++}
++
+ bool UITask::isButtonPressed() const {
+ #ifdef PIN_USER_BTN
+   return user_btn.isPressed();
+diff --git a/examples/companion_radio/ui-new/UITask.h b/examples/companion_radio/ui-new/UITask.h
+index a77ad6e7..b514c7bc 100644
+--- a/examples/companion_radio/ui-new/UITask.h
++++ b/examples/companion_radio/ui-new/UITask.h
+@@ -89,6 +89,7 @@ public:
+   void toggleBuzzer();
+   bool getGPSState();
+   void toggleGPS();
++  void switchToZDeck();
+ 
+ 
+   // from AbstractUITask

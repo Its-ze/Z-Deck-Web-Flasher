@@ -7,6 +7,13 @@ Z-Deck Firmware Pack is based on Meshtastic firmware.
 - Target environment: `t-deck-tft`
 - License: GNU GPL v3.0, included in [LICENSE](LICENSE)
 
+The optional dual-system package also contains a MeshCore companion-radio image.
+
+- Upstream project: https://github.com/meshcore-dev/MeshCore
+- Target: `LilyGo_TDeck_companion_radio_usb`
+- Upstream license: MIT, as documented by the MeshCore project
+- Local dual-boot addition: a `Z-Deck` page validates app 0, selects the boot partition, and reboots back to Z-Deck
+
 ## Included Source Patches
 
 The public beta includes the Z-Deck source patch set under [source/patches](source/patches):
@@ -37,6 +44,7 @@ The public beta includes the Z-Deck source patch set under [source/patches](sour
 - `device-ui-deflock-radar.patch`
 - `device-ui-map-legibility.patch`
 - `device-ui-dual-mesh-switch.patch`
+- `meshcore-zdeck-return.patch`
 
 These patches document the custom changes layered on top of upstream Meshtastic firmware. The shipped binaries should be treated as GPLv3 firmware derived from Meshtastic plus these Z-Deck changes.
 
