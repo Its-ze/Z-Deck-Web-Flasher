@@ -5,10 +5,10 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.51-cyberdeck",
-    "packVersion": "0.2.51-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck52",
-    "released": "2026-07-11",
+    "title": "Z-Deck 0.2.52-cyberdeck",
+    "packVersion": "0.2.52-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck53",
+    "released": "2026-07-12",
     "updateMode": "app-only",
     "preserves": [
       "meshtastic_config",
@@ -28,12 +28,12 @@
       "contains": ["config", "module_config", "channels_psks", "owner", "security_keys"]
     },
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck52-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck52-public/zdeck-firmware.bin",
-      "size": 3713424,
-      "sha256": "5a278b5b6ba4a888297a1f0d14a93af66f4350ee65a82ddd4aed80f67f068d48",
-      "md5": "19f68091eba5212a57676205c72e0857"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck53-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck53-public/zdeck-firmware.bin",
+      "size": 3714320,
+      "sha256": "5c1ea334fe670353d03aa6b44c6fa9b90b3ef048cc6cc47827be366231bbb051",
+      "md5": "c85dbe162cd44b5f512db6d780197757"
     },
-    "notes": "Adds a validated quick handoff between Z-Deck/Meshtastic and MeshCore. Z-Deck exposes MESH on Home and MESHCORE in Settings; MeshCore exposes a Z-Deck return page. Switching selects the other app slot and reboots without reflashing or erasing stored configuration. App-only OTA preserves configuration, channels, keys, owner settings, layout preferences, and SD data."
+    "notes": "Makes the map useful without downloaded tiles by replacing permanent loading with a smart coordinate grid, center reticle, GPS acquisition detail, and explicit Wi-Fi/SD recovery guidance. Full tile loss now resolves to grid or missing state instead of drawing forever. App-only OTA preserves configuration, channels, keys, owner settings, layout preferences, and SD data."
   }
 }

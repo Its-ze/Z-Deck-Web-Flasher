@@ -9,6 +9,19 @@ Rules for each run:
 - Record exact pages, controls, status labels, hardware ports, and visible elements checked.
 - Separate confirmed behavior from blockers that require physical reset, replug, pairing approval, GPS sky view, or another external action.
 
+## 2026-07-12 - zdeck53 Smart Map Fallback And Attached Device OTA
+
+- Attached hardware: native ESP32-S3 T-Deck appeared as `COM21` with USB VID:PID `303A:1001`; read-only metadata identified `T_DECK`, client role, PKC present, and installed firmware `2.8.0.zdeck50`.
+- Device OTA evidence: live manifest check returned HTTP `200`, expected app size `3713424`, and `newer=1`. The SD preflight mounted the 32 GB card, wrote and decoded a `597` byte preferences backup, and reported `sd-backup/verify.ok` before any app write.
+- Device update evidence: OTA advanced from `0%` through `100%` and reported `ota/update.end.ok`; post-reboot metadata verified `2.8.0.zdeck52`, `T_DECK`, client role, and PKC present. No private settings or channel values were printed.
+- Runtime map evidence on zdeck52: diagnostics reported `Mesh map`, `GPS waiting`, `DeFlock no cache`, and `6/24` positioned nodes. This proved the rebuilt map state was active but also reproduced the no-fix/no-cache weak state.
+- Feature/fix: tile classification now exits `Drawing` when every requested tile is missing. With neither Wi-Fi nor SD tiles it selects `Grid`; with a potential source it reports `Missing` rather than loading forever.
+- Map screen elements added: transparent coordinate grid, center reticle, `SMART GRID` coordinates after fix, `GPS ACQUIRING` with satellite count, and `GPS SEARCHING` with open-sky and Wi-Fi/SD guidance. Existing node objects, navigation controls, status overlay, and MAP/COMP/RADAR/ALERT bar remain foreground controls.
+- Build evidence: full WSL PlatformIO app and LittleFS targets passed from the refreshed aggregate patch. Export `20260712-012651-t-deck-tft` reports `2.8.0.zdeck53`, `0.2.52-cyberdeck`, app size `3714320`, and SHA256 `5c1ea334fe670353d03aa6b44c6fa9b90b3ef048cc6cc47827be366231bbb051`.
+- Binary evidence: app contains `SMART GRID`, `GPS SEARCHING`, `GPS ACQUIRING`, and retained `MESHCORE >` controls. The named UI patch clean-applies after zdeck52.
+- Tooling fix: USB OTA monitoring now treats a serial disconnect after `ota/update.end.ok` as the expected successful reboot instead of reporting a false helper crash. Aggregate patch refresh now stages declared files in a local clone to avoid repeated Dropbox git-index scans.
+- Physical blocker: after a later debug session the known CDC/DTR close issue removed `COM21`, and the device did not answer at its prior Wi-Fi address. A normal physical RESET with BOOT released is required before installing and visually checking zdeck53, GPS satellite acquisition, grid-to-tile transition, and map touch controls.
+
 ## 2026-07-11 - zdeck52 Validated Dual-Mesh Quick Handoff
 
 - Feature/fix: fast switching between Z-Deck/Meshtastic app 0 and MeshCore app 1 without reflashing or erasing shared storage.

@@ -1,5 +1,17 @@
 # Changelog
 
+## Z-Deck 0.2.52-cyberdeck - 2026-07-12
+
+Smart map fallback and GPS acquisition status.
+
+- Fixed the tile state machine so a completely missing tile set cannot remain `drawing` forever.
+- Added a visible coordinate grid and center reticle whenever no tile has rendered.
+- Added live coordinates after a GPS fix and separate `GPS ACQUIRING`/`GPS SEARCHING` states before a fix.
+- Kept map nodes, navigation controls, the persistent MAP/COMP/RADAR/ALERT bar, and dual-mesh switching above the fallback layer.
+- Updated the USB OTA helper to treat the expected disconnect after `ota/update.end.ok` as a successful reboot.
+- App-only OTA still preserves NVS, LittleFS, SD data, channels, keys, chats, owner settings, and UI preferences.
+
+
 ## Z-Deck 0.2.51-cyberdeck - 2026-07-11
 
 Validated quick switching between Meshtastic and MeshCore.
