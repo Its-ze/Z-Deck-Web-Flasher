@@ -22,6 +22,7 @@ Rules for each run:
 - Public pages and controls checked locally: standard Z-Deck installer, Z-Deck + MeshCore tab, `Install OTA test baseline`, migration and OTA manifest links, A/B write map, dedicated MeshCore label, recovery map, GPS/compass feature text, and dual-system switch instructions.
 - Binary evidence: zdeck54 app size `3722624`, SHA256 `c08e34f365ab3fa271fb4df672c134381bd75cb74b04d5f867969d24231595ca`; zdeck55 app size `3722624`, SHA256 `5a380faa657725b744e344f14a72cc3af30063c58fd07ef5cdb2f423aa0c52e1`; MeshCore size `632464`, SHA256 `599c4d3841af7eabc0e3d0d9abf9c24663c65d35d4c8eb589d86489f92c9b808`.
 - Validator evidence: OTA migration/A-B release checks passed, dedicated MeshCore release checks passed, JavaScript syntax passed, all `18` new checksum entries passed, and all `31` root source patches are accounted for.
+- CI follow-up: the first public checksum run exposed historical zdeck45-zdeck48 entries using `file`/`size` fields. The workflow now accepts the repository's `name`/`length`, `file`/`size`, and object schemas; a clean local clone is used for the complete archived-firmware sweep.
 - Physical blocker: no responsive T-Deck application/debug endpoint was available for an outdoor fix comparison or a live zdeck54-to-zdeck55 Apply press. Do not claim hardware GPS accuracy or post-reboot OTA completion until a normal-mode device is reachable.
 - Security boundary: no PSK, channel URL, private key, Wi-Fi password, admin material, raw backup, or full Meshtastic info output was printed or bundled.
 
