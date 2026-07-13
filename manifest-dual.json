@@ -1,17 +1,17 @@
 {
   "name": "Z-Deck + MeshCore Dual System",
-  "version": "0.2.54-cyberdeck-dual",
+  "version": "0.2.55-cyberdeck-dual",
   "new_install_prompt_erase": false,
   "builds": [
     {
       "chipFamily": "ESP32-S3",
       "parts": [
-        { "offset": 0, "path": "firmware/zdeck-2.8.0-zdeck55-public/bootloader.bin" },
-        { "offset": 32768, "path": "firmware/zdeck-2.8.0-zdeck55-public/partitions.bin" },
-        { "offset": 57344, "path": "firmware/zdeck-2.8.0-zdeck55-public/boot_app0.bin" },
-        { "offset": 65536, "path": "firmware/zdeck-2.8.0-zdeck55-public/zdeck-firmware.bin" },
-        { "offset": 5308416, "path": "firmware/zdeck-2.8.0-zdeck55-public/zdeck-firmware.bin" },
-        { "offset": 10551296, "path": "firmware/zdeck-meshcore-zdeck55-public/meshcore-firmware.bin" }
+        { "offset": 0, "path": "firmware/zdeck-2.8.0-zdeck56-public/bootloader.bin" },
+        { "offset": 32768, "path": "firmware/zdeck-2.8.0-zdeck56-public/partitions.bin" },
+        { "offset": 57344, "path": "firmware/zdeck-2.8.0-zdeck56-public/boot_app0.bin" },
+        { "offset": 65536, "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin" },
+        { "offset": 5308416, "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin" },
+        { "offset": 10551296, "path": "firmware/zdeck-meshcore-zdeck56-public/meshcore-firmware.bin" }
       ]
     }
   ]

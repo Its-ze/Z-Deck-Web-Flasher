@@ -5,20 +5,20 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.54-cyberdeck",
-    "packVersion": "0.2.54-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck55",
-    "released": "2026-07-12",
+    "title": "Z-Deck 0.2.55-cyberdeck",
+    "packVersion": "0.2.55-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck56",
+    "released": "2026-07-13",
     "updateMode": "usb-migration",
     "migrationManifest": "manifest-dual.json",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck55-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck55-public/zdeck-firmware.bin",
-      "size": 3722624,
-      "sha256": "5a380faa657725b744e344f14a72cc3af30063c58fd07ef5cdb2f423aa0c52e1",
-      "md5": "53c994c2d3d3386fc7f7f2aa5f40d1f6"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin",
+      "size": 3724896,
+      "sha256": "90221e3ea7ea18b057419cd5f65a47440ab7889fc74bb59d35f23f7ce3f57edf",
+      "md5": "48dd72ad8e0ec0d712661ce1c4bf70cd"
     },
-    "notes": "Legacy zdeck53 and earlier layouts must use the USB migration installer because their second app slot contains MeshCore. The migration preserves NVS, LittleFS, SD files, channels, keys, and local preferences. After migration, Settings > Z-Deck OTA uses update-ota.json for nonblocking A/B app updates."
+    "notes": "Adds the integrated Z-Deck dashboard and Mesh Networks hub instead of exposing the stock Meshtastic home panel. Devices showing No MeshCore loaded or USB INSTALL NEEDED must run the dual-system USB installer once; it seeds both Z-Deck OTA slots and the dedicated MeshCore partition without writing NVS, LittleFS, SD files, channels, keys, or local preferences."
   }
 }

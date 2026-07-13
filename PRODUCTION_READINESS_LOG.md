@@ -9,6 +9,19 @@ Rules for each run:
 - Record exact pages, controls, status labels, hardware ports, and visible elements checked.
 - Separate confirmed behavior from blockers that require physical reset, replug, pairing approval, GPS sky view, or another external action.
 
+## 2026-07-13 - zdeck56 Integrated Dashboard And Mesh Networks
+
+- Feature unit: replace the launcher fall-through to the stock Meshtastic home screen with a Z-Deck dashboard and a dedicated Mesh Networks hub.
+- On-device pages checked in source and binary: 4x4 launcher `Dashboard`, `Z-DECK DASHBOARD`, `MESH NETWORKS`, chats, mesh map, nodes, channels, Settings/OTA, and the MeshCore `Z-DECK` return page.
+- Dashboard elements checked: active-network label, nearby-node count, RX age, GPS/satellite state, battery percentage, SD state, unread count, and MeshCore readiness.
+- Mesh Networks controls and status labels checked: `AREA CHECK`, `MESHCORE >`, guarded `PRESS AGAIN`, `USB INSTALL`, `READY`, map, channels, launcher, current network, recommendation, and dedicated-partition validation.
+- Build evidence: full WSL PlatformIO `t-deck-tft` build passed as firmware `2.8.0.zdeck56`, pack `0.2.55-cyberdeck`; app size `3724896`, SHA256 `90221e3ea7ea18b057419cd5f65a47440ab7889fc74bb59d35f23f7ce3f57edf`.
+- MeshCore evidence: dedicated image size `632464`, SHA256 `599c4d3841af7eabc0e3d0d9abf9c24663c65d35d4c8eb589d86489f92c9b808`; binary contains the MeshCore identity, saved-slot handoff namespace, and `Z-DECK` return page.
+- Installer evidence: guarded dry run verified bootloader `0x0`, partitions `0x8000`, boot metadata `0xe000`, Z-Deck A `0x10000`, Z-Deck B `0x510000`, and MeshCore `0xa10000`. NVS, LittleFS, and SD are not written.
+- Public controls updated: standard Z-Deck installer, `Z-Deck + MeshCore` tab, `Install dual system`, OTA test baseline text, dual-system switch instructions, `update.json`, and `update-ota.json`.
+- Physical blocker: Windows exposed only unrelated `COM3` with USB VID:PID `3402:0900`; no Espressif/LilyGO USB device was enumerated. No hardware write was attempted and live screen/switch behavior remains pending a T-Deck bootloader or normal-mode port.
+- Security boundary: no PSK, channel URL, private key, Wi-Fi password, admin material, raw backup, or full Meshtastic info output was printed or bundled.
+
 ## 2026-07-12 - zdeck55 Strict GPS And Dedicated A/B OTA
 
 - Feature unit: strict GNSS fix acceptance plus a partition-safe, nonblocking OTA migration from zdeck54 to zdeck55.

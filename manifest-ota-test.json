@@ -11,7 +11,7 @@
         { "offset": 57344, "path": "firmware/zdeck-2.8.0-zdeck54-migration/boot_app0.bin" },
         { "offset": 65536, "path": "firmware/zdeck-2.8.0-zdeck54-migration/zdeck-firmware.bin" },
         { "offset": 5308416, "path": "firmware/zdeck-2.8.0-zdeck54-migration/zdeck-firmware.bin" },
-        { "offset": 10551296, "path": "firmware/zdeck-meshcore-zdeck55-public/meshcore-firmware.bin" }
+        { "offset": 10551296, "path": "firmware/zdeck-meshcore-zdeck56-public/meshcore-firmware.bin" }
       ]
     }
   ]

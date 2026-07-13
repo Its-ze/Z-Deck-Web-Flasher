@@ -5,10 +5,10 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.54-cyberdeck",
-    "packVersion": "0.2.54-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck55",
-    "released": "2026-07-12",
+    "title": "Z-Deck 0.2.55-cyberdeck",
+    "packVersion": "0.2.55-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck56",
+    "released": "2026-07-13",
     "updateMode": "app-only",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
     "preUpdateBackup": {
@@ -16,12 +16,12 @@
       "reason": "A/B app-only OTA does not write NVS, LittleFS, or SD; manual SD backup remains available as a separate queued action."
     },
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck55-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck55-public/zdeck-firmware.bin",
-      "size": 3722624,
-      "sha256": "5a380faa657725b744e344f14a72cc3af30063c58fd07ef5cdb2f423aa0c52e1",
-      "md5": "53c994c2d3d3386fc7f7f2aa5f40d1f6"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin",
+      "size": 3724896,
+      "sha256": "90221e3ea7ea18b057419cd5f65a47440ab7889fc74bb59d35f23f7ce3f57edf",
+      "md5": "48dd72ad8e0ec0d712661ce1c4bf70cd"
     },
-    "notes": "Nonblocking dual-slot OTA for migrated zdeck54 or newer devices. Check and Apply queue work in the background, publish status/progress, and never overwrite the dedicated MeshCore partition or local settings storage."
+    "notes": "Nonblocking A/B app update for devices already using the dedicated MeshCore layout. Adds the integrated Z-Deck dashboard and Mesh Networks hub. Check and Apply queue work in the background and never overwrite MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
   }
 }

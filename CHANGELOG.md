@@ -1,5 +1,17 @@
 # Changelog
 
+## Z-Deck 0.2.55-cyberdeck - 2026-07-13
+
+Integrated Z-Deck launcher and dual-mesh control.
+
+- Replaced the launcher Dashboard tile's fall-through to the stock Meshtastic home panel with a dedicated Z-Deck dashboard.
+- Added live Meshtastic status, nearby nodes, RX age, GPS, battery, SD, unread-message, and MeshCore-readiness fields to the dashboard.
+- Replaced the old Mesh Mode settings shortcut with a dedicated Mesh Networks hub and guarded MeshCore switch control.
+- Added explicit `READY` and `USB INSTALL NEEDED` states so a missing dedicated MeshCore image is actionable.
+- Cached MeshCore image validation once per boot to avoid repeated flash reads during UI refreshes.
+- Fixed the local dual-package helper to seed Z-Deck into both A/B OTA slots and label MeshCore as the dedicated partition rather than app1.
+- Updated the dual browser installer and OTA metadata to zdeck56 while preserving NVS, LittleFS, SD files, channels, keys, and local preferences.
+
 ## Z-Deck 0.2.54-cyberdeck - 2026-07-12
 
 Strict GPS quality and safe dual-slot OTA architecture.
