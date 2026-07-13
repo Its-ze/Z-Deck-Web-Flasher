@@ -5,9 +5,9 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.55-cyberdeck",
-    "packVersion": "0.2.55-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck56",
+    "title": "Z-Deck 0.2.56-cyberdeck",
+    "packVersion": "0.2.56-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck57",
     "released": "2026-07-13",
     "updateMode": "app-only",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
@@ -16,12 +16,12 @@
       "reason": "A/B app-only OTA does not write NVS, LittleFS, or SD; manual SD backup remains available as a separate queued action."
     },
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin",
-      "size": 3724896,
-      "sha256": "90221e3ea7ea18b057419cd5f65a47440ab7889fc74bb59d35f23f7ce3f57edf",
-      "md5": "48dd72ad8e0ec0d712661ce1c4bf70cd"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck57-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck57-public/zdeck-firmware.bin",
+      "size": 3724944,
+      "sha256": "5cf4b6f93c329bcd639ad72e97c746e807bfa637be5093add2f28370ad43f9ec",
+      "md5": "6f24ca6938d323b039eb92125d2fffe0"
     },
-    "notes": "Nonblocking A/B app update for devices already using the dedicated MeshCore layout. Adds the integrated Z-Deck dashboard and Mesh Networks hub. Check and Apply queue work in the background and never overwrite MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
+    "notes": "Nonblocking A/B update that makes Mesh Networks advisory and switching manual-only. Z-Deck remains fully usable without switching. Apply never overwrites MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
   }
 }

@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.56-cyberdeck - 2026-07-13
+
+Manual-only dual-mesh choice.
+
+- Added `ADVICE ONLY` and `STAY ZD` controls to the Mesh Networks hub.
+- Changed the hub status to state that Meshtastic stays active and that its network recommendation is informational only.
+- Kept maps, channels, chats, settings, GPS, OTA, SD, and diagnostics usable without switching firmware.
+- Retained the guarded two-press MeshCore action; an expired or single press leaves Z-Deck active.
+- Updated the MeshCore `Z-DECK` page to state that MeshCore stays active and that return is manual.
+- Rebuilt and verified both ESP32-S3 images and updated the dual installer without changing storage offsets.
+
 ## Z-Deck 0.2.55-cyberdeck - 2026-07-13
 
 Integrated Z-Deck launcher and dual-mesh control.

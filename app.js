@@ -106,7 +106,7 @@ function selectInstallMode(modeName) {
   setTicker(modeName === "dual" ? [
     "layout: Z-Deck OTA A/B + dedicated MeshCore",
     "storage: LittleFS and NVS are not written",
-    "switch: guarded control in each system",
+    "switch: manual only; current system stays active",
     "ready: connect T-Deck and authorize serial"
   ] : releaseIdleLines());
 }
@@ -171,7 +171,7 @@ async function loadCommits() {
 installModeButtons.forEach((button) => button.addEventListener("click", () => selectInstallMode(button.dataset.installMode)));
 installButton?.addEventListener("click", () => armInstaller(release.packVersion, "boot + Z-Deck OTA A/B + LittleFS"));
 dualInstallButton?.addEventListener("click", () => armInstaller(`${release.packVersion} + MeshCore`, "boot + Z-Deck OTA A/B + dedicated MeshCore"));
-otaTestInstallButton?.addEventListener("click", () => armInstaller("0.2.53 OTA test", "zdeck54 baseline to zdeck56 OTA + dedicated MeshCore; storage preserved"));
+otaTestInstallButton?.addEventListener("click", () => armInstaller("0.2.53 OTA test", "zdeck54 baseline to zdeck57 OTA + dedicated MeshCore; storage preserved"));
 recoveryButtons.forEach((button) => button.addEventListener("click", () => renderRecoveryMode(button.dataset.recovery)));
 
 openDonglePairing?.addEventListener("click", () => {

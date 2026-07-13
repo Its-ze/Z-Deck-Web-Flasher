@@ -5,20 +5,20 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.55-cyberdeck",
-    "packVersion": "0.2.55-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck56",
+    "title": "Z-Deck 0.2.56-cyberdeck",
+    "packVersion": "0.2.56-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck57",
     "released": "2026-07-13",
     "updateMode": "usb-migration",
     "migrationManifest": "manifest-dual.json",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin",
-      "size": 3724896,
-      "sha256": "90221e3ea7ea18b057419cd5f65a47440ab7889fc74bb59d35f23f7ce3f57edf",
-      "md5": "48dd72ad8e0ec0d712661ce1c4bf70cd"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck57-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck57-public/zdeck-firmware.bin",
+      "size": 3724944,
+      "sha256": "5cf4b6f93c329bcd639ad72e97c746e807bfa637be5093add2f28370ad43f9ec",
+      "md5": "6f24ca6938d323b039eb92125d2fffe0"
     },
-    "notes": "Adds the integrated Z-Deck dashboard and Mesh Networks hub instead of exposing the stock Meshtastic home panel. Devices showing No MeshCore loaded or USB INSTALL NEEDED must run the dual-system USB installer once; it seeds both Z-Deck OTA slots and the dedicated MeshCore partition without writing NVS, LittleFS, SD files, channels, keys, or local preferences."
+    "notes": "Makes dual-mesh selection strictly manual. Z-Deck stays active while using maps, chats, settings, GPS, OTA, SD, and diagnostics; area advice never switches firmware. MeshCore also stays active until its explicit Z-DECK return action is confirmed. The dual USB installer preserves NVS, LittleFS, SD files, channels, keys, and local preferences."
   }
 }

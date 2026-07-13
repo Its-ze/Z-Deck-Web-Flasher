@@ -1,17 +1,17 @@
 {
   "name": "Z-Deck Firmware Pack Public",
-  "version": "0.2.55-cyberdeck",
+  "version": "0.2.56-cyberdeck",
   "new_install_prompt_erase": false,
   "builds": [
     {
       "chipFamily": "ESP32-S3",
       "parts": [
-        { "offset": 0, "path": "firmware/zdeck-2.8.0-zdeck56-public/bootloader.bin" },
-        { "offset": 32768, "path": "firmware/zdeck-2.8.0-zdeck56-public/partitions.bin" },
-        { "offset": 57344, "path": "firmware/zdeck-2.8.0-zdeck56-public/boot_app0.bin" },
-        { "offset": 65536, "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin" },
-        { "offset": 5308416, "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-firmware.bin" },
-        { "offset": 13172736, "path": "firmware/zdeck-2.8.0-zdeck56-public/zdeck-littlefs.bin" }
+        { "offset": 0, "path": "firmware/zdeck-2.8.0-zdeck57-public/bootloader.bin" },
+        { "offset": 32768, "path": "firmware/zdeck-2.8.0-zdeck57-public/partitions.bin" },
+        { "offset": 57344, "path": "firmware/zdeck-2.8.0-zdeck57-public/boot_app0.bin" },
+        { "offset": 65536, "path": "firmware/zdeck-2.8.0-zdeck57-public/zdeck-firmware.bin" },
+        { "offset": 5308416, "path": "firmware/zdeck-2.8.0-zdeck57-public/zdeck-firmware.bin" },
+        { "offset": 13172736, "path": "firmware/zdeck-2.8.0-zdeck57-public/zdeck-littlefs.bin" }
       ]
     }
   ]

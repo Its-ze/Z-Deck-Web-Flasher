@@ -9,6 +9,17 @@ Rules for each run:
 - Record exact pages, controls, status labels, hardware ports, and visible elements checked.
 - Separate confirmed behavior from blockers that require physical reset, replug, pairing approval, GPS sky view, or another external action.
 
+## 2026-07-13 - zdeck57 Manual-Only Mesh Choice
+
+- Feature unit: guarantee that dual-mesh recommendations never force a firmware switch and make staying on the active system explicit.
+- Z-Deck controls checked: `MESH NETWORKS`, `ADVICE ONLY`, `STAY ZD`, `MAP`, `CHANNELS`, `MESHCORE >`, guarded `PRESS AGAIN`, and the ten-second confirmation expiry.
+- Z-Deck status checked: `STAYS: Meshtastic`, `ADVICE ONLY`, and the OTA notice that Z-Deck remains active unless manual switching is confirmed.
+- MeshCore page checked: `MeshCore stays active`, `manual return`, and the existing press/release confirmation before `switchToZDeck()`.
+- Z-Deck build evidence: full WSL PlatformIO build passed as `2.8.0.zdeck57`, pack `0.2.56-cyberdeck`; app size `3724944`, SHA256 `5cf4b6f93c329bcd639ad72e97c746e807bfa637be5093add2f28370ad43f9ec`.
+- MeshCore build evidence: clean local PlatformIO build passed from upstream commit `e8d3c53`; app size `632464`, SHA256 `b03dc7530f0f94284202c8171d4593dc8116ae8487e957b5b697b1bd23dbce18`.
+- Preservation: switching changes only the selected boot app. OTA and dual installation still avoid NVS, LittleFS, SD, private channels, keys, chats, and owner preferences.
+- Physical blocker: no Espressif/LilyGO serial port was available for live screen confirmation or flashing.
+
 ## 2026-07-13 - zdeck56 Integrated Dashboard And Mesh Networks
 
 - Feature unit: replace the launcher fall-through to the stock Meshtastic home screen with a Z-Deck dashboard and a dedicated Mesh Networks hub.

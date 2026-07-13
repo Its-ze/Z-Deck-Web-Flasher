@@ -32,7 +32,7 @@ Use `manifest-dual.json` to install the dual-system layout:
 
 The dual installer preserves existing Z-Deck configuration, channels, keys, chats, and SD files because it does not write their storage partitions.
 
-Switch from Z-Deck by opening the 4x4 launcher, selecting `MESH NETWORKS`, and pressing `MESHCORE >` twice. Return from MeshCore on its `Z-DECK` page by pressing and releasing Enter. Z-Deck records its current A/B slot before leaving, so MeshCore returns to the correct slot.
+Switching is optional and never automatic. Z-Deck remains active unless you open `MESH NETWORKS` and confirm `MESHCORE >` twice within ten seconds. `ADVICE ONLY` refreshes the recommendation without switching, and `STAY ZD` returns to the Z-Deck dashboard. MeshCore likewise remains active until you explicitly press and release Enter on its `Z-DECK` page. Z-Deck records its current A/B slot before leaving, so a manual return reaches the correct slot.
 
 If the Mesh Networks hub shows `USB INSTALL NEEDED`, run the dual-system browser installer once. App-only OTA deliberately cannot create or replace the dedicated MeshCore partition.
 
@@ -64,7 +64,7 @@ After the initial USB install, connect Wi-Fi from the T-Deck and open `Settings 
 
 Check, Apply, Backup, and Restore are queued actions so network or SD work does not block the UI callback. App-only A/B OTA does not write NVS, LittleFS, SD, or the dedicated MeshCore partition. Manual SD backup remains available but is not a mandatory OTA preflight because that old coupled path could reset the device. Treat backup files as sensitive because they can contain channels, PSKs, owner data, and security keys.
 
-Devices on zdeck53 or earlier use the dual USB installer once to migrate the partition table safely. The legacy `update.json` intentionally refuses OTA because the old inactive app slot may contain MeshCore. `manifest-ota-test.json` installs zdeck54 without writing storage, providing a repeatable zdeck54-to-zdeck56 OTA test baseline.
+Devices on zdeck53 or earlier use the dual USB installer once to migrate the partition table safely. The legacy `update.json` intentionally refuses OTA because the old inactive app slot may contain MeshCore. `manifest-ota-test.json` installs zdeck54 without writing storage, providing a repeatable zdeck54-to-zdeck57 OTA test baseline.
 
 ## Current Feature Areas
 

@@ -1,0 +1,12 @@
+﻿[
+    {
+        "name":  "meshcore-firmware.bin",
+        "length":  632464,
+        "sha256":  "b03dc7530f0f94284202c8171d4593dc8116ae8487e957b5b697b1bd23dbce18"
+    },
+    {
+        "name":  "README.md",
+        "length":  310,
+        "sha256":  "a97d29fea58925167e14d67d738aedc7883053984cc103e887f47b55a2356344"
+    }
+]
