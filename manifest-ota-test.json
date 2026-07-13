@@ -1,0 +1,18 @@
+{
+  "name": "Z-Deck OTA Migration Test Baseline",
+  "version": "0.2.53-cyberdeck-ota-test",
+  "new_install_prompt_erase": false,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        { "offset": 0, "path": "firmware/zdeck-2.8.0-zdeck54-migration/bootloader.bin" },
+        { "offset": 32768, "path": "firmware/zdeck-2.8.0-zdeck54-migration/partitions.bin" },
+        { "offset": 57344, "path": "firmware/zdeck-2.8.0-zdeck54-migration/boot_app0.bin" },
+        { "offset": 65536, "path": "firmware/zdeck-2.8.0-zdeck54-migration/zdeck-firmware.bin" },
+        { "offset": 5308416, "path": "firmware/zdeck-2.8.0-zdeck54-migration/zdeck-firmware.bin" },
+        { "offset": 10551296, "path": "firmware/zdeck-meshcore-zdeck55-public/meshcore-firmware.bin" }
+      ]
+    }
+  ]
+}

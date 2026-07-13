@@ -41,5 +41,8 @@ If `esptool --before no-reset` still connects immediately, the board is still in
 | `0x8000` | `partitions.bin` |
 | `0xe000` | `boot_app0.bin` |
 | `0x10000` | `zdeck-firmware.bin` |
-| `0x650000` | `zdeck-firmware.bin` |
+| `0x510000` | `zdeck-firmware.bin` |
+| `0xa10000` | `meshcore-firmware.bin` (dual installer only) |
 | `0xc90000` | `zdeck-littlefs.bin` |
+
+The preservation-safe dual installer omits the LittleFS row. Never use the old `0x650000` dual layout for OTA: that offset was an OTA slot and allowed an update to overwrite MeshCore.

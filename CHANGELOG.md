@@ -1,5 +1,22 @@
 # Changelog
 
+## Z-Deck 0.2.54-cyberdeck - 2026-07-12
+
+Strict GPS quality and safe dual-slot OTA architecture.
+
+- Added a GPS acceptance policy requiring a fresh 3D fix, at least five satellites, HDOP at or below 2.5, and valid signed coordinate ranges before replacing the last accepted position.
+- Replaced the old Z-Deck/MeshCore app-slot collision with two 5 MB Z-Deck OTA slots and a dedicated 2.5 MB MeshCore partition.
+- Kept NVS and LittleFS offsets unchanged so the preservation-safe installers retain device settings, channels, keys, UI preferences, chats, and SD files.
+- Moved OTA Check and Apply into the deferred service state machine so HTTP/download/write work does not freeze the UI callback.
+- Removed mandatory SD backup from the OTA preflight. Manual Backup and Restore remain separate queued actions with status reporting.
+- Added `update-ota.json` for migrated A/B devices and made legacy `update.json` require USB migration rather than risk overwriting MeshCore.
+- Added `manifest-ota-test.json` with zdeck54 as a repeatable baseline for testing the zdeck55 OTA transition.
+- Updated the public flasher, source patches, checksum workflow, recovery map, and dual-system validator for the new layout.
+
+## Z-Deck 0.2.53-cyberdeck - 2026-07-12
+
+USB migration baseline for the dual-slot partition layout and dynamic OTA manifest routing.
+
 ## Z-Deck 0.2.52-cyberdeck - 2026-07-12
 
 Smart map fallback and GPS acquisition status.

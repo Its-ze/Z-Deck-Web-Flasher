@@ -6,7 +6,7 @@
   <meta name="description" content="Install Z-Deck or dual Z-Deck and MeshCore firmware on a LILYGO T-Deck from your browser.">
   <title>Z-Deck T-Deck Flasher</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260712-zdeck53">
+  <link rel="stylesheet" href="style.css?v=20260712-zdeck55">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
 </head>
@@ -33,7 +33,7 @@
       <div class="release-meta">
         <span data-firmware-version>firmware</span>
         <span>ESP32-S3</span>
-        <span>app-only OTA</span>
+        <span>dual-slot OTA</span>
       </div>
     </section>
 
@@ -61,11 +61,11 @@
         <div id="standardPanel" class="install-panel active" role="tabpanel" data-mode-panel="standard">
           <div class="install-copy">
             <p class="eyebrow">Standard layout</p>
-            <h2>Z-Deck on both app slots</h2>
+            <h2>Z-Deck on both OTA slots</h2>
             <p>Best for a first install or a dedicated Meshtastic T-Deck. The browser bundle includes the bootloader, partition table, Z-Deck app, and public LittleFS assets.</p>
             <ul class="write-map" aria-label="Standard flash contents">
-              <li><span>App 0</span><strong>Z-Deck</strong></li>
-              <li><span>App 1</span><strong>Z-Deck recovery slot</strong></li>
+              <li><span>OTA A</span><strong>Z-Deck</strong></li>
+              <li><span>OTA B</span><strong>Z-Deck update slot</strong></li>
               <li><span>LittleFS</span><strong>Public UI assets</strong></li>
             </ul>
           </div>
@@ -79,11 +79,11 @@
         <div id="dualPanel" class="install-panel" role="tabpanel" data-mode-panel="dual" hidden>
           <div class="install-copy">
             <p class="eyebrow amber">Dual-system layout</p>
-            <h2>Z-Deck with MeshCore in app 1</h2>
-            <p>Switch systems from the T-Deck without reflashing. This installer deliberately does not write LittleFS or NVS, preserving existing Z-Deck settings, channels, keys, chats, and SD files.</p>
+            <h2>Z-Deck A/B with dedicated MeshCore</h2>
+            <p>Switch systems from the T-Deck without reflashing. MeshCore is outside both OTA slots, and this installer does not write LittleFS or NVS, preserving settings, channels, keys, chats, and SD files.</p>
             <ul class="write-map" aria-label="Dual flash contents">
-              <li><span>App 0</span><strong>Z-Deck</strong></li>
-              <li><span>App 1</span><strong>MeshCore</strong></li>
+              <li><span>OTA A/B</span><strong>Z-Deck</strong></li>
+              <li><span>MeshCore</span><strong>Dedicated partition</strong></li>
               <li><span>Storage</span><strong>Not written</strong></li>
             </ul>
           </div>
@@ -96,6 +96,14 @@
 
         <details class="advanced">
           <summary>Advanced manifest</summary>
+          <div class="manifest-form">
+            <strong>OTA test baseline</strong>
+            <p class="muted">Installs zdeck54 with the new partition layout without writing NVS or LittleFS. Then use Settings &gt; Z-Deck OTA to test the zdeck55 update.</p>
+            <esp-web-install-button id="otaTestInstallButton" manifest="manifest-ota-test.json">
+              <button slot="activate" class="secondary-action"><i data-lucide="test-tube" aria-hidden="true"></i> Install OTA test baseline</button>
+              <span slot="unsupported">Web Serial is unavailable. Use current Chrome or Edge.</span>
+            </esp-web-install-button>
+          </div>
           <div class="manifest-form">
             <label for="customManifest">Trusted ESP Web Tools manifest URL</label>
             <div>
@@ -142,7 +150,7 @@
           <i data-lucide="monitor-up" aria-hidden="true"></i>
           <span>Z-Deck to MeshCore</span>
           <strong>Home: MESH &gt;</strong>
-          <p>Press once to validate MeshCore, select app 1, and reboot.</p>
+          <p>Press twice to confirm, validate the dedicated MeshCore image, and reboot.</p>
         </article>
         <i class="flow-arrow" data-lucide="arrow-left-right" aria-hidden="true"></i>
         <article>
@@ -189,9 +197,9 @@
       </div>
       <div class="feature-list">
         <article><i data-lucide="map" aria-hidden="true"></i><div><strong>Field maps</strong><p>Persistent MAP, COMP, RADAR, and ALERT controls with first-fix GPS recovery, manual pan, tile state, and offline SD support.</p></div></article>
-        <article><i data-lucide="navigation" aria-hidden="true"></i><div><strong>GPS and compass</strong><p>T-Deck defaults, live heading, coordinate status, and missing-fix diagnostics.</p></div></article>
+        <article><i data-lucide="navigation" aria-hidden="true"></i><div><strong>GPS and compass</strong><p>Strict 3D-fix quality checks, five-satellite minimum, HDOP filtering, fresh-fix gating, live heading, and coordinate diagnostics.</p></div></article>
         <article><i data-lucide="message-square" aria-hidden="true"></i><div><strong>Mesh chat</strong><p>Newest-first conversations, stable names, hop count, and delivery state.</p></div></article>
-        <article><i data-lucide="wifi" aria-hidden="true"></i><div><strong>Wi-Fi setup</strong><p>Search, signal strength, secured/open state, selection, and OTA checks.</p></div></article>
+        <article><i data-lucide="wifi" aria-hidden="true"></i><div><strong>Wi-Fi and OTA</strong><p>Network search/select plus queued check/apply actions with progress while the interface remains responsive.</p></div></article>
         <article><i data-lucide="database-backup" aria-hidden="true"></i><div><strong>SD resilience</strong><p>Guarded local backup and restore with progress and private-data warnings.</p></div></article>
         <article><i data-lucide="panel-right" aria-hidden="true"></i><div><strong>Display controls</strong><p>Right-side rail option, battery safe zone, compact status lanes, and themes.</p></div></article>
       </div>
@@ -203,9 +211,10 @@
         <h2 data-release-title>Current release</h2>
         <p id="releaseNotes">Loading signed release metadata from this site...</p>
         <dl class="release-details">
-          <div><dt>OTA payload</dt><dd><a href="update.json">update.json</a></dd></div>
+          <div><dt>Migration</dt><dd><a href="update.json">update.json</a></dd></div>
+          <div><dt>OTA payload</dt><dd><a href="update-ota.json">update-ota.json</a></dd></div>
           <div><dt>Backup path</dt><dd>/zdeck/backups/preferences.proto</dd></div>
-          <div><dt>OTA storage</dt><dd>App partition only</dd></div>
+          <div><dt>OTA storage</dt><dd>A/B app slots only</dd></div>
         </dl>
       </article>
       <article>
@@ -225,6 +234,6 @@
       <a href="wiki/">Wiki</a>
     </footer>
   </main>
-  <script src="app.js?v=20260712-zdeck53"></script>
+  <script src="app.js?v=20260712-zdeck55"></script>
 </body>
 </html>

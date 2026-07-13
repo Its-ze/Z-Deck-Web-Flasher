@@ -4,14 +4,20 @@ on:
   push:
     paths:
       - "update.json"
+      - "update-ota.json"
       - "manifest.json"
+      - "manifest-dual.json"
+      - "manifest-ota-test.json"
       - "firmware/**"
       - "tools/verify-ota-release.py"
       - ".github/workflows/verify-ota-release.yml"
   pull_request:
     paths:
       - "update.json"
+      - "update-ota.json"
       - "manifest.json"
+      - "manifest-dual.json"
+      - "manifest-ota-test.json"
       - "firmware/**"
       - "tools/verify-ota-release.py"
       - ".github/workflows/verify-ota-release.yml"
@@ -22,7 +28,7 @@ permissions:
 
 jobs:
   verify:
-    name: Verify app-only OTA metadata
+    name: Verify migration and A/B OTA metadata
     runs-on: ubuntu-latest
 
     steps:

@@ -48,8 +48,18 @@ jobs:
               with manifest_path.open(encoding="utf-8-sig") as handle:
                   entries = json.load(handle)
 
-              if not isinstance(entries, list):
-                  print(f"ERROR: {manifest_path} must contain a list of checksum entries")
+              if isinstance(entries, dict):
+                  entries = [
+                      {
+                          "name": name,
+                          "sha256": details.get("sha256"),
+                          "length": details.get("size"),
+                      }
+                      for name, details in entries.items()
+                      if isinstance(details, dict)
+                  ]
+              elif not isinstance(entries, list):
+                  print(f"ERROR: {manifest_path} must contain an object or list of checksum entries")
                   failed += 1
                   continue
 

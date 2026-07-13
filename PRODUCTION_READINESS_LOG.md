@@ -9,6 +9,22 @@ Rules for each run:
 - Record exact pages, controls, status labels, hardware ports, and visible elements checked.
 - Separate confirmed behavior from blockers that require physical reset, replug, pairing approval, GPS sky view, or another external action.
 
+## 2026-07-12 - zdeck55 Strict GPS And Dedicated A/B OTA
+
+- Feature unit: strict GNSS fix acceptance plus a partition-safe, nonblocking OTA migration from zdeck54 to zdeck55.
+- GPS source elements checked: `GPS.cpp`, `ZDeckGpsQualityPolicy`, signed latitude/longitude bounds, 3D fix gate, minimum `5` satellites, maximum HDOP `2.5`, maximum fix age `2000 ms`, last-known-good retention, and independent GPS time sync.
+- GPS test evidence: native C++ policy test passed all `8` scenarios. Full WSL PlatformIO app and LittleFS builds passed for zdeck54 and zdeck55.
+- GPS limitation: filtering rejects stale or low-confidence fixes but cannot make the onboard receiver survey/RTK grade. Outdoor sky view, antenna condition, multipath, and live hardware verification still determine real accuracy.
+- Partition elements checked: NVS `0x9000`, OTA metadata `0xe000`, Z-Deck OTA A `0x10000` size `0x500000`, Z-Deck OTA B `0x510000` size `0x500000`, dedicated MeshCore `0xa10000` size `0x280000`, LittleFS `0xc90000`, and coredump `0xff0000`.
+- OTA controls checked in source: `Settings > Z-Deck OTA`, `CHECK`, `APPLY`, `STATUS`, `BACKUP SD`, and guarded `RESTORE SD`. Check, Apply, Backup, and Restore queue deferred work instead of running network or SD operations inside the UI callback.
+- OTA guardrail: legacy `update.json` reports `usb-migration`; migrated zdeck54+ firmware uses `update-ota.json` with `app-only`. Legacy layouts refuse OTA when MeshCore occupies the old inactive OTA slot.
+- OTA preservation: app-only A/B writes do not write NVS, LittleFS, SD, or the dedicated MeshCore partition. Mandatory SD preflight backup was removed from Apply; manual backup remains available separately.
+- Public pages and controls checked locally: standard Z-Deck installer, Z-Deck + MeshCore tab, `Install OTA test baseline`, migration and OTA manifest links, A/B write map, dedicated MeshCore label, recovery map, GPS/compass feature text, and dual-system switch instructions.
+- Binary evidence: zdeck54 app size `3722624`, SHA256 `c08e34f365ab3fa271fb4df672c134381bd75cb74b04d5f867969d24231595ca`; zdeck55 app size `3722624`, SHA256 `5a380faa657725b744e344f14a72cc3af30063c58fd07ef5cdb2f423aa0c52e1`; MeshCore size `632464`, SHA256 `599c4d3841af7eabc0e3d0d9abf9c24663c65d35d4c8eb589d86489f92c9b808`.
+- Validator evidence: OTA migration/A-B release checks passed, dedicated MeshCore release checks passed, JavaScript syntax passed, all `18` new checksum entries passed, and all `31` root source patches are accounted for.
+- Physical blocker: no responsive T-Deck application/debug endpoint was available for an outdoor fix comparison or a live zdeck54-to-zdeck55 Apply press. Do not claim hardware GPS accuracy or post-reboot OTA completion until a normal-mode device is reachable.
+- Security boundary: no PSK, channel URL, private key, Wi-Fi password, admin material, raw backup, or full Meshtastic info output was printed or bundled.
+
 ## 2026-07-12 - zdeck53 Smart Map Fallback And Attached Device OTA
 
 - Attached hardware: native ESP32-S3 T-Deck appeared as `COM21` with USB VID:PID `303A:1001`; read-only metadata identified `T_DECK`, client role, PKC present, and installed firmware `2.8.0.zdeck50`.

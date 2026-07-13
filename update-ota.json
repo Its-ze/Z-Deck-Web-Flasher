@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "product": "Z-Deck",
-  "channel": "public",
+  "channel": "public-ota",
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
@@ -9,9 +9,12 @@
     "packVersion": "0.2.54-cyberdeck",
     "firmwareVersion": "2.8.0.zdeck55",
     "released": "2026-07-12",
-    "updateMode": "usb-migration",
-    "migrationManifest": "manifest-dual.json",
+    "updateMode": "app-only",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
+    "preUpdateBackup": {
+      "enabled": false,
+      "reason": "A/B app-only OTA does not write NVS, LittleFS, or SD; manual SD backup remains available as a separate queued action."
+    },
     "firmware": {
       "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck55-public/zdeck-firmware.bin",
       "path": "firmware/zdeck-2.8.0-zdeck55-public/zdeck-firmware.bin",
@@ -19,6 +22,6 @@
       "sha256": "5a380faa657725b744e344f14a72cc3af30063c58fd07ef5cdb2f423aa0c52e1",
       "md5": "53c994c2d3d3386fc7f7f2aa5f40d1f6"
     },
-    "notes": "Legacy zdeck53 and earlier layouts must use the USB migration installer because their second app slot contains MeshCore. The migration preserves NVS, LittleFS, SD files, channels, keys, and local preferences. After migration, Settings > Z-Deck OTA uses update-ota.json for nonblocking A/B app updates."
+    "notes": "Nonblocking dual-slot OTA for migrated zdeck54 or newer devices. Check and Apply queue work in the background, publish status/progress, and never overwrite the dedicated MeshCore partition or local settings storage."
   }
 }

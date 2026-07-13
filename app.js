@@ -1,6 +1,7 @@
 const ticker = document.getElementById("ticker");
 const installButton = document.getElementById("installButton");
 const dualInstallButton = document.getElementById("dualInstallButton");
+const otaTestInstallButton = document.getElementById("otaTestInstallButton");
 const customManifest = document.getElementById("customManifest");
 const applyManifest = document.getElementById("applyManifest");
 const manifestStatus = document.getElementById("manifestStatus");
@@ -103,7 +104,7 @@ function selectInstallMode(modeName) {
     panel.classList.toggle("active", active);
   });
   setTicker(modeName === "dual" ? [
-    "layout: Z-Deck app0 + MeshCore app1",
+    "layout: Z-Deck OTA A/B + dedicated MeshCore",
     "storage: LittleFS and NVS are not written",
     "switch: guarded control in each system",
     "ready: connect T-Deck and authorize serial"
@@ -168,8 +169,9 @@ async function loadCommits() {
 }
 
 installModeButtons.forEach((button) => button.addEventListener("click", () => selectInstallMode(button.dataset.installMode)));
-installButton?.addEventListener("click", () => armInstaller(release.packVersion, "boot + app0 + app1 + LittleFS"));
-dualInstallButton?.addEventListener("click", () => armInstaller(`${release.packVersion} + MeshCore`, "boot + Z-Deck app0 + MeshCore app1"));
+installButton?.addEventListener("click", () => armInstaller(release.packVersion, "boot + Z-Deck OTA A/B + LittleFS"));
+dualInstallButton?.addEventListener("click", () => armInstaller(`${release.packVersion} + MeshCore`, "boot + Z-Deck OTA A/B + dedicated MeshCore"));
+otaTestInstallButton?.addEventListener("click", () => armInstaller("0.2.53 OTA test", "zdeck54 OTA A/B + dedicated MeshCore; storage preserved"));
 recoveryButtons.forEach((button) => button.addEventListener("click", () => renderRecoveryMode(button.dataset.recovery)));
 
 openDonglePairing?.addEventListener("click", () => {
