@@ -1272,3 +1272,34 @@ Validation commands:
 
 Blockers / next check:
 - Automated testing confirmed the installed images and preserved state. A physical on-screen pass is still required to confirm the exact keyboard/trackball navigation feel when switching into MeshCore and manually returning to Z-Deck.
+
+### 2026-07-15 16:07 -04:00
+
+Scope: built and verified the Z-Deck-owned 5x5 application shell as a local T-Deck release candidate; no device flash or configuration write was performed.
+
+Concrete feature unit:
+- Replaced the 4x4 launcher with a 5x5 Z-Deck app grid containing 25 direct destinations: Home, Chats, Nodes, Channels, Map, Compass, DeFlock, Proximity, Detector, Scanner, Trace, Nearby, Stats, Packets, Mesh, Profile, Radio, Wi-Fi, Display, Controls, Alerts, Updates, Storage, Backup, and Health.
+- Replaced visible Meshtastic boot, settings-header, default-node, dashboard-network, and mesh-hub branding with Z-Deck and Z-Mesh language while retaining the compatible radio/protobuf backend.
+- Kept the grid inside the 280x216 home content area: right edge 274, bottom edge 171, and status strip top 176.
+- Bumped the candidate to firmware `2.8.0.zdeck58`, pack `0.2.57-cyberdeck`, and build folder `20260715-zdeck58-zdeck-5x5-shell-t-deck-tft`.
+
+Pages, controls, and labels checked:
+- On-device launcher: `Z-DECK APPS 5X5`, all 25 app labels, five category-colored rows, Home-button return behavior, and the two-line time/GPS/battery/unread/SD status strip.
+- Boot and settings identity: `FIELD MESH SYSTEM`, `Z-DECK`, `Z-DECK USB MODE`, `Z-DECK REBOOTING`, and `Z-Deck Node` placeholders.
+- Dashboard and mesh hub: `ACTIVE Z-MESH`, `MESH NETWORKS`, `ADVICE ONLY`, `MESHCORE >`, and `STAY ZD`.
+
+Validation evidence:
+- All 29 Device UI patches applied in order from pinned commit `4bf593a82100b911ff816dddf7158ffdee2114cd` with `git apply --check` passing.
+- Launcher source contained exactly 25 short labels and 25 app labels; `git diff --check` passed.
+- Clean WSL `t-deck-tft` firmware and LittleFS build completed successfully.
+- Candidate app binary size: 3,725,776 bytes; SHA-256 `778CFC61416E0815A8B7734B1B4689926FDE2E09B88A6A1B18F92B3D4D5B0FF0`.
+- Binary marker scan confirmed the 5x5 launcher, Z-Deck identity, Z-Mesh dashboard, firmware version, and pack version.
+
+Changed files:
+- `itsz/device-ui-blackberry-shell.patch`
+- `bin/platformio-custom.py`
+- `variants/esp32s3/t-deck/platformio.ini`
+- `firmware/patches/itsz-tdeck-realtime-gps-compass.patch`
+
+Blockers / next check:
+- The candidate is compiled but intentionally not flashed. A physical T-Deck pass is still required for trackball/keyboard focus, label legibility, and all 25 destination transitions before OTA publication.
