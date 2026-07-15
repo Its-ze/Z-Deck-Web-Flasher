@@ -1237,3 +1237,38 @@ Changed local helper files:
 
 Blockers / next check:
 - Firmware OTA is confirmed working on zdeck48. The remaining defect to investigate is the T-Deck disappearing from USB/Wi-Fi after host serial close; future USB debug should use `ota-update` or one held-open serial session and avoid separate check/apply helper calls.
+
+### 2026-07-14 23:10 -04:00
+
+Scope: installed and verified the manual dual-mesh quick-switch release on one positively identified T-Deck while preserving private device state.
+
+Concrete feature unit:
+- Verified the Z-Deck `Mesh Networks` page exposes advisory-only mode, `STAY ZD`, `STAYS: Meshtastic`, and a guarded manual MeshCore switch instead of automatic firmware changes.
+- Verified the packaged MeshCore `Z-DECK` page exposes a manual return control and keeps MeshCore active until the user explicitly returns.
+- Entered DFU from confirmed T-Deck app port `COM21`; matched its USB identity after it re-enumerated as bootloader port `COM20`.
+- Flashed Z-Deck to both OTA slots and MeshCore to the dedicated `meshcore` partition. All six written regions passed esptool hash verification.
+- The flash plan did not write NVS, LittleFS, or SD storage.
+- Post-reboot readback confirmed hardware `T_DECK`, firmware `2.8.0.zdeck57`, retained owner/config state, retained primary and secondary channel records, and retained region configuration.
+
+Public pages and controls checked:
+- GitHub Pages root: release `0.2.56-cyberdeck`, firmware `2.8.0.zdeck57`, app-only OTA metadata, and manual-switching release copy.
+- Public dual manifest: dedicated Z-Deck app and MeshCore image paths and hashes.
+- Desktop and mobile layouts: no horizontal overflow in the release controls.
+
+On-device pages and controls checked in the shipped binary:
+- `Mesh Networks`: `ADVICE ONLY`, `STAY ZD`, `STAYS: Meshtastic`, guarded `SWITCH` action, and switch-arm status text.
+- MeshCore `Z-DECK`: `MeshCore stays active`, manual return label, and release-to-reboot status.
+
+Hardware / serial checks:
+- Only the T-Deck with USB identity ending `FE78` was touched.
+- `COM25` and `COM27` were not positively identified as the requested T-Deck and were not opened or written.
+- Unrelated `COM3`, `COM9`, and `COM29` devices were not touched.
+
+Validation commands:
+- Meshtastic DFU command on confirmed app port `COM21` completed and disconnected normally.
+- `esptool --before usb-reset chip-id` on matched bootloader port `COM20` confirmed ESP32-S3 and the expected USB identity.
+- `flash-dual-mesh.ps1 -Port COM20 -Write -Confirm DUAL_MESH_TDECK` completed with written-data hash verification.
+- Redacted post-boot Meshtastic readback on `COM21` confirmed firmware, hardware, owner/config presence, channel-record presence, and configured region without retaining or printing secret values.
+
+Blockers / next check:
+- Automated testing confirmed the installed images and preserved state. A physical on-screen pass is still required to confirm the exact keyboard/trackball navigation feel when switching into MeshCore and manually returning to Z-Deck.
