@@ -1303,3 +1303,27 @@ Changed files:
 
 Blockers / next check:
 - The candidate is compiled but intentionally not flashed. A physical T-Deck pass is still required for trackball/keyboard focus, label legibility, and all 25 destination transitions before OTA publication.
+
+### 2026-07-18 23:58 -04:00
+
+Scope: flashed the `zdeck58` 5x5-shell candidate and the validated MeshCore companion image to one positively identified T-Deck while preserving private device storage.
+
+Concrete feature unit:
+- Confirmed the attached ESP32-S3 T-Deck on `COM16` by USB serial identity ending `2A:C8`; unrelated `COM3` was not opened or written.
+- Generated a fresh dual-mesh package containing `2.8.0.zdeck58` / `0.2.57-cyberdeck` in both 5 MB Z-Deck OTA slots and the previously validated MeshCore companion in the dedicated 2.5 MB partition.
+- Migrated the device from the older 6.4 MB two-slot partition table to the dual Z-Deck plus MeshCore layout.
+- Did not write the NVS or LittleFS regions and did not access the SD card.
+
+Hardware and flash evidence:
+- ESP32-S3 MAC and USB identity matched the known T-Deck before writing.
+- Package hash validation passed before the write.
+- esptool wrote bootloader, partition table, OTA data, Z-Deck app slot 0, Z-Deck app slot 1, and MeshCore; every written region passed esptool hash verification.
+- A private pre-flash NVS backup was saved outside the repository under the local ITSZ Z-Deck backup directory.
+- Post-flash NVS was read back in five 4 KB chunks; all 20 KB matched the pre-flash backup byte-for-byte.
+
+Installed package:
+- `F:\Dropbox\Dev Ops\T-Deck Cyberdeck\dist\dual-mesh-tdeck-20260718-235004`
+- Z-Deck firmware SHA-256 `778CFC61416E0815A8B7734B1B4689926FDE2E09B88A6A1B18F92B3D4D5B0FF0`.
+
+Blockers / next check:
+- The device re-enumerated with the same USB identity on `COM16`, but the application Meshtastic API and Z-Deck USB diagnostic channel did not answer after software resets. The flash contents are verified, but normal-mode UI/API verification requires one physical reset or unplug/replug, followed by the on-screen 5x5 launcher and retained-setting readback checks.
