@@ -1,5 +1,14 @@
 # Changelog
 
+## Z-Deck 0.2.63-cyberdeck - 2026-07-20
+
+Physical-screen launcher contrast release.
+
+- Enlarged app icon badges and changed them to solid grouped accents with dark high-contrast glyphs.
+- Made tile surfaces opaque and added restrained borders so the 4x2 launcher scans cleanly on the T-Deck display.
+- Retained the verified startup handoff and bounded restore banner from zdeck63.
+- Kept the app-only OTA boundary: NVS, LittleFS, SD, channels, keys, chats, owner settings, and UI preferences are not written.
+
 ## Z-Deck 0.2.62-cyberdeck - 2026-07-20
 
 Startup recovery and launcher readability release.
