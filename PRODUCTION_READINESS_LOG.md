@@ -1469,3 +1469,22 @@ Changed files:
 
 Blockers / next check:
 - Physical visual verification requires explicitly authorized app-slot flashing or a newer OTA release, followed by webcam checks of all three launcher pages and trackball/touch navigation.
+
+### 2026-07-20 - Physical MeshOS-inspired launcher verification
+
+Scope: installed the rebuilt launcher on the confirmed T-Deck and verified the real display while preserving device configuration and user storage.
+
+Evidence:
+- Confirmed the intended ESP32-S3 USB identity ending `2A:C8`; unrelated serial devices were not touched.
+- Wrote only the application image to the two app slots at `0x10000` and `0x510000`; esptool hash verification passed for both writes.
+- NVS, LittleFS, SD, bootloader, partition table, and OTA metadata were not written.
+- The device returned to normal mode on `COM17`, and USB diagnostics remained responsive after boot.
+- A physical webcam capture showed the blue boot screen followed by the rebuilt launcher with the clock/status header, right status rail, 4x2 application grid, page controls, and bottom dock rendered together without overlap.
+- Wi-Fi readback remained enabled, configured, and connected after the application-only update, confirming settings preservation.
+- The later dark webcam frames matched the configured display timeout; USB diagnostics remained responsive and did not show a crash.
+
+Artifact:
+- `F:\Dropbox\Dev Ops\T-Deck\artifacts\real-mesh-os-home-20260720\zdeck-real-home.jpg`
+
+Blockers / next check:
+- The fixed webcam position is angled and limits text sharpness. Physical trackball/touch navigation across all launcher pages remains the next hands-on check.
