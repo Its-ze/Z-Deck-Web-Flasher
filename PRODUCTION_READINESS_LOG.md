@@ -1488,3 +1488,31 @@ Artifact:
 
 Blockers / next check:
 - The fixed webcam position is angled and limits text sharpness. Physical trackball/touch navigation across all launcher pages remains the next hands-on check.
+
+### 2026-07-20 - zdeck62 battery-status release and OTA preflight
+
+Scope: fixed launcher battery-state handling, published a new app-only OTA release, and attempted a monitored real-device OTA on the confirmed T-Deck.
+
+Feature fixed:
+- The launcher header now shows a bounded live `BAT n%` field after valid battery telemetry.
+- The launcher, dashboard, and always-on display now show `BAT --` before the first valid telemetry sample instead of a false `0%`.
+
+Build and release evidence:
+- Clean WSL firmware and LittleFS builds passed against pinned Meshtastic source commit `35b0590408faddfa933edec3dafd915e714f05b1`.
+- Firmware metadata reports `2.8.0.zdeck62` / `0.2.61-cyberdeck`.
+- App payload size is 3,729,712 bytes and fits the 5 MB A/B OTA slot.
+- App SHA-256 is `c24461811c8c421bcad36a3edfa64e68437ff567895fd0fcd0e59632520ada1a`.
+- Display, GPS-quality, map-state, and mesh-mode policy tests passed.
+- Local OTA, dual-release, patch-manifest, and full-source clean-apply validation passed.
+- GitHub Pages served the new `update-ota.json` and app payload; `verify-ota-release.py --live` matched the hosted payload SHA-256.
+- Release bundle was published by commit `55d44fe`; corrected reproducible source patches were published by commit `b145339`.
+
+Real-device preflight evidence:
+- Confirmed the device on `COM17` was running `2.8.0.zdeck61` before the attempted OTA.
+- Redacted readback confirmed Wi-Fi enabled/configured/connected, Bluetooth enabled, region configured, and role retained.
+- The USB OTA helper failed before opening the serial port because the confirmed T-Deck USB identity ending `2A:C8` disappeared from Windows.
+- No OTA check, download, flash write, or reboot command started. The unrelated `COM3` device was not touched.
+- The T-Deck was also unreachable at its last Wi-Fi address, confirming a full power/USB disconnect rather than an OTA write freeze.
+
+Blocker / next command:
+- Physically tap RESET once or unplug/replug the T-Deck USB-C cable. After identity `2A:C8` returns, run the already-published `ota-update` command with USB monitoring and webcam capture, then verify `2.8.0.zdeck62` plus retained Wi-Fi/Bluetooth/region/role state.
