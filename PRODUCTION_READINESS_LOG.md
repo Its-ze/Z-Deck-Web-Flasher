@@ -1435,3 +1435,37 @@ Changed files:
 
 Blockers / next check:
 - A full download, A/B write, reboot, and version-transition OTA test requires publishing a newer signed release than the installed `2.8.0.zdeck61`; this run verified the complete check/current path only.
+
+### 2026-07-20 - MeshOS-inspired home launcher rebuild
+
+Scope: rebuilt the on-device Z-Deck home launcher for the T-Deck's 320x240 display, using the clean clock/icon-grid/dock hierarchy of MeshOS as a layout reference without copying its branding or licensed assets. The attached device was not flashed during this run.
+
+Feature added:
+- Live clock and date header with compact mesh-node and GPS state.
+- Three pages of eight large icon applications instead of sixteen abbreviation tiles per page.
+- Persistent Home, Chats, Map, and Settings dock.
+- Compact page, SD, RTC, and unread-message status row.
+- Distinct application colors, familiar LVGL symbols, focused-state outlines, and fixed dimensions.
+- Reproducible Device UI patch delta generated against the exact pre-launcher patch state, replacing the prior aggregate shell patch that failed on a clean build.
+
+Pages, buttons, controls, and labels checked:
+- Launcher header: clock, date, mesh count, and GPS state.
+- Page controls: previous, next, page 1/3, page 2/3, and page 3/3.
+- Paged applications: System, Nodes, Channels, Compass, DeFlock, Proximity, Scanner, Nearby, Mesh, Stats, Updates, Wi-Fi, Display, Health, Detector, Trace, Packets, Radio, Controls, Alerts, Storage, Backup, and Bluetooth.
+- Dock applications: Home, Chats, Map, and Settings.
+
+Validation evidence:
+- Clean WSL `t-deck-tft` firmware and LittleFS build passed after applying the complete patch stack to pinned Device UI revision `4bf593a82100b911ff816dddf7158ffdee2114cd`.
+- Application binary size: 3,729,392 bytes; SHA-256 `FBB08CDB500A62F71327E58D9CB9CD504FE6FB456595F6E5D0213650EC1C3E6E`.
+- Static route audit passed: 23 paged apps plus three dock app routes cover IDs 0 through 25 exactly; Home uses the launcher action; all 26 switch cases remain present.
+- Geometry audit passed for the 280x216 usable content area: header, 4x2 grid, pager, and dock stay within bounds and do not overlap.
+- Firmware compilation passed with all LVGL symbols and launcher callbacks resolved.
+
+Changed files:
+- `F:\Dropbox\Dev Ops\T-Deck\firmware\meshtastic-firmware-2.8\itsz\device-ui-blackberry-shell.patch`
+- `F:\Dropbox\Dev Ops\T-Deck\firmware\meshtastic-firmware-2.8\bin\platformio-custom.py`
+- `F:\Dropbox\Dev Ops\T-Deck\firmware\patches\itsz-tdeck-realtime-gps-compass.patch`
+- `PRODUCTION_READINESS_LOG.md`
+
+Blockers / next check:
+- Physical visual verification requires explicitly authorized app-slot flashing or a newer OTA release, followed by webcam checks of all three launcher pages and trackball/touch navigation.
