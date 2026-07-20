@@ -5,10 +5,10 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.60-cyberdeck",
-    "packVersion": "0.2.60-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck61",
-    "released": "2026-07-19",
+    "title": "Z-Deck 0.2.61-cyberdeck",
+    "packVersion": "0.2.61-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck62",
+    "released": "2026-07-20",
     "updateMode": "app-only",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
     "preUpdateBackup": {
@@ -16,12 +16,12 @@
       "reason": "A/B app-only OTA does not write NVS, LittleFS, or SD; manual SD backup remains available as a separate queued action."
     },
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck61-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck61-public/zdeck-firmware.bin",
-      "size": 3727920,
-      "sha256": "534d8e74b70b34e33d24254ca3032d1a52924850dde408ea0b77506a9ae2f755",
-      "md5": "0185a340d72d897e70775e19a054b088"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck62-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck62-public/zdeck-firmware.bin",
+      "size": 3729712,
+      "sha256": "c24461811c8c421bcad36a3edfa64e68437ff567895fd0fcd0e59632520ada1a",
+      "md5": "613846cd80e786f2a0da9fe167357ba7"
     },
-    "notes": "Adds a dedicated Bluetooth app and completes Bluetooth-enabled normal boot with a three-second local UI fallback when the UI-config packet is late. App-only A/B OTA never overwrites MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
+    "notes": "Fixes launcher battery status so the home header shows a bounded live percentage and dashboard or always-on views show BAT -- until valid telemetry arrives. App-only A/B OTA never overwrites MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
   }
 }

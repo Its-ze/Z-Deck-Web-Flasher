@@ -1,10 +1,10 @@
 ﻿{
     "name":  "zdeck-public-stack",
-    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Includes the 4x4 launcher, Z-Deck dashboard, manual-only Mesh Networks hub, dedicated MeshCore handoff, GPS/map/compass/DeFlock pages, chat state, Wi-Fi/OTA controls, SD tools, diagnostics, themes, sidebar placement, and bounded battery/status layouts.",
+    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Includes the three-page 4x2 launcher, Z-Deck dashboard, manual-only Mesh Networks hub, dedicated MeshCore handoff, GPS/map/compass/DeFlock pages, chat state, Wi-Fi/OTA controls, SD tools, diagnostics, themes, sidebar placement, and validated battery/status layouts.",
     "release":  {
-                    "label":  "Z-Deck 0.2.56-cyberdeck",
-                    "firmwareVersion":  "2.8.0.zdeck57",
-                    "packVersion":  "0.2.56-cyberdeck",
+                    "label":  "Z-Deck 0.2.61-cyberdeck",
+                    "firmwareVersion":  "2.8.0.zdeck62",
+                    "packVersion":  "0.2.61-cyberdeck",
                     "channelDefaults":  "LongFast public setup; users add private/admin channels after flashing",
                     "privateChannelsBundled":  false,
                     "privateKeysBundled":  false,
@@ -24,9 +24,9 @@
                    "patchBase":  "origin/2.8"
                },
     "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck57-public",
-                  "latestBuiltFrom":  "20260713-zdeck57-manual-mesh-choice-t-deck-tft",
-                  "status":  "Z-Deck WSL and MeshCore clean local PlatformIO builds passed. zdeck57 keeps the active firmware running unless the user explicitly confirms a guarded switch."
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck62-public",
+                  "latestBuiltFrom":  "20260720-zdeck62-launcher-battery-t-deck-tft",
+                  "status":  "Z-Deck clean WSL firmware and LittleFS builds passed. zdeck62 fixes launcher battery validity and keeps the active firmware running unless the user explicitly confirms a guarded switch."
               },
     "patchFiles":  [
                        "device-ui-map.patch",
@@ -61,7 +61,7 @@
                        "zdeck-full-source.patch",
                        "device-ui-blackberry-shell.patch"
                    ],
-    "sourceArchive":  "source/patches/2026-07-13-zdeck57-public",
+    "sourceArchive":  "source/patches/2026-07-20-zdeck62-public",
     "publicSetup":  {
                         "ownerDefault":  "Meshtastic xxxx until the owner name is configured",
                         "shortNameDefault":  "xxxx until the short name is configured",

@@ -1,5 +1,14 @@
 # Changelog
 
+## Z-Deck 0.2.61-cyberdeck - 2026-07-20
+
+Launcher battery-status correctness release.
+
+- Added a compact live battery percentage to the MeshOS-inspired launcher header.
+- Added battery telemetry validity tracking so startup shows `BAT --` instead of a false `0%`.
+- Applied the same validated state to the dashboard and always-on display.
+- Kept the app-only OTA boundary: NVS, LittleFS, SD, channels, keys, chats, owner settings, and UI preferences are not written.
+
 ## Z-Deck 0.2.56-cyberdeck - 2026-07-13
 
 Manual-only dual-mesh choice.

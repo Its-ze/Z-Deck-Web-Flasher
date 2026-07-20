@@ -5,20 +5,20 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.60-cyberdeck",
-    "packVersion": "0.2.60-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck61",
-    "released": "2026-07-19",
+    "title": "Z-Deck 0.2.61-cyberdeck",
+    "packVersion": "0.2.61-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck62",
+    "released": "2026-07-20",
     "updateMode": "usb-migration",
     "migrationManifest": "manifest-dual.json",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck61-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck61-public/zdeck-firmware.bin",
-      "size": 3727920,
-      "sha256": "534d8e74b70b34e33d24254ca3032d1a52924850dde408ea0b77506a9ae2f755",
-      "md5": "0185a340d72d897e70775e19a054b088"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck62-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck62-public/zdeck-firmware.bin",
+      "size": 3729712,
+      "sha256": "c24461811c8c421bcad36a3edfa64e68437ff567895fd0fcd0e59632520ada1a",
+      "md5": "613846cd80e786f2a0da9fe167357ba7"
     },
-    "notes": "Adds the Bluetooth app and completes Bluetooth-enabled normal boot even when UI settings arrive late. Z-Deck stays active while using maps, chats, settings, GPS, OTA, SD, diagnostics, and Bluetooth. The dual USB migration installer preserves NVS, LittleFS, SD files, channels, keys, and local preferences."
+    "notes": "Fixes launcher battery status so the home header shows a bounded live percentage and dashboard or always-on views show BAT -- until valid telemetry arrives. The dual USB migration installer preserves NVS, LittleFS, SD files, channels, keys, and local preferences."
   }
 }
