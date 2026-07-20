@@ -1412,3 +1412,26 @@ Changed files:
 Blockers / next check:
 - A successful remote OTA download still requires selecting a Wi-Fi network and entering its password on the device. This desktop has no Wi-Fi interface/profile to transfer, and no credential was printed or invented.
 - Admin input events wake the firmware power state but do not activate LVGL controls on this Device UI backend. The 26 routes are compile-verified, but physical entry into every page still requires the T-Deck trackball/keyboard or touch input.
+
+### 2026-07-20 - Live Wi-Fi and OTA manifest verification
+
+Scope: configured Wi-Fi on the confirmed T-Deck over USB and verified the public OTA check end-to-end. The network name and credential were not written to this repository or included in diagnostic output.
+
+Feature checked:
+- On-device Wi-Fi configuration persistence and association.
+- USB `itsz zdeck wifi status`, `itsz zdeck wifi scan`, `itsz zdeck ota check`, and `itsz zdeck status` controls.
+- Public `update-ota.json` manifest retrieval and current-version comparison.
+
+Evidence:
+- Confirmed the intended ESP32-S3 USB identity ending `2A:C8` on `COM17`; unrelated serial devices were not touched.
+- Targeted network-config write was accepted without changing channels, keys, NVS layout, LittleFS, or SD data.
+- Wi-Fi scan found the configured access point and status settled at `enabled=yes`, `configured=yes`, and `connected=yes` with a DHCP address.
+- OTA check fetched the public manifest with HTTP 200, read 1,327 bytes, parsed the 3,727,920-byte application entry, and correctly reported no newer version.
+- Final diagnostics reported `OTA READY` and `Z-Deck is current 0.2.60-cyberdeck`; a second Wi-Fi readback remained connected.
+- An 80-second webcam capture completed during the OTA check. The display was asleep/dark during the sampled frames, while USB diagnostics remained responsive and showed no crash or reboot.
+
+Changed files:
+- `PRODUCTION_READINESS_LOG.md`
+
+Blockers / next check:
+- A full download, A/B write, reboot, and version-transition OTA test requires publishing a newer signed release than the installed `2.8.0.zdeck61`; this run verified the complete check/current path only.
