@@ -115,9 +115,16 @@ def main() -> int:
         live_legacy = json.loads(fetch("https://its-ze.github.io/Z-Deck-Web-Flasher/update.json").decode("utf-8-sig"))
         live_ota = json.loads(fetch("https://its-ze.github.io/Z-Deck-Web-Flasher/update-ota.json").decode("utf-8-sig"))
         check(live_legacy.get("latest", {}).get("updateMode") == "usb-migration", "live legacy manifest requires USB migration", failures)
-        check(live_ota.get("latest", {}).get("firmware", {}).get("sha256") == firmware.get("sha256"), "live OTA manifest matches local SHA256", failures)
-        live_data = fetch(str(firmware.get("url", "")))
-        check(digest(live_data)[0] == firmware.get("sha256"), "live OTA payload matches SHA256", failures)
+        live_manifest_matches = live_ota.get("latest", {}).get("firmware", {}).get("sha256") == firmware.get("sha256")
+        check(live_manifest_matches, "live OTA manifest matches local SHA256", failures)
+        if live_manifest_matches:
+            try:
+                live_data = fetch(str(firmware.get("url", "")))
+            except Exception as error:
+                print(f"FAIL: live OTA payload could not be fetched: {error}")
+                failures.append("live OTA payload could not be fetched")
+            else:
+                check(digest(live_data)[0] == firmware.get("sha256"), "live OTA payload matches SHA256", failures)
 
     if failures:
         print(f"\n{len(failures)} OTA release check(s) failed.")
