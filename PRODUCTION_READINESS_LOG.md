@@ -1393,6 +1393,7 @@ Build, OTA, and storage evidence:
 - Clean WSL build completed for firmware `2.8.0.zdeck61`, pack `0.2.60-cyberdeck`.
 - App binary: 3,727,920 bytes; SHA-256 `534d8e74b70b34e33d24254ca3032d1a52924850dde408ea0b77506a9ae2f755`.
 - Public dual-release and OTA-release validators passed locally.
+- Public release commit `7357d8f` was pushed to `main`; GitHub Pages served `2.8.0.zdeck61`, and the live verifier downloaded the app payload and matched its SHA-256.
 - The previously published `zdeck60` manifest and downloaded app binary matched the local SHA-256 before the OTA check.
 - Webcam captured 30 frames during the no-Wi-Fi OTA check and 120 frames during the final `zdeck61` install/boot sequence.
 - The confirmed ESP32-S3 identity ended `2A:C8`; both current app slots (`0x10000`, `0x510000`) were written and hash-verified.
