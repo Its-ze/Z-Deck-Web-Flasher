@@ -5,20 +5,20 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.56-cyberdeck",
-    "packVersion": "0.2.56-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck57",
-    "released": "2026-07-13",
+    "title": "Z-Deck 0.2.59-cyberdeck",
+    "packVersion": "0.2.59-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck60",
+    "released": "2026-07-19",
     "updateMode": "usb-migration",
     "migrationManifest": "manifest-dual.json",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck57-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck57-public/zdeck-firmware.bin",
-      "size": 3724944,
-      "sha256": "5cf4b6f93c329bcd639ad72e97c746e807bfa637be5093add2f28370ad43f9ec",
-      "md5": "6f24ca6938d323b039eb92125d2fffe0"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck60-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck60-public/zdeck-firmware.bin",
+      "size": 3727808,
+      "sha256": "47a7cbfec3cc315ea55ae00c2d6d932297f6ba9f2987bf221321293a610700b5",
+      "md5": "cfdfc536c0e0c16714f76fe73203e87f"
     },
-    "notes": "Makes dual-mesh selection strictly manual. Z-Deck stays active while using maps, chats, settings, GPS, OTA, SD, and diagnostics; area advice never switches firmware. MeshCore also stays active until its explicit Z-DECK return action is confirmed. The dual USB installer preserves NVS, LittleFS, SD files, channels, keys, and local preferences."
+    "notes": "Adds the Bluetooth app and fixes Bluetooth-enabled normal boot. Z-Deck stays active while using maps, chats, settings, GPS, OTA, SD, diagnostics, and Bluetooth. The dual USB migration installer preserves NVS, LittleFS, SD files, channels, keys, and local preferences."
   }
 }

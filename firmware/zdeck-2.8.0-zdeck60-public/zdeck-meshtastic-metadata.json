@@ -1,0 +1,108 @@
+{
+  "version": "2.8.0.zdeck60",
+  "build_epoch": 1784433600,
+  "platformioTarget": "t-deck-tft",
+  "mcu": "esp32s3",
+  "repo": "firmware/meshtastic-firmware-2.8",
+  "files": [
+    {
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.elf",
+      "md5": "a45168e3f63dcbe2ef3c7c51cc323407",
+      "bytes": 26156068
+    },
+    {
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.bin",
+      "md5": "cfdfc536c0e0c16714f76fe73203e87f",
+      "bytes": 3727808,
+      "part_name": "app0"
+    },
+    {
+      "name": "firmware-t-deck-tft-2.8.0.35b0590.factory.bin",
+      "md5": "cc9d84d48804da1e644ad195cb7ba31c",
+      "bytes": 3793344
+    },
+    {
+      "name": "littlefs-t-deck-tft-2.8.0.35b0590.bin",
+      "md5": "002df2c198a8c9437712befca9c1f3d5",
+      "bytes": 3538944,
+      "part_name": "spiffs"
+    }
+  ],
+  "has_mui": true,
+  "has_inkhud": false,
+  "buildName": "Z-Deck Pack",
+  "zDeckPackVersion": "0.2.59-cyberdeck",
+  "zDeckBuildFolder": "20260719-zdeck60-bluetooth-launcher-boot-fix-t-deck-tft",
+  "part": [
+    {
+      "name": "nvs",
+      "type": "data",
+      "subtype": "nvs",
+      "offset": "0x9000",
+      "size": "0x5000",
+      "flags": ""
+    },
+    {
+      "name": "otadata",
+      "type": "data",
+      "subtype": "ota",
+      "offset": "0xe000",
+      "size": "0x2000",
+      "flags": ""
+    },
+    {
+      "name": "app0",
+      "type": "app",
+      "subtype": "ota_0",
+      "offset": "0x10000",
+      "size": "0x500000",
+      "flags": ""
+    },
+    {
+      "name": "app1",
+      "type": "app",
+      "subtype": "ota_1",
+      "offset": "0x510000",
+      "size": "0x500000",
+      "flags": ""
+    },
+    {
+      "name": "meshcore",
+      "type": "app",
+      "subtype": "test",
+      "offset": "0xa10000",
+      "size": "0x280000",
+      "flags": ""
+    },
+    {
+      "name": "spiffs",
+      "type": "data",
+      "subtype": "spiffs",
+      "offset": "0xc90000",
+      "size": "0x360000",
+      "flags": ""
+    },
+    {
+      "name": "coredump",
+      "type": "data",
+      "subtype": "coredump",
+      "offset": "0xff0000",
+      "size": "0x10000",
+      "flags": ""
+    }
+  ],
+  "hwModel": 50,
+  "hwModelSlug": "T_DECK",
+  "architecture": "esp32-s3",
+  "activelySupported": true,
+  "displayName": "Z-Deck T-Deck",
+  "supportLevel": 1,
+  "images": [
+    "t-deck.svg"
+  ],
+  "tags": [
+    "LilyGo"
+  ],
+  "requiresDfu": true,
+  "partitionScheme": "16MB"
+}
