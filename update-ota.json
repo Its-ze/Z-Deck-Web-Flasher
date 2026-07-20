@@ -5,9 +5,9 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.59-cyberdeck",
-    "packVersion": "0.2.59-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck60",
+    "title": "Z-Deck 0.2.60-cyberdeck",
+    "packVersion": "0.2.60-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck61",
     "released": "2026-07-19",
     "updateMode": "app-only",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
@@ -16,12 +16,12 @@
       "reason": "A/B app-only OTA does not write NVS, LittleFS, or SD; manual SD backup remains available as a separate queued action."
     },
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck60-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck60-public/zdeck-firmware.bin",
-      "size": 3727808,
-      "sha256": "47a7cbfec3cc315ea55ae00c2d6d932297f6ba9f2987bf221321293a610700b5",
-      "md5": "cfdfc536c0e0c16714f76fe73203e87f"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck61-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck61-public/zdeck-firmware.bin",
+      "size": 3727920,
+      "sha256": "534d8e74b70b34e33d24254ca3032d1a52924850dde408ea0b77506a9ae2f755",
+      "md5": "0185a340d72d897e70775e19a054b088"
     },
-    "notes": "Adds a dedicated Bluetooth app with radio, connection, pairing, and device status plus guarded on-device controls. Fixes Bluetooth-enabled normal boot incorrectly entering USB programming mode. App-only A/B OTA never overwrites MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
+    "notes": "Adds a dedicated Bluetooth app and completes Bluetooth-enabled normal boot with a three-second local UI fallback when the UI-config packet is late. App-only A/B OTA never overwrites MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
   }
 }

@@ -1362,3 +1362,52 @@ Changed files:
 Blockers / next check:
 - Trackball or keyboard input is still required to verify page 2 navigation and all 25 destination transitions on the physical device.
 - The retained region-setup prompt must be resolved through normal device configuration before radio operation can be considered ready; no private channel or secret values were printed or changed during this UI run.
+
+### 2026-07-19 - zdeck61 Bluetooth boot, OTA, and page audit
+
+Scope: enabled and paired Bluetooth on the confirmed T-Deck, exercised the public OTA path under webcam and USB diagnostics, fixed Bluetooth-enabled normal boot, and audited every launcher route. Unrelated `COM3` was not opened or written.
+
+Concrete feature unit:
+- Added a dedicated `Bluetooth` launcher page with radio, connection, pairing-mode, and device status plus `TURN ON` / `TURN OFF`, `PAIR`, and `APPS` controls.
+- Removed the implicit transition from enabled Bluetooth configuration to USB programming mode.
+- Added a non-persistent three-second UI fallback so a late/missing UI-config packet cannot strand normal boot on the splash screen.
+- Corrected the host flasher's second A/B slot from obsolete `0x650000` to `0x510000` and made expected reboot/bootloader USB disconnects non-errors.
+- Added reusable timed webcam capture and named UI-input diagnostic tools.
+
+Pages, controls, and labels checked:
+- Physical on-device boot: `FIELD MESH SYSTEM` splash transitioned to the 4x4 `Z-DECK` / `APPS 1/2` launcher while Bluetooth remained enabled; it did not enter `Z-DECK USB MODE`.
+- Physical launcher: page 1 grid, page arrows, focused tile outline, two-line status footer, and side rail rendered without overlap through the configured display timeout.
+- Compiled launcher routing: 26 entries, 26 unique application IDs, and 26 matching switch routes with no missing route. This covers Home, Chats, Nodes, Channels, Map, Compass, DeFlock, Proximity, Scanner, Nearby, Mesh, Stats, Updates, Wi-Fi, Display, Health, Detector, Trace, Packets, Profile, Radio, Controls, Alerts, Storage, Backup, and Bluetooth.
+- Map routing: Mesh, Compass, DeFlock, and Proximity map pages all have explicit route calls.
+- Bluetooth page: route ID 25, status refresh, toggle, random-PIN pairing, and return-to-apps controls compiled into the physical firmware.
+- OTA controls: USB `ota check` completed without freezing; no download was started because device status reported Wi-Fi disabled and unconfigured.
+
+Bluetooth evidence:
+- Windows `bthserv` running and the healthy USB Bluetooth adapter present.
+- T-Deck non-secret configuration readback: Bluetooth enabled, random-PIN mode, and US region retained.
+- Windows pairing entry `Meshtastic_2ac8` healthy.
+- WinRT opened the paired device, reported an active connection, read four GATT services, and found the Meshtastic service UUID.
+- A standalone advertisement scan did not see the device while Windows held the active GATT connection.
+
+Build, OTA, and storage evidence:
+- Clean WSL build completed for firmware `2.8.0.zdeck61`, pack `0.2.60-cyberdeck`.
+- App binary: 3,727,920 bytes; SHA-256 `534d8e74b70b34e33d24254ca3032d1a52924850dde408ea0b77506a9ae2f755`.
+- Public dual-release and OTA-release validators passed locally.
+- The previously published `zdeck60` manifest and downloaded app binary matched the local SHA-256 before the OTA check.
+- Webcam captured 30 frames during the no-Wi-Fi OTA check and 120 frames during the final `zdeck61` install/boot sequence.
+- The confirmed ESP32-S3 identity ended `2A:C8`; both current app slots (`0x10000`, `0x510000`) were written and hash-verified.
+- NVS, LittleFS, partition table, MeshCore, and SD were not written. Post-boot readback retained Bluetooth, random-PIN mode, region, role, public-key capability, and device identity.
+- Native policy tests passed: map state, display policy, mesh-mode policy, and GPS-quality policy.
+
+Changed files:
+- `firmware/zdeck-2.8.0-zdeck61-public/*`
+- `manifest.json`, `manifest-dual.json`, `update.json`, `update-ota.json`
+- `F:\Dropbox\Dev Ops\T-Deck\tools\capture-tdeck-webcam.py`
+- `F:\Dropbox\Dev Ops\T-Deck\tools\zdeck-ui-input.py`
+- `F:\Dropbox\Dev Ops\T-Deck\tools\zdeck-usb-debug.py`
+- `F:\Dropbox\Dev Ops\T-Deck\tools\flash-latest-tdeck-build.ps1`
+- Z-Deck Device UI patch stack and aggregate firmware patch.
+
+Blockers / next check:
+- A successful remote OTA download still requires selecting a Wi-Fi network and entering its password on the device. This desktop has no Wi-Fi interface/profile to transfer, and no credential was printed or invented.
+- Admin input events wake the firmware power state but do not activate LVGL controls on this Device UI backend. The 26 routes are compile-verified, but physical entry into every page still requires the T-Deck trackball/keyboard or touch input.
