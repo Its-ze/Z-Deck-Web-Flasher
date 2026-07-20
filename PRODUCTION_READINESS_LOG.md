@@ -1516,3 +1516,37 @@ Real-device preflight evidence:
 
 Blocker / next command:
 - Physically tap RESET once or unplug/replug the T-Deck USB-C cable. After identity `2A:C8` returns, run the already-published `ota-update` command with USB monitoring and webcam capture, then verify `2.8.0.zdeck62` plus retained Wi-Fi/Bluetooth/region/role state.
+
+### 2026-07-20 - Restore recovery, launcher contrast, and two live OTAs
+
+Scope: fixed the false/stale restore screen, repaired normal boot-to-launcher handoff, improved launcher contrast from physical-screen evidence, and completed two monitored app-only OTA transitions on the confirmed T-Deck.
+
+Features fixed and checked:
+- Boot splash timer: normal boot now explicitly loads `main_screen`, opens the Z-Deck launcher, wakes display activity, and deletes the one-shot timer.
+- SD Restore status: `Restoring settings from SD...` is bounded to 15 seconds instead of covering the UI indefinitely.
+- Launcher Home page: clock/date/status header, 4x2 app grid, pager, and Home/Chats/Map/Settings dock rendered together after both reboots.
+- Launcher app controls: larger solid app badges, dark high-contrast glyphs, opaque tile surfaces, restrained borders, and grouped accent colors.
+- OTA controls: USB `ota check`, `ota apply`, manifest retrieval, payload size validation, 0-100% write progress, finalization, reboot, and post-boot status.
+- Status labels: `OTA IDLE`, `SD UNK`, `Map WAIT`, and `Chat IDLE`; no restore operation remained active after reboot.
+
+Build, release, and public-page evidence:
+- Clean WSL firmware and LittleFS builds passed for `2.8.0.zdeck63` / `0.2.62-cyberdeck` and `2.8.0.zdeck64` / `0.2.63-cyberdeck` against pinned Meshtastic commit `35b0590408faddfa933edec3dafd915e714f05b1`.
+- Display, GPS-quality, map-state, and mesh-mode policy tests passed for both builds.
+- zdeck64 app payload is 3,729,856 bytes, fits the 5 MB A/B slot, and has SHA-256 `6c2390731297775a6abb7e7520adfd5aea5eb709b83399073ff37183fb025707`.
+- OTA, dual-release, package metadata, firmware checksum, patch-manifest, broken-link, and full-source clean-apply checks passed.
+- GitHub Pages served zdeck64 `update-ota.json` and the application payload with matching SHA-256 after commit `fb57d68`.
+
+Real-device evidence:
+- Confirmed only the ESP32-S3 T-Deck on `COM17`; unrelated `COM3` was not touched.
+- OTA transition `2.8.0.zdeck61` to `2.8.0.zdeck63` downloaded and wrote 3,729,824 bytes, reported progress from 0% through 100%, finalized, rebooted, and returned on `COM17`.
+- OTA transition `2.8.0.zdeck63` to `2.8.0.zdeck64` downloaded and wrote 3,729,856 bytes, reported progress from 0% through 100%, finalized, rebooted, and returned on `COM17`.
+- Post-OTA metadata readback reports `2.8.0.zdeck64` and hardware `T_DECK`.
+- Safe before/after markers match: owner configured, active-channel count, channels-with-PSK count, admin-key count, Wi-Fi configured, Bluetooth enabled, and region configured. No secret values were logged.
+- Webcam frames show the blue Z-Deck boot splash, automatic transition to the launcher, visibly solid high-contrast app badges, and later normal display power-save.
+
+Artifacts:
+- `F:\Dropbox\Dev Ops\T-Deck\artifacts\zdeck63-ota-20260720`
+- `F:\Dropbox\Dev Ops\T-Deck\artifacts\zdeck64-ota-20260720`
+
+Remaining usability check:
+- A USB-triggered OTA does not wake an already sleeping display. Serial diagnostics expose complete progress, but the on-device progress view should wake the screen when maintenance starts.
