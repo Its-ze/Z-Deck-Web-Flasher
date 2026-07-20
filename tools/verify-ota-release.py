@@ -85,6 +85,20 @@ def main() -> int:
     metadata = load_json(payload.parent / "zdeck-meshtastic-metadata.json") if payload.is_file() else {}
     check(metadata.get("version") == latest.get("firmwareVersion"), "firmware metadata version matches OTA manifest", failures)
     check(metadata.get("zDeckPackVersion") == latest.get("packVersion"), "pack version matches OTA manifest", failures)
+    metadata_parts = {entry.get("part_name"): entry for entry in metadata.get("files", [])}
+    packaged_parts = {
+        "app0": payload,
+        "spiffs": payload.parent / "zdeck-littlefs.bin",
+    }
+    for part_name, part_path in packaged_parts.items():
+        entry = metadata_parts.get(part_name, {})
+        part_exists = part_path.is_file()
+        check(part_exists, f"packaged {part_name} artifact exists", failures)
+        if part_exists:
+            part_data = part_path.read_bytes()
+            _, part_md5 = digest(part_data)
+            check(entry.get("bytes") == len(part_data), f"{part_name} size matches firmware metadata", failures)
+            check(str(entry.get("md5", "")).lower() == part_md5, f"{part_name} MD5 matches firmware metadata", failures)
 
     standard_parts = parts_by_offset(standard)
     dual_parts = parts_by_offset(dual)

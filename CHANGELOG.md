@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.62-cyberdeck - 2026-07-20
+
+Startup recovery and launcher readability release.
+
+- Fixed the boot timer so a normal startup explicitly loads the main screen and Z-Deck launcher instead of leaving the splash visible.
+- Made the startup timer one-shot after the launcher handoff.
+- Bounded the SD restore status banner to 15 seconds so a failed or stalled restore cannot cover the UI indefinitely.
+- Replaced the launcher rainbow treatment with grouped accents, stronger tile contrast, and quieter outlined icon badges.
+- Kept the app-only OTA boundary: NVS, LittleFS, SD, channels, keys, chats, owner settings, and UI preferences are not written.
+
 ## Z-Deck 0.2.61-cyberdeck - 2026-07-20
 
 Launcher battery-status correctness release.
