@@ -1327,3 +1327,38 @@ Installed package:
 
 Blockers / next check:
 - The device re-enumerated with the same USB identity on `COM16`, but the application Meshtastic API and Z-Deck USB diagnostic channel did not answer after software resets. The flash contents are verified, but normal-mode UI/API verification requires one physical reset or unplug/replug, followed by the on-screen 5x5 launcher and retained-setting readback checks.
+
+### 2026-07-19 - Paged 4x4 launcher physical-device correction
+
+Scope: replaced the unreadable 5x5 shell on one positively identified T-Deck, flashed the corrected build without touching private storage, and verified the result through both the device API and a physical webcam view.
+
+Concrete feature unit:
+- Replaced the 25-tile single-page launcher with a paged 4x4 launcher: 16 primary applications on page 1 and 9 tools/settings applications on page 2.
+- Increased every launcher tile from 52x29 to 64x36 pixels, retained stable four-column/four-row geometry, added explicit previous/next page controls, and reduced the footer to two short status lines.
+- Kept Home, Chats, Nodes, Channels, Map, Compass, DeFlock, Proximity, Scanner, Nearby, Mesh, Stats, Updates, Wi-Fi, Display, and Health on the first page; moved Detector, Trace, Packets, Profile, Radio, Controls, Alerts, Storage, and Backup to the second page.
+- Bumped the local device candidate to firmware `2.8.0.zdeck59`, pack `0.2.58-cyberdeck`, and build folder `20260719-zdeck59-paged-4x4-shell-t-deck-tft`.
+
+Pages, controls, and labels checked:
+- Physical on-device launcher: `Z-DECK`, `APPS 1/2`, four columns by four rows, larger tile boundaries, page controls, focused-tile outline, status footer, and persistent side navigation rail.
+- Physical post-launch flow: the launcher rendered before the retained region-setup prompt appeared; the prompt is a separate configuration state and did not indicate a launcher crash.
+- USB metadata after boot: firmware `2.8.0.zdeck59`, hardware `T_DECK`, role `CLIENT`, and public-key capability present.
+
+Validation evidence:
+- All 29 Device UI patches reconstructed cleanly from the pinned upstream source; `git apply --check` and the project launcher markers passed.
+- Clean WSL `t-deck-tft` firmware and LittleFS build completed successfully.
+- App binary size: 3,726,688 bytes; SHA-256 `A6157D41AFE1B0640C6039A478C4744651D4D4101D237C63C120D1E2D46CE2D9`.
+- Generated dual package: `F:\Dropbox\Dev Ops\T-Deck Cyberdeck\dist\dual-mesh-tdeck-20260719-214221`.
+- The guarded flasher wrote bootloader, partition table, OTA data, both Z-Deck application slots, and the existing MeshCore companion; all six written regions passed esptool hash verification.
+- NVS, LittleFS, and SD storage were not written.
+- Post-boot API readback on `COM17` confirmed the installed zdeck59 metadata.
+- Webcam sequence with manual exposure showed the real device progress from the Z-Deck boot screen into the new 4x4 launcher; the former 5x5 label collision was no longer present.
+
+Changed files:
+- `F:\Dropbox\Dev Ops\T-Deck\firmware\meshtastic-firmware-2.8\itsz\device-ui-blackberry-shell.patch`
+- `F:\Dropbox\Dev Ops\T-Deck\firmware\meshtastic-firmware-2.8\bin\platformio-custom.py`
+- `F:\Dropbox\Dev Ops\T-Deck\firmware\meshtastic-firmware-2.8\variants\esp32s3\t-deck\platformio.ini`
+- `F:\Dropbox\Dev Ops\T-Deck\firmware\patches\itsz-tdeck-realtime-gps-compass.patch`
+
+Blockers / next check:
+- Trackball or keyboard input is still required to verify page 2 navigation and all 25 destination transitions on the physical device.
+- The retained region-setup prompt must be resolved through normal device configuration before radio operation can be considered ready; no private channel or secret values were printed or changed during this UI run.
