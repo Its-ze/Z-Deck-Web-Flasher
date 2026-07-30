@@ -1,5 +1,15 @@
 # Changelog
 
+## Z-Deck 0.2.64-cyberdeck - 2026-07-30
+
+Sketch-based home screen release.
+
+- Replaced the three-page app drawer and bottom dock with six large direct controls: Alerts, Map, Messages, Contacts, Tools, and Settings.
+- Added a compact header with Z-Deck branding, live clock, and validated battery percentage.
+- Added a concise footer for nearby mesh nodes, GPS state, SD readiness, and unread messages.
+- Kept every deeper function reachable from Map, Tools, or Settings.
+- Kept the app-only OTA boundary: NVS, LittleFS, SD, channels, keys, chats, owner settings, and UI preferences are not written.
+
 ## Z-Deck 0.2.63-cyberdeck - 2026-07-20
 
 Physical-screen launcher contrast release.

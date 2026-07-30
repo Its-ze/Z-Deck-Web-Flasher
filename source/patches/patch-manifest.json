@@ -1,10 +1,10 @@
 ﻿{
     "name":  "zdeck-public-stack",
-    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Includes the three-page 4x2 launcher, Z-Deck dashboard, manual-only Mesh Networks hub, dedicated MeshCore handoff, GPS/map/compass/DeFlock pages, chat state, Wi-Fi/OTA controls, SD tools, diagnostics, themes, sidebar placement, and validated battery/status layouts.",
+    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Includes the sketch-based six-button home screen, Z-Deck dashboard, manual-only Mesh Networks hub, dedicated MeshCore handoff, GPS/map/compass/DeFlock pages, chat state, Wi-Fi/OTA controls, SD tools, diagnostics, themes, sidebar placement, and validated battery/status layouts.",
     "release":  {
-                    "label":  "Z-Deck 0.2.63-cyberdeck",
-                    "firmwareVersion":  "2.8.0.zdeck64",
-                    "packVersion":  "0.2.63-cyberdeck",
+                    "label":  "Z-Deck 0.2.64-cyberdeck",
+                    "firmwareVersion":  "2.8.0.zdeck65",
+                    "packVersion":  "0.2.64-cyberdeck",
                     "channelDefaults":  "LongFast public setup; users add private/admin channels after flashing",
                     "privateChannelsBundled":  false,
                     "privateKeysBundled":  false,
@@ -24,9 +24,9 @@
                    "patchBase":  "origin/2.8"
                },
     "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck64-public",
-                  "latestBuiltFrom":  "20260720-zdeck64-launcher-contrast-t-deck-tft",
-                  "status":  "Z-Deck clean WSL firmware and LittleFS builds passed. zdeck64 retains startup recovery and bounded restore status while improving physical-screen launcher contrast."
+                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck65-public",
+                  "latestBuiltFrom":  "20260730-zdeck65-sketch-home-t-deck-tft",
+                  "status":  "Z-Deck clean WSL firmware and LittleFS builds passed. zdeck65 replaces launcher paging with six large direct controls while retaining startup recovery and bounded restore status."
               },
     "patchFiles":  [
                        "device-ui-map.patch",
@@ -61,7 +61,7 @@
                        "zdeck-full-source.patch",
                        "device-ui-blackberry-shell.patch"
                    ],
-    "sourceArchive":  "source/patches/2026-07-20-zdeck64-public",
+    "sourceArchive":  "source/patches/2026-07-30-zdeck65-public",
     "publicSetup":  {
                         "ownerDefault":  "Meshtastic xxxx until the owner name is configured",
                         "shortNameDefault":  "xxxx until the short name is configured",

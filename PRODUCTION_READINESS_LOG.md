@@ -1550,3 +1550,25 @@ Artifacts:
 
 Remaining usability check:
 - A USB-triggered OTA does not wake an already sleeping display. Serial diagnostics expose complete progress, but the on-device progress view should wake the screen when maintenance starts.
+
+### 2026-07-30 - Sketch-based six-button home screen
+
+Scope: rebuilt the Z-Deck home screen from the supplied sketch while retaining direct access to the existing feature set.
+
+Features checked:
+- Header: `Z-DECK`, live clock, and bounded `BAT n%` / `BAT --` fields fit without overlap in the 280-pixel content area.
+- Home controls: Alerts, Map, Messages, Contacts, Tools, and Settings render as a fixed 2x3 grid.
+- Routes: Alerts opens distance alert, Map opens mesh map, Messages opens chat, Contacts opens nodes, Tools opens the tools tab, and Settings opens user settings.
+- Footer: mesh-neighbor count, GPS state, SD state, and unread count remain visible below the grid.
+- Geometry: 134x51 buttons at rows 32, 87, and 142 end at pixel 193; the footer begins at pixel 202.
+- Preservation: app-only OTA does not write NVS, LittleFS, SD, channels, keys, chats, owner settings, or UI preferences.
+
+Validation evidence:
+- Clean WSL `t-deck-tft` firmware and LittleFS build passed against pinned Meshtastic commit `35b0590408faddfa933edec3dafd915e714f05b1`.
+- Firmware metadata reports `2.8.0.zdeck65` / `0.2.64-cyberdeck`.
+- Application payload is 3,728,800 bytes, fits the 5 MB A/B slot, and has SHA-256 `481cd61c4f8aaac7bfd765a04a8cb5f81426e67b06bbf8dfaf3c92ecadc247b8`.
+- Display, GPS-quality, map-state, and mesh-mode policy tests passed.
+- Binary string audit found the version, Z-Deck brand, and all six launcher labels.
+
+Physical-action blocker:
+- Three ESP32-S3 serial devices are attached and none is safely identified as the intended T-Deck. No device was flashed.

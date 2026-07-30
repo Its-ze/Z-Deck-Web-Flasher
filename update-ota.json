@@ -5,10 +5,10 @@
   "hardware": "T_DECK",
   "environment": "t-deck-tft",
   "latest": {
-    "title": "Z-Deck 0.2.63-cyberdeck",
-    "packVersion": "0.2.63-cyberdeck",
-    "firmwareVersion": "2.8.0.zdeck64",
-    "released": "2026-07-20",
+    "title": "Z-Deck 0.2.64-cyberdeck",
+    "packVersion": "0.2.64-cyberdeck",
+    "firmwareVersion": "2.8.0.zdeck65",
+    "released": "2026-07-30",
     "updateMode": "app-only",
     "preserves": ["meshtastic_config", "channels", "keys", "owner_settings", "sd_chat_journal", "sd_settings_backup", "sidebar_layout", "map_page_default", "owner_home_title"],
     "preUpdateBackup": {
@@ -16,12 +16,12 @@
       "reason": "A/B app-only OTA does not write NVS, LittleFS, or SD; manual SD backup remains available as a separate queued action."
     },
     "firmware": {
-      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck64-public/zdeck-firmware.bin",
-      "path": "firmware/zdeck-2.8.0-zdeck64-public/zdeck-firmware.bin",
-      "size": 3729856,
-      "sha256": "6c2390731297775a6abb7e7520adfd5aea5eb709b83399073ff37183fb025707",
-      "md5": "f1badb8d2a2626af959261a80cc7b3f4"
+      "url": "https://its-ze.github.io/Z-Deck-Web-Flasher/firmware/zdeck-2.8.0-zdeck65-public/zdeck-firmware.bin",
+      "path": "firmware/zdeck-2.8.0-zdeck65-public/zdeck-firmware.bin",
+      "size": 3728800,
+      "sha256": "481cd61c4f8aaac7bfd765a04a8cb5f81426e67b06bbf8dfaf3c92ecadc247b8",
+      "md5": "854569a8d80079b3909083510a6b4631"
     },
-    "notes": "Improves physical-screen readability with larger solid app badges, high-contrast glyphs, opaque tiles, and restrained borders while retaining the startup and restore fixes. App-only A/B OTA never overwrites MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
+    "notes": "Replaces launcher paging with six large direct controls matching the sketch: Alerts, Map, Messages, Contacts, Tools, and Settings. The compact header and footer keep clock, battery, mesh, GPS, SD, and unread state visible. App-only A/B OTA never overwrites MeshCore, NVS, LittleFS, SD files, channels, keys, or local preferences."
   }
 }

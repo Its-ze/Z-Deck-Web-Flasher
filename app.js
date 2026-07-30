@@ -171,7 +171,7 @@ async function loadCommits() {
 installModeButtons.forEach((button) => button.addEventListener("click", () => selectInstallMode(button.dataset.installMode)));
 installButton?.addEventListener("click", () => armInstaller(release.packVersion, "boot + Z-Deck OTA A/B + LittleFS"));
 dualInstallButton?.addEventListener("click", () => armInstaller(`${release.packVersion} + MeshCore`, "boot + Z-Deck OTA A/B + dedicated MeshCore"));
-otaTestInstallButton?.addEventListener("click", () => armInstaller("Legacy 0.2.53 OTA test", "zdeck54 baseline to zdeck57 OTA + dedicated MeshCore; use Standard for current zdeck64"));
+otaTestInstallButton?.addEventListener("click", () => armInstaller("Legacy 0.2.53 OTA test", "zdeck54 baseline to zdeck57 OTA + dedicated MeshCore; use Standard for current zdeck65"));
 recoveryButtons.forEach((button) => button.addEventListener("click", () => renderRecoveryMode(button.dataset.recovery)));
 
 openDonglePairing?.addEventListener("click", () => {
