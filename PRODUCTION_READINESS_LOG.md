@@ -9,6 +9,8 @@
 - Source evidence: the full patch applies cleanly to firmware commit `35b0590408faddfa933edec3dafd915e714f05b1`; no Device UI patch, Device UI injection hook, or Z-Deck-only UI define is present.
 - Build evidence: all five host policy suites passed; clean WSL app, LittleFS, Meshtastic metadata, and finalized hash targets passed for `2.8.0.zdeck67` / `0.2.67-core`.
 - Binary evidence: app size `3681728`; SHA-256 `30090171e926afeb8badf53eec59fbf6a7408e3481adb84913db76a22d23a9e0`; retired launcher and Mesh Networks UI markers are absent.
+- Publish evidence: public commit `f9a015f` reached `main`; GitHub Pages served `2.8.0.zdeck67` with the same SHA-256; project-contract, OTA, firmware-checksum, patch-manifest, link, release-drafter, and Pages workflows passed.
+- External CI note: the first dynamic CodeQL run could not initialize its Actions/Python analyses because GitHub reported no server available. JavaScript analysis passed; this follow-up publish retriggers the non-retryable dynamic scan.
 - Hardware blocker: no verified T-Deck serial device was connected; unrelated `COM3` was not opened or written. Physical screen, input, GPS, radio, Bluetooth, and OTA transition checks remain pending on identified hardware.
 
 This file is the running checklist for hourly T-Deck/Z-Deck production readiness passes.
