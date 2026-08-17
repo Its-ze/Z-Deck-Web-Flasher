@@ -1590,6 +1590,8 @@ Evidence:
 - Clean WSL app, LittleFS, mtjson, and metadata-finalization build passed for `2.8.0.zdeck66` / `0.2.66-core`.
 - App payload is 3,729,328 bytes and fits the 5 MB A/B slot.
 - `verify-project.py`, `verify-ota-release.py`, `verify-dual-release.py`, and `node --check app.js` passed locally.
+- Public commit `4ff2c25` deployed successfully; all triggered GitHub workflows passed.
+- GitHub Pages served `2.8.0.zdeck66`, and live OTA manifest/payload SHA-256 verification matched the local release.
 - No T-Deck USB identity was present; unrelated `COM3` was not opened or modified.
 
 Physical-action blocker:
