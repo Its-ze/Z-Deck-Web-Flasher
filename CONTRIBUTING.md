@@ -37,7 +37,7 @@ Improvements to `README.md`, `COMPATIBILITY.md`, `RECOVERY.md`, `KNOWN_ISSUES.md
 
 ### Firmware Source Patches
 
-The `source/patches/` directory contains the Z-Deck patch set layered on top of upstream Meshtastic firmware (branch `2.8`, target `t-deck-tft`).
+The `source/patches/` directory contains the consolidated Z-Deck patch layered on the exact upstream commit recorded in `project.json` (target `t-deck-tft`).
 
 - Patches must apply cleanly against the upstream Meshtastic `2.8` branch.
 - Contributions must be GPL v3 compatible (see [LICENSE](LICENSE)).

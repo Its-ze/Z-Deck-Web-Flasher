@@ -2,3 +2,6 @@
 Thumbs.db
 *.log
 .playwright-mcp/
+.playwright-cli/
+builds/
+zdeck-live-*.png

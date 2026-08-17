@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.66 - 2026-08-16
+
+Project refocus and reproducible OTA release.
+
+- Replaced the 29-file Device UI patch chain with one consolidated, clean-applying patch.
+- Pinned Meshtastic and Device UI to exact commits in `project.json`; clean builds no longer depend on the removed upstream `2.8` branch.
+- Added host tests for OTA version and SHA-256 policy, and made the device reject a downloaded app whose SHA-256 does not match the manifest.
+- Added deterministic app/LittleFS metadata finalization and a project-wide release verifier.
+- Reduced the active Pages tree to the current zdeck66 package, zdeck54 migration baseline, current MeshCore image, and three canonical source patches.
+- Retained the six-button home, maps/GPS/compass, chats, dual-mesh controls, queued SD maintenance, themes, Wi-Fi scan, diagnostics, and app-only preservation boundary.
+
 ## Z-Deck 0.2.64-cyberdeck - 2026-07-30
 
 Sketch-based home screen release.

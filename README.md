@@ -69,7 +69,7 @@ Devices on zdeck53 or earlier use the dual USB installer once to migrate the par
 ## Current Feature Areas
 
 - Mesh map, live compass, DF/radar, and distance warning position pages.
-- Integrated 4x4 launcher, Z-Deck dashboard, and Mesh Networks hub with explicit MeshCore readiness.
+- Six-button 2x3 launcher, Z-Deck dashboard, and Mesh Networks hub with explicit MeshCore readiness.
 - Strict GPS 3D-fix, satellite, HDOP, age, and coordinate validation; map recentering keeps the last accepted fix.
 - Newest-first direct/group chats, stable node names, delivery state, and hop count.
 - Wi-Fi scan/select and visible OTA progress/status.
@@ -85,6 +85,7 @@ Run the public release checks from this directory:
 ```powershell
 python tools\verify-ota-release.py
 python tools\verify-dual-release.py
+python tools\verify-project.py
 ```
 
 Add `--live` to `verify-ota-release.py` only after publishing when you need to compare local and GitHub Pages bytes.

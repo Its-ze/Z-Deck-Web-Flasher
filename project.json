@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "product": "Z-Deck",
+  "environment": "t-deck-tft",
+  "hardware": "T_DECK",
+  "firmware": {
+    "repository": "https://github.com/meshtastic/firmware.git",
+    "commit": "35b0590408faddfa933edec3dafd915e714f05b1"
+  },
+  "deviceUi": {
+    "repository": "https://github.com/meshtastic/device-ui.git",
+    "commit": "4bf593a82100b911ff816dddf7158ffdee2114cd"
+  },
+  "release": {
+    "title": "Z-Deck 0.2.66",
+    "packVersion": "0.2.66-core",
+    "firmwareVersion": "2.8.0.zdeck66",
+    "artifactFolder": "firmware/zdeck-2.8.0-zdeck66-public"
+  },
+  "preservedStorage": ["nvs", "littlefs", "sd"],
+  "supportArtifacts": {
+    "migration": "firmware/zdeck-2.8.0-zdeck54-migration",
+    "meshCore": "firmware/zdeck-meshcore-zdeck57-public"
+  }
+}

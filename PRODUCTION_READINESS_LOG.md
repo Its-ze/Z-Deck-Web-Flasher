@@ -1572,3 +1572,25 @@ Validation evidence:
 
 Physical-action blocker:
 - Three ESP32-S3 serial devices are attached and none is safely identified as the intended T-Deck. No device was flashed.
+
+### 2026-08-16 - zdeck66 project refocus and clean release build
+
+Scope: removed stale release and patch sprawl, repaired clean-build reproducibility, and hardened OTA payload verification without touching a device.
+
+Feature unit completed:
+- `Settings > Z-Deck OTA`: manifest policy now requires app version, MD5, SHA-256, size, and app-only mode.
+- `APPLY`: streamed firmware bytes are SHA-256 checked before `Update.end()` can activate the app; mismatch aborts with `Firmware SHA-256 mismatch.`
+- Build/release: exact firmware and Device UI commits are pinned in `project.json`; one full firmware patch and one Device UI patch replace the sequential component chain.
+- Public flasher: Standard and Dual manifests now target zdeck66 in both A/B slots; Standard includes public LittleFS and Dual leaves storage untouched.
+- Public source tree: active firmware folders reduced from 58 to 3 and dated patch archives from 46 to 0. Git history was not rewritten.
+
+Evidence:
+- Five host suites passed: display policy, GPS quality, map state, mesh mode, and OTA update policy.
+- Full source patch clean-apply check passed against Meshtastic `35b0590408faddfa933edec3dafd915e714f05b1`.
+- Clean WSL app, LittleFS, mtjson, and metadata-finalization build passed for `2.8.0.zdeck66` / `0.2.66-core`.
+- App payload is 3,729,328 bytes and fits the 5 MB A/B slot.
+- `verify-project.py`, `verify-ota-release.py`, `verify-dual-release.py`, and `node --check app.js` passed locally.
+- No T-Deck USB identity was present; unrelated `COM3` was not opened or modified.
+
+Physical-action blocker:
+- Real-device OTA, backup/restore, GPS, map rendering, Bluetooth, send/receive, and screen-overlap checks require an identified T-Deck to be connected. zdeck66 was not flashed in this run.

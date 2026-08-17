@@ -1,53 +1,41 @@
 # Source And Attribution
 
-Z-Deck Firmware Pack is based on Meshtastic firmware.
+Z-Deck is GPLv3 firmware derived from Meshtastic for the LILYGO T-Deck/T-Deck Plus.
 
-- Upstream project: https://github.com/meshtastic/firmware
-- Upstream branch used for this beta patch set: `2.8`
+- Firmware upstream: https://github.com/meshtastic/firmware
+- Pinned firmware commit: `35b0590408faddfa933edec3dafd915e714f05b1`
+- Device UI upstream: https://github.com/meshtastic/device-ui
+- Pinned Device UI commit: `4bf593a82100b911ff816dddf7158ffdee2114cd`
 - Target environment: `t-deck-tft`
+- Canonical build metadata: [`project.json`](project.json)
 - License: GNU GPL v3.0, included in [LICENSE](LICENSE)
 
-The optional dual-system package also contains a MeshCore companion-radio image.
+The optional dual-system package also contains a MeshCore companion-radio image from https://github.com/meshcore-dev/MeshCore under its MIT license. Its local return-page change is published separately.
 
-- Upstream project: https://github.com/meshcore-dev/MeshCore
-- Target: `LilyGo_TDeck_companion_radio_usb`
-- Upstream license: MIT, as documented by the MeshCore project
-- Local dual-boot addition: a `Z-Deck` page validates app 0, selects the boot partition, and reboots back to Z-Deck
+## Canonical Patches
 
-## Included Source Patches
+Only three source patches are maintained:
 
-The public beta includes the Z-Deck source patch set under [source/patches](source/patches):
+- `zdeck-full-source.patch`: complete Z-Deck delta from the pinned Meshtastic commit.
+- `device-ui-zdeck.patch`: complete UI delta from the pinned Device UI commit; embedded by the full patch for builds.
+- `meshcore-zdeck-return.patch`: optional MeshCore return-page change.
 
-- `zdeck-full-source.patch`
-- `device-ui-map.patch`
-- `device-ui-map-internet.patch`
-- `device-ui-map-pages.patch`
-- `device-ui-map-switching-fix.patch`
-- `device-ui-map-autocenter.patch`
-- `device-ui-map-fullscreen.patch`
-- `device-ui-compass-pages.patch`
-- `device-ui-screen-correction.patch`
-- `device-ui-sd-message-journal.patch`
-- `device-ui-sd-tools.patch`
-- `device-ui-home-status.patch`
-- `device-ui-usability.patch`
-- `device-ui-polish.patch`
-- `device-ui-delivery-status.patch`
-- `device-ui-brand-version.patch`
-- `device-ui-home-layout-fix.patch`
-- `device-ui-zdeck-public-stack.patch`
-- `device-ui-sidebar-layout.patch`
-- `device-ui-sidebar-overlap-fix.patch`
-- `device-ui-ota-controls.patch`
-- `device-ui-wifi-scan.patch`
-- `device-ui-state-diagnostics.patch`
-- `device-ui-deflock-radar.patch`
-- `device-ui-map-legibility.patch`
-- `device-ui-dual-mesh-switch.patch`
-- `meshcore-zdeck-return.patch`
+Historical patch chains and old binary folders remain available through Git history. They are not part of the current Pages tree or build contract.
 
-These patches document the custom changes layered on top of upstream Meshtastic firmware. The shipped binaries should be treated as GPLv3 firmware derived from Meshtastic plus these Z-Deck changes.
+## Rebuild
 
-## Rebuild Notes
+From WSL or Linux:
 
-Use the upstream Meshtastic firmware tree, check out the `2.8` branch, apply the patch set, and build the `t-deck-tft` PlatformIO environment. The current full source patch also includes the Z-Deck app-only Wi-Fi updater service, active LVGL Settings OTA controls, SD settings backup/restore support, sidebar placement with a fixed gutter/header overlap fix, bounded battery-safe owner-name home header behavior, Wi-Fi scan/select, map-page defaults, compact map controls, real compass/radar/alert position pages, map tile progress status, diagnostics, and Amber Terminal/Slate Signal/Arctic High selectable screen themes. The private workbench contains additional local helper scripts, but this public repo includes the source patches needed to review the custom firmware changes.
+```bash
+./tools/build-zdeck-wsl.sh
+```
+
+The script fetches the exact upstream commit from `project.json`, applies the full patch, runs all Z-Deck policy tests, builds the app and LittleFS, regenerates Meshtastic metadata, and refreshes app/filesystem hashes. It does not read or write a connected device.
+
+Before publishing, run:
+
+```bash
+python3 tools/verify-project.py
+python3 tools/verify-ota-release.py
+python3 tools/verify-dual-release.py
+```

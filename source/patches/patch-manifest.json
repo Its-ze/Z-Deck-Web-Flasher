@@ -1,73 +1,38 @@
-﻿{
-    "name":  "zdeck-public-stack",
-    "description":  "Public Z-Deck firmware layer for LilyGO T-Deck/T-Deck Plus on Meshtastic 2.8. Includes the sketch-based six-button home screen, Z-Deck dashboard, manual-only Mesh Networks hub, dedicated MeshCore handoff, GPS/map/compass/DeFlock pages, chat state, Wi-Fi/OTA controls, SD tools, diagnostics, themes, sidebar placement, and validated battery/status layouts.",
-    "release":  {
-                    "label":  "Z-Deck 0.2.64-cyberdeck",
-                    "firmwareVersion":  "2.8.0.zdeck65",
-                    "packVersion":  "0.2.64-cyberdeck",
-                    "channelDefaults":  "LongFast public setup; users add private/admin channels after flashing",
-                    "privateChannelsBundled":  false,
-                    "privateKeysBundled":  false,
-                    "adminKeysBundled":  false
-                },
-    "targetDevice":  {
-                         "longName":  "Z-Deck T-Deck",
-                         "shortName":  "ZDK",
-                         "platformEnvironment":  "t-deck-tft",
-                         "hardwareModel":  "T_DECK",
-                         "flashSize":  "16MB",
-                         "sdCard":  "Supported for maps, local message journal, settings backups, ringtone storage, logs, and prepare/reset setup; USB mass storage is disabled in this public build to keep serial stable."
-                     },
-    "source":  {
-                   "repository":  "https://github.com/meshtastic/firmware.git",
-                   "branch":  "2.8",
-                   "patchBase":  "origin/2.8"
-               },
-    "build":  {
-                  "artifactFolder":  "firmware/zdeck-2.8.0-zdeck65-public",
-                  "latestBuiltFrom":  "20260730-zdeck65-sketch-home-t-deck-tft",
-                  "status":  "Z-Deck clean WSL firmware and LittleFS builds passed. zdeck65 replaces launcher paging with six large direct controls while retaining startup recovery and bounded restore status."
-              },
-    "patchFiles":  [
-                       "device-ui-map.patch",
-                       "device-ui-map-internet.patch",
-                       "device-ui-screen-correction.patch",
-                       "device-ui-sd-message-journal.patch",
-                       "device-ui-usability.patch",
-                       "device-ui-polish.patch",
-                       "device-ui-delivery-status.patch",
-                       "device-ui-brand-version.patch",
-                       "device-ui-zdeck-public-stack.patch",
-                       "device-ui-sd-tools.patch",
-                       "device-ui-map-pages.patch",
-                       "device-ui-map-switching-fix.patch",
-                       "device-ui-map-autocenter.patch",
-                       "device-ui-map-fullscreen.patch",
-                       "device-ui-compass-pages.patch",
-                       "device-ui-deflock-radar.patch",
-                       "device-ui-sidebar-overlap-fix.patch",
-                       "device-ui-wifi-scan.patch",
-                       "device-ui-home-status.patch",
-                       "device-ui-home-layout-fix.patch",
-                       "device-ui-sidebar-layout.patch",
-                       "device-ui-ota-controls.patch",
-                       "device-ui-state-diagnostics.patch",
-                       "device-ui-map-legibility.patch",
-                       "device-ui-dual-mesh-switch.patch",
-                       "device-ui-map-rebuild.patch",
-                       "device-ui-dual-mesh-hotswap.patch",
-                       "device-ui-smart-map.patch",
-                       "meshcore-zdeck-return.patch",
-                       "zdeck-full-source.patch",
-                       "device-ui-blackberry-shell.patch"
-                   ],
-    "sourceArchive":  "source/patches/2026-07-30-zdeck65-public",
-    "publicSetup":  {
-                        "ownerDefault":  "Meshtastic xxxx until the owner name is configured",
-                        "shortNameDefault":  "xxxx until the short name is configured",
-                        "regionDefault":  "US",
-                        "presetDefault":  "LongFast",
-                        "hopLimitDefault":  3,
-                        "notes":  "Users can add their own channels, PSKs, owner names, and admin configuration after flashing with the Meshtastic app or CLI. No private channel data is shipped."
-                    }
+{
+  "name": "zdeck-public-stack",
+  "description": "Consolidated public Z-Deck firmware and Device UI source deltas for LILYGO T-Deck/T-Deck Plus.",
+  "release": {
+    "label": "Z-Deck 0.2.66",
+    "firmwareVersion": "2.8.0.zdeck66",
+    "packVersion": "0.2.66-core",
+    "privateChannelsBundled": false,
+    "privateKeysBundled": false,
+    "adminKeysBundled": false
+  },
+  "targetDevice": {
+    "platformEnvironment": "t-deck-tft",
+    "hardwareModel": "T_DECK",
+    "flashSize": "16MB"
+  },
+  "source": {
+    "repository": "https://github.com/meshtastic/firmware.git",
+    "commit": "35b0590408faddfa933edec3dafd915e714f05b1",
+    "deviceUiRepository": "https://github.com/meshtastic/device-ui.git",
+    "deviceUiCommit": "4bf593a82100b911ff816dddf7158ffdee2114cd"
+  },
+  "build": {
+    "artifactFolder": "firmware/zdeck-2.8.0-zdeck66-public",
+    "buildFolder": "20260816-zdeck66-refocus-t-deck-tft",
+    "status": "Clean pinned WSL app, LittleFS, metadata, and policy builds passed."
+  },
+  "patchFiles": [
+    "device-ui-zdeck.patch",
+    "meshcore-zdeck-return.patch",
+    "zdeck-full-source.patch"
+  ],
+  "publicSetup": {
+    "regionDefault": "US",
+    "presetDefault": "LongFast",
+    "notes": "No owner-specific channels, keys, names, Wi-Fi credentials, or admin configuration are shipped."
+  }
 }

@@ -1,0 +1,36 @@
+name: Verify Project Contract
+
+on:
+  push:
+    paths:
+      - "project.json"
+      - "README.md"
+      - "SOURCE.md"
+      - "manifest*.json"
+      - "update*.json"
+      - "firmware/**"
+      - "source/patches/**"
+      - "tools/verify-project.py"
+      - ".github/workflows/verify-project.yml"
+  pull_request:
+    paths:
+      - "project.json"
+      - "README.md"
+      - "SOURCE.md"
+      - "manifest*.json"
+      - "update*.json"
+      - "firmware/**"
+      - "source/patches/**"
+      - "tools/verify-project.py"
+      - ".github/workflows/verify-project.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/verify-project.py

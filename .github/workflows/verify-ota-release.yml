@@ -10,6 +10,8 @@ on:
       - "manifest-ota-test.json"
       - "firmware/**"
       - "tools/verify-ota-release.py"
+      - "tools/finalize-firmware-metadata.py"
+      - "project.json"
       - ".github/workflows/verify-ota-release.yml"
   pull_request:
     paths:
@@ -20,6 +22,8 @@ on:
       - "manifest-ota-test.json"
       - "firmware/**"
       - "tools/verify-ota-release.py"
+      - "tools/finalize-firmware-metadata.py"
+      - "project.json"
       - ".github/workflows/verify-ota-release.yml"
   workflow_dispatch:
 

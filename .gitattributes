@@ -6,4 +6,4 @@
 *.html text eol=lf
 *.css text eol=lf
 *.js text eol=lf
-*.patch text eol=lf
+*.patch text eol=lf whitespace=-blank-at-eol

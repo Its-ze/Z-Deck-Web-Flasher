@@ -1,8 +1,0 @@
-# Z-Deck zdeck63 source patches
-
-Reproducible source patches for firmware `2.8.0.zdeck63` / pack `0.2.62-cyberdeck`.
-
-- `device-ui-blackberry-shell.patch` contains the Device UI launcher, startup handoff, and visual treatment changes.
-- `zdeck-full-source.patch` is the complete firmware delta against pinned Meshtastic firmware commit `35b0590408faddfa933edec3dafd915e714f05b1`.
-
-The clean WSL build applies `zdeck-full-source.patch` and builds `t-deck-tft` firmware plus LittleFS. Public source contains no private channels, PSKs, private keys, Wi-Fi credentials, or admin credentials.
