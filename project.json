@@ -12,10 +12,10 @@
     "commit": "4bf593a82100b911ff816dddf7158ffdee2114cd"
   },
   "release": {
-    "title": "Z-Deck 0.2.66",
-    "packVersion": "0.2.66-core",
-    "firmwareVersion": "2.8.0.zdeck66",
-    "artifactFolder": "firmware/zdeck-2.8.0-zdeck66-public"
+    "title": "Z-Deck 0.2.67",
+    "packVersion": "0.2.67-core",
+    "firmwareVersion": "2.8.0.zdeck67",
+    "artifactFolder": "firmware/zdeck-2.8.0-zdeck67-public"
   },
   "preservedStorage": ["nvs", "littlefs", "sd"],
   "supportArtifacts": {

@@ -16,27 +16,27 @@
   },
   {
     "name": "README.md",
-    "length": 534,
-    "sha256": "12dfcff6417789f868a6eb1e6a147ae63774051a8364c300869d0fdd2acb4d5f"
+    "length": 551,
+    "sha256": "be73f641e791971d710cee931ed922ff806e8db1b12094cd706efe89265b6e2f"
   },
   {
     "name": "zdeck-factory.bin",
-    "length": 3794864,
-    "sha256": "1e01a14ec0f7556949ed506565d11bfec7f914d52007dfc64d168aaf4b09a30b"
+    "length": 3747264,
+    "sha256": "160da4f9dc90ebf13c00a9f5f321be70243bb0d4b77d72fc0bd104864cc906f0"
   },
   {
     "name": "zdeck-firmware.bin",
-    "length": 3729328,
-    "sha256": "b8bbe63f4e15cc73b38a75e091e900e673a190ee0b44433b5b3b6ba69686d1bd"
+    "length": 3681728,
+    "sha256": "30090171e926afeb8badf53eec59fbf6a7408e3481adb84913db76a22d23a9e0"
   },
   {
     "name": "zdeck-littlefs.bin",
     "length": 3538944,
-    "sha256": "3316e572fa958053dab66a4508e85b5fb2d002406956c44ba0e6bdbf1e8fe68a"
+    "sha256": "bcb3656d816826af97c107da26e2222422f0819bd7668552f5f9ddae5679c0f7"
   },
   {
     "name": "zdeck-meshtastic-metadata.json",
-    "length": 2338,
-    "sha256": "5196b256a594437c021f4919097572038e6bef13c5180a611208f4deb612f7a7"
+    "length": 2344,
+    "sha256": "50532296ca18401db71ac43b576be180123e15508747029e25fbac96ee316086"
   }
 ]

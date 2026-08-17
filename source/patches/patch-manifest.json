@@ -1,10 +1,10 @@
 {
   "name": "zdeck-public-stack",
-  "description": "Consolidated public Z-Deck firmware and Device UI source deltas for LILYGO T-Deck/T-Deck Plus.",
+  "description": "Public Z-Deck firmware delta with the pinned upstream Meshtastic Device UI left unmodified.",
   "release": {
-    "label": "Z-Deck 0.2.66",
-    "firmwareVersion": "2.8.0.zdeck66",
-    "packVersion": "0.2.66-core",
+    "label": "Z-Deck 0.2.67",
+    "firmwareVersion": "2.8.0.zdeck67",
+    "packVersion": "0.2.67-core",
     "privateChannelsBundled": false,
     "privateKeysBundled": false,
     "adminKeysBundled": false
@@ -21,12 +21,11 @@
     "deviceUiCommit": "4bf593a82100b911ff816dddf7158ffdee2114cd"
   },
   "build": {
-    "artifactFolder": "firmware/zdeck-2.8.0-zdeck66-public",
-    "buildFolder": "20260816-zdeck66-refocus-t-deck-tft",
-    "status": "Clean pinned WSL app, LittleFS, metadata, and policy builds passed."
+    "artifactFolder": "firmware/zdeck-2.8.0-zdeck67-public",
+    "buildFolder": "20260817-zdeck67-meshtastic-ui-t-deck-tft",
+    "status": "Clean pinned WSL app, LittleFS, metadata, policy, and stock-UI marker checks passed."
   },
   "patchFiles": [
-    "device-ui-zdeck.patch",
     "meshcore-zdeck-return.patch",
     "zdeck-full-source.patch"
   ],

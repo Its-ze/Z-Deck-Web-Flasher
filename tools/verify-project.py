@@ -65,20 +65,22 @@ def main() -> int:
     patches_dir = root / "source/patches"
     expected_patches = set(patch_manifest["patchFiles"])
     actual_patches = {path.name for path in patches_dir.glob("*.patch")}
-    check(actual_patches == expected_patches, "patch tree contains only three canonical patches")
+    check(actual_patches == expected_patches, "patch tree contains only firmware and MeshCore patches")
     archive_dirs = [path.name for path in patches_dir.iterdir() if path.is_dir()]
     check(not archive_dirs, "dated patch archives are removed from the active tree")
 
     full_patch = (patches_dir / "zdeck-full-source.patch").read_text(encoding="utf-8", errors="replace")
     embedded_ui_patches = [line for line in full_patch.splitlines() if line.startswith("diff --git a/itsz/device-ui-")]
-    check(embedded_ui_patches == ["diff --git a/itsz/device-ui-zdeck.patch b/itsz/device-ui-zdeck.patch"],
-          "full source patch embeds one consolidated Device UI patch")
+    check(not embedded_ui_patches, "full source patch does not embed a Device UI patch")
+    check("apply_itsz_device_ui_patch" not in full_patch, "firmware does not patch the Device UI dependency")
+    check("ZDECK_USB_SD_MSC_ENABLED" not in full_patch, "Device UI receives no Z-Deck-only feature defines")
     check("ZDeckUpdatePolicy.cpp" in full_patch, "full source patch includes OTA integrity policy")
     check("apply_legacy_itsz_device_ui_patch_chain" not in full_patch, "legacy patch-chain code is absent")
 
     readme = (root / "README.md").read_text(encoding="utf-8")
     source_doc = (root / "SOURCE.md").read_text(encoding="utf-8")
-    check("4x4" not in readme, "README describes the current six-button home")
+    check("Six-button" not in readme, "README does not advertise the retired custom home")
+    check("unmodified upstream Meshtastic Device UI" in readme, "README identifies the stock on-device UI")
     check(project["firmware"]["commit"] in source_doc, "SOURCE.md records the pinned firmware commit")
     check(project["deviceUi"]["commit"] in source_doc, "SOURCE.md records the pinned Device UI commit")
 

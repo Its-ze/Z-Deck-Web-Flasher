@@ -1,29 +1,29 @@
 {
-  "version": "2.8.0.zdeck66",
-  "build_epoch": 1786852800,
+  "version": "2.8.0.zdeck67",
+  "build_epoch": 1786939200,
   "platformioTarget": "t-deck-tft",
   "mcu": "esp32s3",
   "repo": "meshtastic/firmware",
   "files": [
     {
       "name": "firmware-t-deck-tft-2.8.0.35b0590.elf",
-      "md5": "0537f5b78b09a92ae14c4210fa7fca5d",
-      "bytes": 26156264
+      "md5": "2b98c77169290d176d42ff2683b2a1e9",
+      "bytes": 26005004
     },
     {
       "name": "firmware-t-deck-tft-2.8.0.35b0590.bin",
-      "md5": "a63ece5c19bc092c1a79d4988a6f780e",
-      "bytes": 3729328,
+      "md5": "da3be2ae111ef5fecf99e76b60860e23",
+      "bytes": 3681728,
       "part_name": "app0"
     },
     {
       "name": "firmware-t-deck-tft-2.8.0.35b0590.factory.bin",
-      "md5": "d3879dc4474107d9441f06b90a8171fb",
-      "bytes": 3794864
+      "md5": "4550bc89c18051afd8d97710691081b4",
+      "bytes": 3747264
     },
     {
       "name": "littlefs-t-deck-tft-2.8.0.35b0590.bin",
-      "md5": "9fb88359408cc854482b9a2a139a7dd2",
+      "md5": "64666045bf3e0b7f8cd5d2021ba10826",
       "bytes": 3538944,
       "part_name": "spiffs"
     }
@@ -31,8 +31,8 @@
   "has_mui": true,
   "has_inkhud": false,
   "buildName": "Z-Deck Pack",
-  "zDeckPackVersion": "0.2.66-core",
-  "zDeckBuildFolder": "20260816-zdeck66-refocus-t-deck-tft",
+  "zDeckPackVersion": "0.2.67-core",
+  "zDeckBuildFolder": "20260817-zdeck67-meshtastic-ui-t-deck-tft",
   "part": [
     {
       "name": "nvs",

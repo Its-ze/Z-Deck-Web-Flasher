@@ -32,9 +32,9 @@ Use `manifest-dual.json` to install the dual-system layout:
 
 The dual installer preserves existing Z-Deck configuration, channels, keys, chats, and SD files because it does not write their storage partitions.
 
-Switching is optional and never automatic. Z-Deck remains active unless you open `MESH NETWORKS` and confirm `MESHCORE >` twice within ten seconds. `ADVICE ONLY` refreshes the recommendation without switching, and `STAY ZD` returns to the Z-Deck dashboard. MeshCore likewise remains active until you explicitly press and release Enter on its `Z-DECK` page. Z-Deck records its current A/B slot before leaving, so a manual return reaches the correct slot.
+Switching is optional and never automatic. In this stock-UI release, switch from Z-Deck with the guarded USB serial command `itsz zdeck switch meshcore`. MeshCore remains active until you explicitly press and release Enter on its `Z-DECK` page. Z-Deck records its current A/B slot before leaving, so a manual return reaches the correct slot.
 
-If the Mesh Networks hub shows `USB INSTALL NEEDED`, run the dual-system browser installer once. App-only OTA deliberately cannot create or replace the dedicated MeshCore partition.
+Run the dual-system browser installer once before using the switch command. App-only OTA deliberately cannot create or replace the dedicated MeshCore partition.
 
 ## Browser Flash
 
@@ -54,28 +54,27 @@ Do not erase the device for a normal firmware upgrade. Erasing also removes loca
 
 ## OTA Updates
 
-After the initial USB install, connect Wi-Fi from the T-Deck and open `Settings > Z-Deck OTA`:
+Z-Deck 0.2.67 uses the unmodified upstream Meshtastic Device UI, so the retired `Settings > Z-Deck OTA` custom panel is intentionally absent. The preserved updater backend can be diagnosed and triggered over the Z-Deck USB serial console:
 
-- `CHECK` reads the hosted `update-ota.json` after the one-time USB migration.
-- `APPLY` downloads and verifies the app-only payload.
-- `STATUS` shows the current updater state.
-- `BACKUP SD` writes `/zdeck/backups/preferences.proto`.
-- `RESTORE SD` requires a second confirmation press.
+- `itsz zdeck status` shows updater, storage, and runtime state.
+- `itsz zdeck wifi scan` checks visible Wi-Fi networks without printing saved credentials.
+- `itsz zdeck ota check` reads the hosted `update-ota.json`.
+- `itsz zdeck ota apply` downloads and verifies the app-only payload.
+- `itsz zdeck backup-queue` writes `/zdeck/backups/preferences.proto` without blocking the UI.
+- `itsz zdeck restore confirm` restores the SD backup and reboots.
 
-Check, Apply, Backup, and Restore are queued actions so network or SD work does not block the UI callback. App-only A/B OTA does not write NVS, LittleFS, SD, or the dedicated MeshCore partition. Manual SD backup remains available but is not a mandatory OTA preflight because that old coupled path could reset the device. Treat backup files as sensitive because they can contain channels, PSKs, owner data, and security keys.
+App-only A/B OTA does not write NVS, LittleFS, SD, or the dedicated MeshCore partition. Manual SD backup remains available but is not a mandatory OTA preflight. Treat backup files as sensitive because they can contain channels, PSKs, owner data, and security keys.
 
 Devices on zdeck53 or earlier use the dual USB installer once to migrate the partition table safely. The legacy `update.json` intentionally refuses OTA because the old inactive app slot may contain MeshCore. `manifest-ota-test.json` installs zdeck54 without writing storage, providing a repeatable zdeck54-to-zdeck57 OTA test baseline.
 
 ## Current Feature Areas
 
-- Mesh map, live compass, DF/radar, and distance warning position pages.
-- Six-button 2x3 launcher, Z-Deck dashboard, and Mesh Networks hub with explicit MeshCore readiness.
-- Strict GPS 3D-fix, satellite, HDOP, age, and coordinate validation; map recentering keeps the last accepted fix.
-- Newest-first direct/group chats, stable node names, delivery state, and hop count.
-- Wi-Fi scan/select and visible OTA progress/status.
-- Guarded SD preparation, settings backup/restore, and local chat journal.
-- Right-side navigation option, battery safe zone, compact status lanes, and selectable themes.
-- On-device diagnostics and redacted USB debug commands.
+- Unmodified upstream Meshtastic Device UI at pinned commit `4bf593a82100b911ff816dddf7158ffdee2114cd`.
+- Standard Meshtastic home, messages, contacts/nodes, map, and settings behavior for the T-Deck.
+- Strict GPS 3D-fix, satellite, HDOP, age, and coordinate validation behind the standard UI.
+- A/B OTA backend with size, MD5, and SHA-256 verification plus USB status and control commands.
+- Guarded SD settings backup/restore and local chat journal.
+- Redacted USB diagnostics and manual dual-system switching.
 - Separate VoidLink T-Dongle USB network adapter flasher and pairing UI.
 
 ## Verification

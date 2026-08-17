@@ -1,5 +1,16 @@
 # Changelog
 
+## Z-Deck 0.2.67 - 2026-08-17
+
+Stock Meshtastic Device UI recovery release.
+
+- Removed the custom Device UI patch and its PlatformIO injection hook.
+- Restored the exact pinned upstream Meshtastic Device UI for the T-Deck home, messages, nodes, map, and settings pages.
+- Retained Z-Deck GPS quality policy, A/B OTA integrity checks, USB diagnostics, SD safeguards, dual-slot layout, and NVS/LittleFS/SD preservation boundaries.
+- Kept OTA, backup/restore, Wi-Fi diagnostics, and MeshCore switching available through guarded USB serial commands.
+- Added a release verifier rule that fails if a Device UI patch or Z-Deck-only UI define is reintroduced.
+- Passed a clean pinned WSL application, LittleFS, metadata, policy-test, and stock-UI marker build.
+
 ## Z-Deck 0.2.66 - 2026-08-16
 
 Project refocus and reproducible OTA release.

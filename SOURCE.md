@@ -14,10 +14,9 @@ The optional dual-system package also contains a MeshCore companion-radio image 
 
 ## Canonical Patches
 
-Only three source patches are maintained:
+Only two source patches are maintained. The pinned Meshtastic Device UI is built unchanged:
 
 - `zdeck-full-source.patch`: complete Z-Deck delta from the pinned Meshtastic commit.
-- `device-ui-zdeck.patch`: complete UI delta from the pinned Device UI commit; embedded by the full patch for builds.
 - `meshcore-zdeck-return.patch`: optional MeshCore return-page change.
 
 Historical patch chains and old binary folders remain available through Git history. They are not part of the current Pages tree or build contract.

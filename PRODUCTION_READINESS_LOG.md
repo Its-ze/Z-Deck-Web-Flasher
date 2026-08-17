@@ -1,5 +1,16 @@
 # Z-Deck Production Readiness Log
 
+### 2026-08-17 - zdeck67 stock Meshtastic Device UI recovery
+
+- Feature unit: removed the custom Z-Deck Device UI patch and restored the exact pinned upstream Meshtastic Device UI at commit `4bf593a82100b911ff816dddf7158ffdee2114cd`.
+- On-device pages compile-verified from upstream: T-Deck home, messages, nodes/contacts, map, and settings. Retired custom launcher, map/compass, OTA, SD maintenance, theme, sidebar, diagnostics, and dual-switch screens are intentionally absent.
+- Retained firmware elements: strict GPS quality policy, A/B OTA integrity checks, queued SD backup service, local chat journal, redacted diagnostics, dedicated MeshCore partition, and NVS/LittleFS/SD preservation boundaries.
+- Controls retained through USB: `itsz zdeck status`, Wi-Fi status/scan/start, OTA check/apply, queued SD backup, confirmed restore, and guarded MeshCore switching.
+- Source evidence: the full patch applies cleanly to firmware commit `35b0590408faddfa933edec3dafd915e714f05b1`; no Device UI patch, Device UI injection hook, or Z-Deck-only UI define is present.
+- Build evidence: all five host policy suites passed; clean WSL app, LittleFS, Meshtastic metadata, and finalized hash targets passed for `2.8.0.zdeck67` / `0.2.67-core`.
+- Binary evidence: app size `3681728`; SHA-256 `30090171e926afeb8badf53eec59fbf6a7408e3481adb84913db76a22d23a9e0`; retired launcher and Mesh Networks UI markers are absent.
+- Hardware blocker: no verified T-Deck serial device was connected; unrelated `COM3` was not opened or written. Physical screen, input, GPS, radio, Bluetooth, and OTA transition checks remain pending on identified hardware.
+
 This file is the running checklist for hourly T-Deck/Z-Deck production readiness passes.
 
 Rules for each run:

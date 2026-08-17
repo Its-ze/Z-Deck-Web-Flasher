@@ -6,7 +6,7 @@
   <meta name="description" content="Install Z-Deck or dual Z-Deck and MeshCore firmware on a LILYGO T-Deck from your browser.">
   <title>Z-Deck T-Deck Flasher</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260816-zdeck66">
+  <link rel="stylesheet" href="style.css?v=20260817-zdeck67">
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
 </head>
@@ -63,7 +63,7 @@
           <div class="install-copy">
             <p class="eyebrow">Standard layout</p>
             <h2>Z-Deck on both OTA slots</h2>
-            <p>Best for a first install or a dedicated Meshtastic T-Deck. The browser bundle includes the bootloader, partition table, Z-Deck app, and public LittleFS assets.</p>
+            <p>Best for a first install or a dedicated Meshtastic T-Deck. This release restores the pinned, unmodified upstream Meshtastic Device UI while retaining Z-Deck's storage-safe firmware services.</p>
             <ul class="write-map" aria-label="Standard flash contents">
               <li><span>OTA A</span><strong>Z-Deck</strong></li>
               <li><span>OTA B</span><strong>Z-Deck update slot</strong></li>
@@ -81,7 +81,7 @@
           <div class="install-copy">
             <p class="eyebrow amber">Dual-system layout</p>
             <h2>Z-Deck A/B with dedicated MeshCore</h2>
-            <p>Switch systems from the T-Deck without reflashing. MeshCore is outside both OTA slots, and this installer does not write LittleFS or NVS, preserving settings, channels, keys, chats, and SD files.</p>
+            <p>MeshCore is outside both OTA slots. Switch from Z-Deck with the guarded USB serial command, and return from MeshCore's Z-DECK page. This installer does not write LittleFS or NVS.</p>
             <ul class="write-map" aria-label="Dual flash contents">
               <li><span>OTA A/B</span><strong>Z-Deck</strong></li>
               <li><span>MeshCore</span><strong>Dedicated partition</strong></li>
@@ -99,7 +99,7 @@
           <summary>Advanced manifest</summary>
           <div class="manifest-form">
             <strong>OTA test baseline</strong>
-            <p class="muted">Legacy migration test only: installs zdeck54 without writing NVS or LittleFS, then checks the A/B OTA path. Use Standard for the current zdeck66 release.</p>
+            <p class="muted">Legacy migration test only: installs zdeck54 without writing NVS or LittleFS, then checks the A/B OTA path. Use Standard for the current zdeck67 release.</p>
             <esp-web-install-button id="otaTestInstallButton" manifest="manifest-ota-test.json">
               <button slot="activate" class="secondary-action"><i data-lucide="test-tube" aria-hidden="true"></i> Install OTA test baseline</button>
               <span slot="unsupported">Web Serial is unavailable. Use current Chrome or Edge.</span>
@@ -144,14 +144,14 @@
     <section class="system-band" aria-labelledby="switchTitle">
       <div class="section-heading">
         <div><p class="eyebrow">Dual-system control</p><h2 id="switchTitle">Manual switching only</h2></div>
-        <p>The active system stays active. Switching happens only after you open its switch page and explicitly confirm.</p>
+        <p>The active system stays active. Z-Deck switching is a guarded USB command in this stock-UI release; MeshCore retains its explicit return page.</p>
       </div>
       <div class="switch-flow">
         <article>
           <i data-lucide="monitor-up" aria-hidden="true"></i>
           <span>Z-Deck to MeshCore</span>
-          <strong>Launcher: MESH NETWORKS</strong>
-          <p>Press twice to confirm, validate the dedicated MeshCore image, and reboot.</p>
+          <strong>USB: switch meshcore</strong>
+          <p>Run <code>itsz zdeck switch meshcore</code> to validate the dedicated image and reboot.</p>
         </article>
         <i class="flow-arrow" data-lucide="arrow-left-right" aria-hidden="true"></i>
         <article>
@@ -197,13 +197,11 @@
         <a href="PRODUCTION_READINESS_LOG.md">Read verification log</a>
       </div>
       <div class="feature-list">
-        <article><i data-lucide="layout-grid" aria-hidden="true"></i><div><strong>Six-button home</strong><p>Large direct controls for Alerts, Map, Messages, Contacts, Tools, and Settings with a compact clock, battery, mesh, GPS, and SD status area.</p></div></article>
-        <article><i data-lucide="map" aria-hidden="true"></i><div><strong>Field maps</strong><p>Persistent MAP, COMP, RADAR, and ALERT controls with first-fix GPS recovery, manual pan, tile state, and offline SD support.</p></div></article>
-        <article><i data-lucide="navigation" aria-hidden="true"></i><div><strong>GPS and compass</strong><p>Strict 3D-fix quality checks, five-satellite minimum, HDOP filtering, fresh-fix gating, live heading, and coordinate diagnostics.</p></div></article>
-        <article><i data-lucide="message-square" aria-hidden="true"></i><div><strong>Mesh chat</strong><p>Newest-first conversations, stable names, hop count, and delivery state.</p></div></article>
-        <article><i data-lucide="wifi" aria-hidden="true"></i><div><strong>Wi-Fi and OTA</strong><p>Network search/select plus queued check/apply actions with progress while the interface remains responsive.</p></div></article>
-        <article><i data-lucide="database-backup" aria-hidden="true"></i><div><strong>SD resilience</strong><p>Guarded local backup and restore with progress and private-data warnings.</p></div></article>
-        <article><i data-lucide="panel-right" aria-hidden="true"></i><div><strong>Display controls</strong><p>Right-side rail option, battery safe zone, always-on display controls, compact status lanes, and themes.</p></div></article>
+        <article><i data-lucide="layout-grid" aria-hidden="true"></i><div><strong>Stock Meshtastic UI</strong><p>The pinned upstream Device UI is built unchanged for familiar T-Deck home, messages, nodes, map, and settings behavior.</p></div></article>
+        <article><i data-lucide="navigation" aria-hidden="true"></i><div><strong>Validated GPS</strong><p>Z-Deck keeps strict 3D-fix, satellite, HDOP, age, and coordinate checks behind the standard Meshtastic screens.</p></div></article>
+        <article><i data-lucide="refresh-cw" aria-hidden="true"></i><div><strong>Storage-safe OTA</strong><p>The A/B updater verifies size, MD5, and SHA-256 without writing NVS, LittleFS, SD, or MeshCore.</p></div></article>
+        <article><i data-lucide="terminal" aria-hidden="true"></i><div><strong>USB maintenance</strong><p>Redacted commands expose updater status, Wi-Fi scan, OTA check/apply, SD backup/restore, and manual MeshCore switching.</p></div></article>
+        <article><i data-lucide="database-backup" aria-hidden="true"></i><div><strong>Settings preservation</strong><p>App-only updates retain channels, keys, chats, owner settings, local preferences, and SD files.</p></div></article>
       </div>
     </section>
 
@@ -236,6 +234,6 @@
       <a href="wiki/">Wiki</a>
     </footer>
   </main>
-  <script src="app.js?v=20260816-zdeck66"></script>
+  <script src="app.js?v=20260817-zdeck67"></script>
 </body>
 </html>
